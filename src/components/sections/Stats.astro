@@ -1,0 +1,101 @@
+---
+/*
+  Uniflow in numbers. Behaviour: scripts/modules/stats.js
+  (count-up numbers, scroll word reveal, stripe wipe). Follows <About />, which dissolves into it.
+*/
+import StripeIcon from "../../assets/svg/icon-stripe.svg";
+
+const stats = [
+  { value: "12+", title: "Projects Delivered", text: "Across Webflow builds, Figma, and performance-focused launches." },
+  { value: "100%", title: "Custom Webflow Builds", text: "No generic templates. Every build is structured around the brand." },
+  { value: "3-4", title: "Week Turnaround", text: "Clear timelines, focused execution, & launch-ready delivery." },
+];
+
+// Shortest → longest, stacked at the bottom of the section.
+const stripes = [
+  { label: "DETAIL-DRIVEN EXECUTION", width: "w-2/3 md:w-[26%]" },
+  { label: "FULLY CUSTOM BUILDS", width: "w-5/6 md:w-[57%]" },
+  { label: "PERFORMANCE-OPTIMIZED", width: "w-full md:w-[82%]" },
+];
+---
+
+<section class="stats-section section overflow-clip bg-secondary" aria-label="Uniflow in numbers" data-stats>
+  <!-- Pixel ripple background (scripts/modules/pixel-background.js) -->
+  <div class="pixel-bg-wrapper">
+    <div class="pixel-section">
+      <div data-ripples="1" data-shape="circle" data-pixel-size="3" data-ink="#7E7EFE" class="bayer-dither-bg"></div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="stats-wrapper relative flex flex-col items-stretch justify-between gap-figma-60 text-white padding-top-80 padding-bottom-160">
+      <div class="relative grid grid-cols-1 gap-figma-52 sm:grid-cols-3 lg:grid-cols-4">
+        {
+          stats.map((stat, i) => (
+            <div class:list={["flex flex-col items-start justify-start gap-figma-64 border-l border-border-stat padding-left-24", i === 1 && "lg:col-start-3"]}>
+              <p class="heading-76 tabular-nums" data-stats-count>{stat.value}</p>
+              <div class="stat-text flex flex-col gap-figma-12">
+                <h3 class="heading-14 font-bold">{stat.title}</h3>
+                <p class="para-14 text-grey-20">{stat.text}</p>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+
+      <div class="stats-statement relative z-1 flex flex-col gap-figma-24">
+        <p class="text-12 text-grey-10">[02]</p>
+        <h2 class="heading-36" data-stats-reveal>
+          We help brands move beyond generic websites <span class="text-secondary-light">by creating digital experiences that feel precise, seamless, and built to last.</span>
+        </h2>
+      </div>
+    </div>
+  </div>
+
+  <div class="absolute inset-x-0 bottom-0 z-2" data-stats-stripes>
+    {
+      stripes.map((stripe) => (
+        <div class:list={["stats-stripe flex items-center justify-end bg-white text-grey-90 uppercase padding-x-16", stripe.width]} data-stats-stripe>
+          <p class="flex items-center gap-figma-8 text-12 font-semibold">
+            <StripeIcon class="size-4" aria-hidden="true" />
+            {stripe.label}
+          </p>
+        </div>
+      ))
+    }
+  </div>
+</section>
+
+<style>
+  @layer components {
+    /* Blue entrance band under the pixel dissolve; about-scene.js eases it to 0 */
+    .stats-section {
+      padding-top: var(--stats-entry-space, 0px);
+    }
+    .stats-wrapper {
+      min-height: 100lvh;
+    }
+    .stat-text {
+      width: 14.8125rem; /* 237px */
+      max-width: 100%;
+    }
+    .stats-stripe {
+      padding-block: 0.4063rem; /* 6.5px */
+    }
+    .stats-stripe + .stats-stripe {
+      margin-top: -1px;
+    }
+
+    @media (width >= 62rem) {
+      .stats-wrapper {
+        height: 100lvh;
+        min-height: 50rem; /* 800px */
+      }
+      /* Aligns with the 3rd column of the stats grid */
+      .stats-statement {
+        margin-left: calc(50% + 1.625rem);
+        width: calc(562 * var(--px));
+      }
+    }
+  }
+</style>

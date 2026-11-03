@@ -1,0 +1,139 @@
+---
+import Tag from "../ui/Tag.astro";
+import WorkCard from "../ui/WorkCard.astro";
+
+const details = { name: "NEXUS LAB", industry: "SaaS / Technology", year: "2024", duration: "6 Weeks" };
+
+// Placeholder imagery (Unsplash) — swap per project. Cover = first screen, gallery = hover preview.
+const project = (n: number) => ({
+  ...details,
+  cover: {
+    src: `/images/works/work-${n}-cover-w1220.webp`,
+    srcset: `/images/works/work-${n}-cover-w640.webp 640w, /images/works/work-${n}-cover-w1220.webp 1220w`,
+    alt: "",
+  },
+  gallery: [1, 2, 3, 4].map((k) => `/images/works/work-${n}-${k}-w900.webp`),
+});
+---
+
+<section id="work" class="section section-pixel">
+  <div class="white-fade"></div>
+  <div class="container">
+    <div>
+      <div class="spacer-140" aria-hidden="true"></div>
+
+      <div>
+        <Tag label="SELECTED WORKS" />
+        <h2 class="works-title heading-76 font-medium padding-top-12">Digital Products With Purpose</h2>
+      </div>
+
+      <!-- Row 1: large left, small right (bottom-aligned) -->
+      <div class="flex flex-col gap-figma-24 margin-top-113 lg:flex-row lg:items-end lg:justify-between lg:gap-0">
+        <WorkCard {...project(1)} />
+        <WorkCard {...project(2)} size="small" />
+      </div>
+
+      <!-- Row 2: large, centred -->
+      <div class="flex flex-col gap-figma-24 margin-top-113 lg:flex-row lg:items-center lg:justify-center">
+        <WorkCard {...project(3)} />
+      </div>
+
+      <!-- Row 3: small left, large right (bottom-aligned) -->
+      <div class="flex flex-col gap-figma-24 margin-top-113 lg:flex-row lg:items-end lg:justify-between lg:gap-0">
+        <WorkCard {...project(4)} size="small" />
+        <WorkCard {...project(5)} />
+      </div>
+
+      <div class="spacer-140" aria-hidden="true"></div>
+    </div>
+  </div>
+  <div class="white-fade is-bottom"></div>
+
+  <!-- Shared Mac-window hover preview (scripts/modules/work-preview.js) -->
+  <!-- Anchored at the cursor (0,0): label pill to its right, window just below-right — never centred on it -->
+  <div class="work-preview" aria-hidden="true" data-work-preview>
+    <span class="work-preview-ring" data-work-preview-ring></span>
+    <p class="work-preview-label text-12 font-semibold uppercase bg-white text-grey-90" data-work-preview-label>View project</p>
+    <div class="work-preview-window" data-work-preview-window>
+      <div class="work-preview-bar flex items-center gap-figma-2">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="work-preview-screen relative overflow-hidden bg-white" data-work-preview-screen></div>
+    </div>
+  </div>
+</section>
+
+<style>
+  @layer components {
+    .works-title {
+      width: 7.5789em; /* 576px at 76px */
+      max-width: 100%;
+    }
+
+    /* Zero-size anchor that sits exactly on the cursor */
+    .work-preview {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 40;
+      width: 0;
+      height: 0;
+      pointer-events: none;
+      visibility: hidden; /* shown by the script */
+    }
+    /* Small ring around the cursor */
+    .work-preview-ring {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1.5rem; /* 24px */
+      height: 1.5rem;
+      translate: -50% -50%;
+      border: 1.5px solid var(--color-white);
+      border-radius: 50%;
+      box-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.15);
+    }
+    .work-preview-label {
+      position: absolute;
+      left: 1.375rem; /* 22px right of the cursor */
+      top: 0;
+      translate: 0 -50%;
+      white-space: nowrap;
+      border-radius: 999px;
+      padding: 0.625rem 1.75rem;
+    }
+    .work-preview-window {
+      position: absolute;
+      left: -1rem; /* cursor sits just inside the window's top-left */
+      top: 1.875rem; /* 30px below the cursor */
+      width: clamp(12.5rem, 17vw, 16.25rem); /* 200 → 260px ≈ 40% of a work card */
+      padding: 0 0.125rem 0.125rem;
+      border-radius: var(--radius-sm);
+      background-color: rgb(255 255 255 / 0.35);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 1rem 2rem -1rem rgb(0 0 0 / 0.2);
+    }
+    .work-preview-bar {
+      height: 0.875rem; /* 14px */
+      padding-inline: 0.25rem;
+    }
+    .work-preview-bar span {
+      width: 0.3125rem;
+      height: 0.3125rem;
+      border-radius: 50%;
+      background-color: rgb(255 255 255 / 0.85);
+    }
+    .work-preview-screen {
+      aspect-ratio: 1 / 1;
+      border-radius: var(--radius-xs);
+    }
+    .work-preview-screen :global(img) {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+</style>

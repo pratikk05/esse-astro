@@ -1,0 +1,56 @@
+---
+import ClientLogo from "../../assets/svg/client-logo.svg";
+
+const logos = Array.from({ length: 6 });
+---
+
+<section class="section overflow-clip" aria-label="Clients">
+  <div class="container">
+    <div class="padding-y-90">
+      <!-- GSAP marquee: scripts/logo-marquee.js (drag, scroll-direction + velocity, infinite wrap) -->
+      <div class="logo-marquee relative" data-logo-marquee>
+        <div class="logo-marquee-track flex w-max" data-marquee-track>
+          <div class="flex flex-none gap-figma-12 pr-3" data-marquee-set>
+            {
+              logos.map(() => (
+                <div class="logo-tile flex flex-none items-center justify-center rounded-lg bg-surface-light">
+                  <ClientLogo class="h-4" aria-hidden="true" />
+                </div>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  @layer components {
+    .logo-marquee {
+      cursor: grab;
+      touch-action: pan-y; /* horizontal drag on touch, vertical page scroll still works */
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .logo-marquee.is-dragging {
+      cursor: grabbing;
+    }
+    .logo-marquee-track {
+      will-change: transform;
+    }
+    .logo-tile {
+      width: 13.125rem; /* 210px */
+      height: 9.375rem; /* 150px */
+      transition: transform 0.6s var(--ease-esse), background-color 0.4s ease;
+    }
+    .logo-marquee.is-dragging .logo-tile {
+      transform: scale(0.97);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .logo-tile:hover {
+        background-color: var(--color-surface);
+      }
+    }
+  }
+</style>

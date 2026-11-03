@@ -1,0 +1,65 @@
+---
+import Tag from "../ui/Tag.astro";
+import IconOpen from "../../assets/svg/icon-faq-open.svg";
+import IconClosed from "../../assets/svg/icon-faq-closed.svg";
+
+// Accordion behaviour + a11y attributes are added by scripts/modules/faq-accordion.js
+const faqs = Array.from({ length: 4 }, () => ({
+  question: "What services do you offer?",
+  answer:
+    "We specialize in Webflow development, website design, custom interactions, CMS implementation, and ongoing website support. Whether you need a brand-new website or improvements to an existing one",
+}));
+---
+
+<section class="section">
+  <div class="container">
+    <div class="flex items-start justify-center padding-y-111">
+      <div class="flex w-full max-w-[50.125rem] flex-col items-center justify-start">
+        <Tag label="OUR SERVICES" />
+        <h2 class="heading-56 padding-top-12 text-center">Frequently Asked Questions</h2>
+        <p class="faq-intro para-14 margin-top-32 text-center text-grey-70">
+          Got questions? We’ve got answers. Here’s everything you need to know about working with us.
+        </p>
+
+        <div class="faq-wrapper margin-top-64 self-stretch rounded-xl" data-ink="#000000">
+          {
+            faqs.map((faq) => (
+              <div class="faq-block padding-32">
+                <div class="faq-block-head flex items-center justify-between gap-figma-32 text-grey-70">
+                  <h3 class="heading-16 font-bold">{faq.question}</h3>
+                  <div class="faq-icon-wrapper relative size-4 flex-none">
+                    <IconOpen class="svg-ab-open absolute inset-0" />
+                    <IconClosed class="svg-ab-close absolute inset-0" />
+                  </div>
+                </div>
+                <div class="faq-hidden-block overflow-hidden">
+                  <div class="faq-answer text-grey-50">
+                    <p class="para-14">{faq.answer}</p>
+                  </div>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  @layer components {
+    .faq-intro {
+      width: 27.5em; /* 385px at 14px */
+      max-width: 100%;
+    }
+    .faq-wrapper {
+      border: 0.5px solid var(--color-border);
+    }
+    .faq-block {
+      border-bottom: 0.5px solid var(--color-border);
+    }
+    .faq-answer {
+      padding-top: 1.8rem; /* 28.8px */
+    }
+  }
+</style>

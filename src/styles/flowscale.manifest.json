@@ -1,0 +1,1132 @@
+{
+  "viewport": {
+    "min": 360,
+    "max": 1440
+  },
+  "typography": [
+    {
+      "className": "heading-76",
+      "family": "--font-primary",
+      "size": 76,
+      "rem": "4.75rem",
+      "min": 40,
+      "max": 76,
+      "weight": 400,
+      "leading": "display",
+      "tracking": "display",
+      "value": "clamp(2.5rem, calc(1.75rem + 3.3333vw), 4.75rem)",
+      "source": "Webflow heading-style-76 / -90 (767px: 40px)"
+    },
+    {
+      "className": "heading-56",
+      "family": "--font-primary",
+      "size": 56,
+      "rem": "3.5rem",
+      "min": 24,
+      "max": 56,
+      "weight": 500,
+      "leading": "display",
+      "tracking": "xl",
+      "value": "clamp(1.5rem, calc(0.8333rem + 2.963vw), 3.5rem)",
+      "source": "Webflow heading-style-56 (767px: 24px)"
+    },
+    {
+      "className": "heading-36",
+      "family": "--font-primary",
+      "size": 36,
+      "rem": "2.25rem",
+      "min": 16,
+      "max": 36,
+      "weight": 500,
+      "leading": "heading",
+      "tracking": "lg",
+      "value": "clamp(1rem, calc(0.5833rem + 1.8519vw), 2.25rem)",
+      "source": "Webflow heading-style-36 (767px: 14px → 16px floor)"
+    },
+    {
+      "className": "heading-32",
+      "family": "--font-primary",
+      "size": 32,
+      "rem": "2rem",
+      "min": 16,
+      "max": 32,
+      "weight": 500,
+      "leading": "heading",
+      "tracking": "lg",
+      "value": "clamp(1rem, calc(0.6667rem + 1.4815vw), 2rem)",
+      "source": "Webflow heading-style-32 (767px: 12px → 16px floor)"
+    },
+    {
+      "className": "heading-24",
+      "family": "--font-primary",
+      "size": 24,
+      "rem": "1.5rem",
+      "min": 16,
+      "max": 24,
+      "weight": 500,
+      "leading": "title",
+      "tracking": "xl",
+      "value": "clamp(1rem, calc(0.8333rem + 0.7407vw), 1.5rem)",
+      "source": "Webflow heading-style-24 (fallback 62.5% → 16px floor)"
+    },
+    {
+      "className": "heading-16",
+      "family": "--font-primary",
+      "size": 16,
+      "rem": "1rem",
+      "min": 16,
+      "max": 16,
+      "weight": 500,
+      "leading": "body",
+      "tracking": "sm",
+      "value": "1rem",
+      "source": "Webflow heading-style-16 (fixed)"
+    },
+    {
+      "className": "heading-14",
+      "family": "--font-primary",
+      "size": 14,
+      "rem": "0.875rem",
+      "min": 14,
+      "max": 14,
+      "weight": 500,
+      "leading": "body",
+      "tracking": "sm",
+      "value": "0.875rem",
+      "source": "Webflow heading-style-14 (fixed)"
+    },
+    {
+      "className": "para-18",
+      "family": "--font-secondary",
+      "size": 18,
+      "rem": "1.125rem",
+      "min": 15.75,
+      "max": 18,
+      "weight": 500,
+      "leading": "body",
+      "tracking": "md",
+      "value": "clamp(0.9844rem, calc(0.9375rem + 0.2083vw), 1.125rem)",
+      "source": "Webflow heading-style-18 on <p> (fallback 87.5%)"
+    },
+    {
+      "className": "para-16",
+      "family": "--font-secondary",
+      "size": 16,
+      "rem": "1rem",
+      "min": 14,
+      "max": 16,
+      "weight": 500,
+      "leading": "body",
+      "tracking": "sm",
+      "value": "clamp(0.875rem, calc(0.8333rem + 0.1852vw), 1rem)",
+      "source": "Webflow heading-style-16 on <p> (fallback 87.5%)"
+    },
+    {
+      "className": "para-14",
+      "family": "--font-secondary",
+      "size": 14,
+      "rem": "0.875rem",
+      "min": 14,
+      "max": 14,
+      "weight": 500,
+      "leading": "body",
+      "tracking": "sm",
+      "value": "0.875rem",
+      "source": "Webflow heading-style-14 on <p> (14px floor)"
+    },
+    {
+      "className": "text-14",
+      "family": "--font-tertiary",
+      "size": 14,
+      "rem": "0.875rem",
+      "min": 14,
+      "max": 14,
+      "weight": "inherit",
+      "leading": "display",
+      "tracking": "mono",
+      "value": "0.875rem",
+      "source": "Webflow para-14 (fixed)"
+    },
+    {
+      "className": "text-12",
+      "family": "--font-tertiary",
+      "size": 12,
+      "rem": "0.75rem",
+      "min": 12,
+      "max": 12,
+      "weight": "inherit",
+      "leading": "display",
+      "tracking": "mono",
+      "value": "0.75rem",
+      "source": "Webflow para-12 (fixed)"
+    }
+  ],
+  "spacing": [
+    {
+      "className": "spacer-4",
+      "kind": "spacer",
+      "px": 4,
+      "rem": "0.25rem",
+      "min": 4,
+      "max": 4,
+      "value": "0.25rem"
+    },
+    {
+      "className": "spacer-8",
+      "kind": "spacer",
+      "px": 8,
+      "rem": "0.5rem",
+      "min": 8,
+      "max": 8,
+      "value": "0.5rem"
+    },
+    {
+      "className": "spacer-12",
+      "kind": "spacer",
+      "px": 12,
+      "rem": "0.75rem",
+      "min": 12,
+      "max": 12,
+      "value": "0.75rem"
+    },
+    {
+      "className": "spacer-16",
+      "kind": "spacer",
+      "px": 16,
+      "rem": "1rem",
+      "min": 16,
+      "max": 16,
+      "value": "1rem"
+    },
+    {
+      "className": "spacer-20",
+      "kind": "spacer",
+      "px": 20,
+      "rem": "1.25rem",
+      "min": 15,
+      "max": 20,
+      "value": "clamp(0.9375rem, calc(0.8333rem + 0.463vw), 1.25rem)"
+    },
+    {
+      "className": "spacer-24",
+      "kind": "spacer",
+      "px": 24,
+      "rem": "1.5rem",
+      "min": 18,
+      "max": 24,
+      "value": "clamp(1.125rem, calc(1rem + 0.5556vw), 1.5rem)"
+    },
+    {
+      "className": "spacer-32",
+      "kind": "spacer",
+      "px": 32,
+      "rem": "2rem",
+      "min": 24,
+      "max": 32,
+      "value": "clamp(1.5rem, calc(1.3333rem + 0.7407vw), 2rem)"
+    },
+    {
+      "className": "spacer-40",
+      "kind": "spacer",
+      "px": 40,
+      "rem": "2.5rem",
+      "min": 30,
+      "max": 40,
+      "value": "clamp(1.875rem, calc(1.6667rem + 0.9259vw), 2.5rem)"
+    },
+    {
+      "className": "spacer-48",
+      "kind": "spacer",
+      "px": 48,
+      "rem": "3rem",
+      "min": 36,
+      "max": 48,
+      "value": "clamp(2.25rem, calc(2rem + 1.1111vw), 3rem)"
+    },
+    {
+      "className": "spacer-56",
+      "kind": "spacer",
+      "px": 56,
+      "rem": "3.5rem",
+      "min": 42,
+      "max": 56,
+      "value": "clamp(2.625rem, calc(2.3333rem + 1.2963vw), 3.5rem)"
+    },
+    {
+      "className": "spacer-64",
+      "kind": "spacer",
+      "px": 64,
+      "rem": "4rem",
+      "min": 48,
+      "max": 64,
+      "value": "clamp(3rem, calc(2.6667rem + 1.4815vw), 4rem)"
+    },
+    {
+      "className": "spacer-80",
+      "kind": "spacer",
+      "px": 80,
+      "rem": "5rem",
+      "min": 40,
+      "max": 80,
+      "value": "clamp(2.5rem, calc(1.6667rem + 3.7037vw), 5rem)"
+    },
+    {
+      "className": "spacer-96",
+      "kind": "spacer",
+      "px": 96,
+      "rem": "6rem",
+      "min": 48,
+      "max": 96,
+      "value": "clamp(3rem, calc(2rem + 4.4444vw), 6rem)"
+    },
+    {
+      "className": "spacer-120",
+      "kind": "spacer",
+      "px": 120,
+      "rem": "7.5rem",
+      "min": 60,
+      "max": 120,
+      "value": "clamp(3.75rem, calc(2.5rem + 5.5556vw), 7.5rem)"
+    },
+    {
+      "className": "spacer-160",
+      "kind": "spacer",
+      "px": 160,
+      "rem": "10rem",
+      "min": 80,
+      "max": 160,
+      "value": "clamp(5rem, calc(3.3333rem + 7.4074vw), 10rem)"
+    },
+    {
+      "className": "spacer-140",
+      "kind": "spacer",
+      "px": 140,
+      "rem": "8.75rem",
+      "min": 70,
+      "max": 140,
+      "value": "clamp(4.375rem, calc(2.9167rem + 6.4815vw), 8.75rem)"
+    },
+    {
+      "className": "gap-figma-2",
+      "kind": "gap",
+      "px": 2,
+      "rem": "0.125rem",
+      "min": 2,
+      "max": 2,
+      "value": "0.125rem"
+    },
+    {
+      "className": "gap-figma-8",
+      "kind": "gap",
+      "px": 8,
+      "rem": "0.5rem",
+      "min": 8,
+      "max": 8,
+      "value": "0.5rem"
+    },
+    {
+      "className": "gap-figma-9",
+      "kind": "gap",
+      "px": 9,
+      "rem": "0.5625rem",
+      "min": 9,
+      "max": 9,
+      "value": "0.5625rem"
+    },
+    {
+      "className": "gap-figma-10",
+      "kind": "gap",
+      "px": 10,
+      "rem": "0.625rem",
+      "min": 10,
+      "max": 10,
+      "value": "0.625rem"
+    },
+    {
+      "className": "gap-figma-12",
+      "kind": "gap",
+      "px": 12,
+      "rem": "0.75rem",
+      "min": 12,
+      "max": 12,
+      "value": "0.75rem"
+    },
+    {
+      "className": "gap-figma-14",
+      "kind": "gap",
+      "px": 14,
+      "rem": "0.875rem",
+      "min": 14,
+      "max": 14,
+      "value": "0.875rem"
+    },
+    {
+      "className": "gap-figma-16",
+      "kind": "gap",
+      "px": 16,
+      "rem": "1rem",
+      "min": 16,
+      "max": 16,
+      "value": "1rem"
+    },
+    {
+      "className": "gap-figma-24",
+      "kind": "gap",
+      "px": 24,
+      "rem": "1.5rem",
+      "min": 18,
+      "max": 24,
+      "value": "clamp(1.125rem, calc(1rem + 0.5556vw), 1.5rem)"
+    },
+    {
+      "className": "gap-figma-28",
+      "kind": "gap",
+      "px": 28,
+      "rem": "1.75rem",
+      "min": 28,
+      "max": 28,
+      "value": "1.75rem"
+    },
+    {
+      "className": "gap-figma-32",
+      "kind": "gap",
+      "px": 32,
+      "rem": "2rem",
+      "min": 24,
+      "max": 32,
+      "value": "clamp(1.5rem, calc(1.3333rem + 0.7407vw), 2rem)"
+    },
+    {
+      "className": "gap-figma-36",
+      "kind": "gap",
+      "px": 36,
+      "rem": "2.25rem",
+      "min": 36,
+      "max": 36,
+      "value": "2.25rem"
+    },
+    {
+      "className": "gap-figma-40",
+      "kind": "gap",
+      "px": 40,
+      "rem": "2.5rem",
+      "min": 30,
+      "max": 40,
+      "value": "clamp(1.875rem, calc(1.6667rem + 0.9259vw), 2.5rem)"
+    },
+    {
+      "className": "gap-figma-48",
+      "kind": "gap",
+      "px": 48,
+      "rem": "3rem",
+      "min": 36,
+      "max": 48,
+      "value": "clamp(2.25rem, calc(2rem + 1.1111vw), 3rem)"
+    },
+    {
+      "className": "gap-figma-52",
+      "kind": "gap",
+      "px": 52,
+      "rem": "3.25rem",
+      "min": 39,
+      "max": 52,
+      "value": "clamp(2.4375rem, calc(2.1667rem + 1.2037vw), 3.25rem)"
+    },
+    {
+      "className": "gap-figma-60",
+      "kind": "gap",
+      "px": 60,
+      "rem": "3.75rem",
+      "min": 45,
+      "max": 60,
+      "value": "clamp(2.8125rem, calc(2.5rem + 1.3889vw), 3.75rem)"
+    },
+    {
+      "className": "gap-figma-64",
+      "kind": "gap",
+      "px": 64,
+      "rem": "4rem",
+      "min": 48,
+      "max": 64,
+      "value": "clamp(3rem, calc(2.6667rem + 1.4815vw), 4rem)"
+    },
+    {
+      "className": "gap-figma-65",
+      "kind": "gap",
+      "px": 65,
+      "rem": "4.0625rem",
+      "min": 32.5,
+      "max": 65,
+      "value": "clamp(2.0313rem, calc(1.3542rem + 3.0093vw), 4.0625rem)"
+    },
+    {
+      "className": "gap-figma-95",
+      "kind": "gap",
+      "px": 95,
+      "rem": "5.9375rem",
+      "min": 47.5,
+      "max": 95,
+      "value": "clamp(2.9688rem, calc(1.9792rem + 4.3981vw), 5.9375rem)"
+    },
+    {
+      "className": "gap-figma-128",
+      "kind": "gap",
+      "px": 128,
+      "rem": "8rem",
+      "min": 64,
+      "max": 128,
+      "value": "clamp(4rem, calc(2.6667rem + 5.9259vw), 8rem)"
+    },
+    {
+      "className": "padding-7",
+      "kind": "padding",
+      "px": 7,
+      "rem": "0.4375rem",
+      "min": 7,
+      "max": 7,
+      "value": "0.4375rem"
+    },
+    {
+      "className": "padding-16",
+      "kind": "padding",
+      "px": 16,
+      "rem": "1rem",
+      "min": 16,
+      "max": 16,
+      "value": "1rem"
+    },
+    {
+      "className": "padding-20",
+      "kind": "padding",
+      "px": 20,
+      "rem": "1.25rem",
+      "min": 15,
+      "max": 20,
+      "value": "clamp(0.9375rem, calc(0.8333rem + 0.463vw), 1.25rem)"
+    },
+    {
+      "className": "padding-24",
+      "kind": "padding",
+      "px": 24,
+      "rem": "1.5rem",
+      "min": 18,
+      "max": 24,
+      "value": "clamp(1.125rem, calc(1rem + 0.5556vw), 1.5rem)"
+    },
+    {
+      "className": "padding-32",
+      "kind": "padding",
+      "px": 32,
+      "rem": "2rem",
+      "min": 24,
+      "max": 32,
+      "value": "clamp(1.5rem, calc(1.3333rem + 0.7407vw), 2rem)"
+    },
+    {
+      "className": "padding-64",
+      "kind": "padding",
+      "px": 64,
+      "rem": "4rem",
+      "min": 48,
+      "max": 64,
+      "value": "clamp(3rem, calc(2.6667rem + 1.4815vw), 4rem)"
+    },
+    {
+      "className": "padding-x-8",
+      "kind": "padding-x",
+      "px": 8,
+      "rem": "0.5rem",
+      "min": 8,
+      "max": 8,
+      "value": "0.5rem"
+    },
+    {
+      "className": "padding-x-16",
+      "kind": "padding-x",
+      "px": 16,
+      "rem": "1rem",
+      "min": 16,
+      "max": 16,
+      "value": "1rem"
+    },
+    {
+      "className": "padding-x-24",
+      "kind": "padding-x",
+      "px": 24,
+      "rem": "1.5rem",
+      "min": 18,
+      "max": 24,
+      "value": "clamp(1.125rem, calc(1rem + 0.5556vw), 1.5rem)"
+    },
+    {
+      "className": "padding-x-30",
+      "kind": "padding-x",
+      "px": 30,
+      "rem": "1.875rem",
+      "min": 22.5,
+      "max": 30,
+      "value": "clamp(1.4063rem, calc(1.25rem + 0.6944vw), 1.875rem)"
+    },
+    {
+      "className": "padding-x-32",
+      "kind": "padding-x",
+      "px": 32,
+      "rem": "2rem",
+      "min": 24,
+      "max": 32,
+      "value": "clamp(1.5rem, calc(1.3333rem + 0.7407vw), 2rem)"
+    },
+    {
+      "className": "padding-x-128",
+      "kind": "padding-x",
+      "px": 128,
+      "rem": "8rem",
+      "min": 64,
+      "max": 128,
+      "value": "clamp(4rem, calc(2.6667rem + 5.9259vw), 8rem)"
+    },
+    {
+      "className": "padding-y-14",
+      "kind": "padding-y",
+      "px": 14,
+      "rem": "0.875rem",
+      "min": 14,
+      "max": 14,
+      "value": "0.875rem"
+    },
+    {
+      "className": "padding-y-16",
+      "kind": "padding-y",
+      "px": 16,
+      "rem": "1rem",
+      "min": 16,
+      "max": 16,
+      "value": "1rem"
+    },
+    {
+      "className": "padding-y-24",
+      "kind": "padding-y",
+      "px": 24,
+      "rem": "1.5rem",
+      "min": 18,
+      "max": 24,
+      "value": "clamp(1.125rem, calc(1rem + 0.5556vw), 1.5rem)"
+    },
+    {
+      "className": "padding-y-32",
+      "kind": "padding-y",
+      "px": 32,
+      "rem": "2rem",
+      "min": 24,
+      "max": 32,
+      "value": "clamp(1.5rem, calc(1.3333rem + 0.7407vw), 2rem)"
+    },
+    {
+      "className": "padding-y-90",
+      "kind": "padding-y",
+      "px": 90,
+      "rem": "5.625rem",
+      "min": 45,
+      "max": 90,
+      "value": "clamp(2.8125rem, calc(1.875rem + 4.1667vw), 5.625rem)"
+    },
+    {
+      "className": "padding-y-96",
+      "kind": "padding-y",
+      "px": 96,
+      "rem": "6rem",
+      "min": 48,
+      "max": 96,
+      "value": "clamp(3rem, calc(2rem + 4.4444vw), 6rem)"
+    },
+    {
+      "className": "padding-y-100",
+      "kind": "padding-y",
+      "px": 100,
+      "rem": "6.25rem",
+      "min": 50,
+      "max": 100,
+      "value": "clamp(3.125rem, calc(2.0833rem + 4.6296vw), 6.25rem)"
+    },
+    {
+      "className": "padding-y-111",
+      "kind": "padding-y",
+      "px": 111,
+      "rem": "6.9375rem",
+      "min": 55.5,
+      "max": 111,
+      "value": "clamp(3.4688rem, calc(2.3125rem + 5.1389vw), 6.9375rem)"
+    },
+    {
+      "className": "padding-top-12",
+      "kind": "padding-top",
+      "px": 12,
+      "rem": "0.75rem",
+      "min": 12,
+      "max": 12,
+      "value": "0.75rem"
+    },
+    {
+      "className": "padding-top-21",
+      "kind": "padding-top",
+      "px": 21,
+      "rem": "1.3125rem",
+      "min": 15.75,
+      "max": 21,
+      "value": "clamp(0.9844rem, calc(0.875rem + 0.4861vw), 1.3125rem)"
+    },
+    {
+      "className": "padding-top-24",
+      "kind": "padding-top",
+      "px": 24,
+      "rem": "1.5rem",
+      "min": 24,
+      "max": 24,
+      "value": "1.5rem"
+    },
+    {
+      "className": "padding-top-28",
+      "kind": "padding-top",
+      "px": 28,
+      "rem": "1.75rem",
+      "min": 21,
+      "max": 28,
+      "value": "clamp(1.3125rem, calc(1.1667rem + 0.6481vw), 1.75rem)"
+    },
+    {
+      "className": "padding-top-32",
+      "kind": "padding-top",
+      "px": 32,
+      "rem": "2rem",
+      "min": 24,
+      "max": 32,
+      "value": "clamp(1.5rem, calc(1.3333rem + 0.7407vw), 2rem)"
+    },
+    {
+      "className": "padding-top-52",
+      "kind": "padding-top",
+      "px": 52,
+      "rem": "3.25rem",
+      "min": 39,
+      "max": 52,
+      "value": "clamp(2.4375rem, calc(2.1667rem + 1.2037vw), 3.25rem)"
+    },
+    {
+      "className": "padding-top-80",
+      "kind": "padding-top",
+      "px": 80,
+      "rem": "5rem",
+      "min": 40,
+      "max": 80,
+      "value": "clamp(2.5rem, calc(1.6667rem + 3.7037vw), 5rem)"
+    },
+    {
+      "className": "padding-top-128",
+      "kind": "padding-top",
+      "px": 128,
+      "rem": "8rem",
+      "min": 64,
+      "max": 128,
+      "value": "clamp(4rem, calc(2.6667rem + 5.9259vw), 8rem)"
+    },
+    {
+      "className": "padding-bottom-12",
+      "kind": "padding-bottom",
+      "px": 12,
+      "rem": "0.75rem",
+      "min": 12,
+      "max": 12,
+      "value": "0.75rem"
+    },
+    {
+      "className": "padding-bottom-24",
+      "kind": "padding-bottom",
+      "px": 24,
+      "rem": "1.5rem",
+      "min": 18,
+      "max": 24,
+      "value": "clamp(1.125rem, calc(1rem + 0.5556vw), 1.5rem)"
+    },
+    {
+      "className": "padding-bottom-32",
+      "kind": "padding-bottom",
+      "px": 32,
+      "rem": "2rem",
+      "min": 24,
+      "max": 32,
+      "value": "clamp(1.5rem, calc(1.3333rem + 0.7407vw), 2rem)"
+    },
+    {
+      "className": "padding-bottom-40",
+      "kind": "padding-bottom",
+      "px": 40,
+      "rem": "2.5rem",
+      "min": 30,
+      "max": 40,
+      "value": "clamp(1.875rem, calc(1.6667rem + 0.9259vw), 2.5rem)"
+    },
+    {
+      "className": "padding-bottom-122",
+      "kind": "padding-bottom",
+      "px": 122,
+      "rem": "7.625rem",
+      "min": 61,
+      "max": 122,
+      "value": "clamp(3.8125rem, calc(2.5417rem + 5.6481vw), 7.625rem)"
+    },
+    {
+      "className": "padding-bottom-160",
+      "kind": "padding-bottom",
+      "px": 160,
+      "rem": "10rem",
+      "min": 128,
+      "max": 160,
+      "value": "clamp(8rem, calc(7.3333rem + 2.963vw), 10rem)"
+    },
+    {
+      "className": "padding-left-24",
+      "kind": "padding-left",
+      "px": 24,
+      "rem": "1.5rem",
+      "min": 18,
+      "max": 24,
+      "value": "clamp(1.125rem, calc(1rem + 0.5556vw), 1.5rem)"
+    },
+    {
+      "className": "padding-left-40",
+      "kind": "padding-left",
+      "px": 40,
+      "rem": "2.5rem",
+      "min": 30,
+      "max": 40,
+      "value": "clamp(1.875rem, calc(1.6667rem + 0.9259vw), 2.5rem)"
+    },
+    {
+      "className": "margin-16",
+      "kind": "margin",
+      "px": 16,
+      "rem": "1rem",
+      "min": 16,
+      "max": 16,
+      "value": "1rem"
+    },
+    {
+      "className": "margin-24",
+      "kind": "margin",
+      "px": 24,
+      "rem": "1.5rem",
+      "min": 18,
+      "max": 24,
+      "value": "clamp(1.125rem, calc(1rem + 0.5556vw), 1.5rem)"
+    },
+    {
+      "className": "margin-32",
+      "kind": "margin",
+      "px": 32,
+      "rem": "2rem",
+      "min": 24,
+      "max": 32,
+      "value": "clamp(1.5rem, calc(1.3333rem + 0.7407vw), 2rem)"
+    },
+    {
+      "className": "margin-y-38",
+      "kind": "margin-y",
+      "px": 38,
+      "rem": "2.375rem",
+      "min": 28.5,
+      "max": 38,
+      "value": "clamp(1.7813rem, calc(1.5833rem + 0.8796vw), 2.375rem)"
+    },
+    {
+      "className": "margin-top-24",
+      "kind": "margin-top",
+      "px": 24,
+      "rem": "1.5rem",
+      "min": 18,
+      "max": 24,
+      "value": "clamp(1.125rem, calc(1rem + 0.5556vw), 1.5rem)"
+    },
+    {
+      "className": "margin-top-32",
+      "kind": "margin-top",
+      "px": 32,
+      "rem": "2rem",
+      "min": 24,
+      "max": 32,
+      "value": "clamp(1.5rem, calc(1.3333rem + 0.7407vw), 2rem)"
+    },
+    {
+      "className": "margin-top-64",
+      "kind": "margin-top",
+      "px": 64,
+      "rem": "4rem",
+      "min": 48,
+      "max": 64,
+      "value": "clamp(3rem, calc(2.6667rem + 1.4815vw), 4rem)"
+    },
+    {
+      "className": "margin-top-80",
+      "kind": "margin-top",
+      "px": 80,
+      "rem": "5rem",
+      "min": 40,
+      "max": 80,
+      "value": "clamp(2.5rem, calc(1.6667rem + 3.7037vw), 5rem)"
+    },
+    {
+      "className": "margin-top-111",
+      "kind": "margin-top",
+      "px": 111,
+      "rem": "6.9375rem",
+      "min": 55.5,
+      "max": 111,
+      "value": "clamp(3.4688rem, calc(2.3125rem + 5.1389vw), 6.9375rem)"
+    },
+    {
+      "className": "margin-top-113",
+      "kind": "margin-top",
+      "px": 113,
+      "rem": "7.0625rem",
+      "min": 56.5,
+      "max": 113,
+      "value": "clamp(3.5313rem, calc(2.3542rem + 5.2315vw), 7.0625rem)"
+    },
+    {
+      "className": "margin-top-120",
+      "kind": "margin-top",
+      "px": 120,
+      "rem": "7.5rem",
+      "min": 60,
+      "max": 120,
+      "value": "clamp(3.75rem, calc(2.5rem + 5.5556vw), 7.5rem)"
+    },
+    {
+      "className": "margin-bottom-24",
+      "kind": "margin-bottom",
+      "px": 24,
+      "rem": "1.5rem",
+      "min": 18,
+      "max": 24,
+      "value": "clamp(1.125rem, calc(1rem + 0.5556vw), 1.5rem)"
+    },
+    {
+      "className": "margin-bottom-32",
+      "kind": "margin-bottom",
+      "px": 32,
+      "rem": "2rem",
+      "min": 24,
+      "max": 32,
+      "value": "clamp(1.5rem, calc(1.3333rem + 0.7407vw), 2rem)"
+    },
+    {
+      "className": "margin-right-115",
+      "kind": "margin-right",
+      "px": 115,
+      "rem": "7.1875rem",
+      "min": 57.5,
+      "max": 115,
+      "value": "clamp(3.5938rem, calc(2.3958rem + 5.3241vw), 7.1875rem)"
+    }
+  ],
+  "colors": [
+    {
+      "name": "black",
+      "token": "--color-black",
+      "value": "#000",
+      "note": ""
+    },
+    {
+      "name": "white",
+      "token": "--color-white",
+      "value": "#fff",
+      "note": ""
+    },
+    {
+      "name": "primary",
+      "token": "--color-primary",
+      "value": "#2d62ff",
+      "note": "Webflow \"brand blue\" (CTA symbol, focus)"
+    },
+    {
+      "name": "secondary",
+      "token": "--color-secondary",
+      "value": "#2929fd",
+      "note": "electric blue (pixel section, CTA hover)"
+    },
+    {
+      "name": "accent",
+      "token": "--color-accent",
+      "value": "#1bdbce",
+      "note": "tag square"
+    },
+    {
+      "name": "background",
+      "token": "--color-background",
+      "value": "#fff",
+      "note": ""
+    },
+    {
+      "name": "surface",
+      "token": "--color-surface",
+      "value": "#efefef",
+      "note": "grey sections"
+    },
+    {
+      "name": "surface-light",
+      "token": "--color-surface-light",
+      "value": "#f7f7f7",
+      "note": "logo tiles"
+    },
+    {
+      "name": "text",
+      "token": "--color-text",
+      "value": "#000",
+      "note": ""
+    },
+    {
+      "name": "text-muted",
+      "token": "--color-text-muted",
+      "value": "#586464",
+      "note": "= grey-60"
+    },
+    {
+      "name": "grey-10",
+      "token": "--color-grey-10",
+      "value": "#e3e8e8",
+      "note": "Figma greys/grey-10 (nav text on dark)"
+    },
+    {
+      "name": "grey-20",
+      "token": "--color-grey-20",
+      "value": "#c8d2d2",
+      "note": ""
+    },
+    {
+      "name": "grey-40",
+      "token": "--color-grey-40",
+      "value": "#929c9c",
+      "note": ""
+    },
+    {
+      "name": "grey-50",
+      "token": "--color-grey-50",
+      "value": "#6d7777",
+      "note": ""
+    },
+    {
+      "name": "grey-60",
+      "token": "--color-grey-60",
+      "value": "#586464",
+      "note": ""
+    },
+    {
+      "name": "grey-70",
+      "token": "--color-grey-70",
+      "value": "#3c4646",
+      "note": ""
+    },
+    {
+      "name": "grey-80",
+      "token": "--color-grey-80",
+      "value": "#2d3737",
+      "note": "Figma greys/grey-80 (menu links)"
+    },
+    {
+      "name": "grey-90",
+      "token": "--color-grey-90",
+      "value": "#0d1111",
+      "note": ""
+    },
+    {
+      "name": "border",
+      "token": "--color-border",
+      "value": "#aeb8b8",
+      "note": ""
+    },
+    {
+      "name": "border-stat",
+      "token": "--color-border-stat",
+      "value": "#4a5dff",
+      "note": ""
+    },
+    {
+      "name": "line-on-dark",
+      "token": "--color-line-on-dark",
+      "value": "#ffffff12",
+      "note": "hero/grid hairlines on black"
+    },
+    {
+      "name": "line-on-light",
+      "token": "--color-line-on-light",
+      "value": "#00000012",
+      "note": "grid hairlines on grey"
+    },
+    {
+      "name": "success",
+      "token": "--color-success",
+      "value": "#cef5ca",
+      "note": ""
+    },
+    {
+      "name": "success-dark",
+      "token": "--color-success-dark",
+      "value": "#114e0b",
+      "note": ""
+    },
+    {
+      "name": "warning",
+      "token": "--color-warning",
+      "value": "#fcf8d8",
+      "note": ""
+    },
+    {
+      "name": "warning-dark",
+      "token": "--color-warning-dark",
+      "value": "#5e5515",
+      "note": ""
+    },
+    {
+      "name": "error",
+      "token": "--color-error",
+      "value": "#f8e4e4",
+      "note": ""
+    },
+    {
+      "name": "error-dark",
+      "token": "--color-error-dark",
+      "value": "#3b0b0b",
+      "note": ""
+    },
+    {
+      "name": "focus",
+      "token": "--color-focus",
+      "value": "#4d65ff",
+      "note": ""
+    }
+  ],
+  "leading": {
+    "display": "1",
+    "heading": "1.1",
+    "title": "1.2",
+    "body": "1.4",
+    "base": "1.5"
+  },
+  "tracking": {
+    "display": "-0.07em",
+    "xl": "-0.06em",
+    "lg": "-0.04em",
+    "md": "-0.025em",
+    "sm": "-0.02em",
+    "mono": "-0.01em"
+  },
+  "fonts": {
+    "primary": "\"42 Dotsans\", Arial, sans-serif",
+    "secondary": "\"42 Dotsans\", Arial, sans-serif",
+    "tertiary": "Jetbrainsmono, Verdana, sans-serif",
+    "weight-light": "300",
+    "weight-normal": "400",
+    "weight-medium": "500",
+    "weight-semibold": "600",
+    "weight-bold": "700"
+  }
+}

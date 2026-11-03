@@ -1,0 +1,131 @@
+---
+/**
+ * Project card used in the Selected Works section.
+ * Hover (fine pointers): cover goes grayscale, the details panel drops in row by row,
+ * the name strip grows to full width, and the shared Mac-window preview (Works.astro)
+ * follows the cursor cycling through `gallery` — scripts/modules/work-preview.js.
+ * Touch: details are always visible, no preview.
+ */
+import WorkIcon from "../../assets/svg/icon-work.svg";
+
+interface Props {
+  size?: "large" | "small";
+  name: string;
+  industry: string;
+  year: string;
+  duration: string;
+  cover: { src: string; srcset?: string; alt?: string };
+  /** Screens shown in the hover preview window */
+  gallery?: string[];
+}
+
+const { size = "large", name, industry, year, duration, cover, gallery = [] } = Astro.props;
+
+const meta = [
+  ["Industry", industry],
+  ["Year", year],
+  ["Duration", duration],
+];
+---
+
+<article
+  class:list={["component-work-card relative overflow-hidden rounded-2xl border border-border", { "is-small": size === "small" }]}
+  data-work-card
+  data-work-gallery={JSON.stringify(gallery)}
+>
+  <img
+    src={cover.src}
+    srcset={cover.srcset}
+    sizes="(min-width: 992px) 43vw, 100vw"
+    alt={cover.alt ?? ""}
+    loading="lazy"
+    class="work-card-image parallax-img size-full object-cover"
+  />
+
+  <dl class="work-card-meta absolute top-2 left-2 m-0 flex flex-col gap-figma-14 rounded-panel bg-white padding-20">
+    {
+      meta.map(([label, value]) => (
+        <div class="work-card-meta-row flex justify-between">
+          <dt class="text-12 font-semibold uppercase">{label}</dt>
+          <dd class="m-0 text-12 font-semibold text-grey-70">{value}</dd>
+        </div>
+      ))
+    }
+  </dl>
+
+  <div class="absolute inset-x-0 bottom-0">
+    <p class="work-card-strip flex items-center justify-end gap-figma-8 bg-white padding-x-30 padding-y-14">
+      <WorkIcon class="size-4" aria-hidden="true" />
+      <span class="text-12 font-semibold">{name}</span>
+    </p>
+  </div>
+</article>
+
+<style>
+  @layer components {
+    .component-work-card {
+      width: 100%;
+      aspect-ratio: 610 / 614;
+    }
+    .component-work-card.is-small {
+      aspect-ratio: 463 / 466;
+    }
+    .work-card-meta {
+      width: 19.25rem; /* 308px */
+      max-width: calc(100% - 1rem);
+    }
+    .work-card-strip {
+      width: 60%;
+      transition: width 0.7s var(--ease-esse);
+    }
+
+    @media (width >= 48rem) {
+      .work-card-strip {
+        width: 40%;
+      }
+    }
+    @media (width >= 62rem) {
+      .component-work-card {
+        width: calc(610 * var(--px));
+        height: calc(614 * var(--px));
+        aspect-ratio: auto;
+      }
+      .component-work-card.is-small {
+        width: calc(463 * var(--px));
+        height: calc(466 * var(--px));
+      }
+    }
+
+    /* ---- Hover state (mouse / trackpad only; touch keeps details visible) ---- */
+    @media (hover: hover) and (pointer: fine) {
+      .work-card-image {
+        transition: filter 0.6s cubic-bezier(0, 0.89, 0.41, 1);
+      }
+      .work-card-meta {
+        opacity: 0;
+        transform: translateY(-0.75rem);
+        transition: opacity 0.4s ease, transform 0.5s var(--ease-esse);
+      }
+      .work-card-meta-row {
+        opacity: 0;
+        transform: translateY(-50%);
+        transition: opacity 0.4s ease, transform 0.4s var(--ease-esse);
+      }
+
+      .component-work-card:is(:hover, :focus-within) .work-card-image {
+        filter: grayscale(1);
+      }
+      .component-work-card:is(:hover, :focus-within) .work-card-meta,
+      .component-work-card:is(:hover, :focus-within) .work-card-meta-row {
+        opacity: 1;
+        transform: none;
+      }
+      .component-work-card:is(:hover, :focus-within) .work-card-meta-row:nth-child(1) { transition-delay: 0.1s; }
+      .component-work-card:is(:hover, :focus-within) .work-card-meta-row:nth-child(2) { transition-delay: 0.2s; }
+      .component-work-card:is(:hover, :focus-within) .work-card-meta-row:nth-child(3) { transition-delay: 0.3s; }
+      .component-work-card:is(:hover, :focus-within) .work-card-strip {
+        width: 100%;
+      }
+    }
+  }
+</style>

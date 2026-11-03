@@ -1,0 +1,232 @@
+---
+/*
+  "Who we are" — sticky scroll scene with the metallic loop sculpture (Three.js).
+  Behaviour: scripts/modules/about-scene.js. Must sit directly before <Stats />:
+  the last viewport of this scene dissolves into Stats through a pixel mask.
+*/
+const statement =
+  "We build thoughtful Webflow websites that combine clarity, performance, and precision—crafted around your brand, never a template.";
+const words = statement.split(" ");
+
+// 8 tiles from 5 images (the prototype repeats the first three)
+const tiles = [1, 2, 3, 4, 5, 1, 2, 3].map((n) => `/images/about-tile-${n}-w240.webp`);
+---
+
+<section id="about" class="about-scene section" aria-label="Who we are" data-about-scene>
+  <div class="about-stage overflow-hidden bg-background" data-about-stage>
+    <div class="about-grid" aria-hidden="true" data-about-grid></div>
+
+    <div class="about-strip container-wide text-12 font-semibold uppercase text-grey-70" data-about-strip>
+      <span>[02]</span>
+      <span>Who we are</span>
+      <span>©2K26</span>
+    </div>
+
+    <div class="about-opening container-wide">
+      <h2 class="heading-56 text-grey-90" data-about-title>Different minds.<br />One flow.</h2>
+      <p class="text-12 leading-base uppercase text-text-muted margin-top-24" data-about-note>
+        Independent thinkers.<br />Working as one.<br />Building with clarity.
+      </p>
+    </div>
+
+    <canvas class="about-canvas" aria-hidden="true" data-about-canvas></canvas>
+
+    <h2 class="about-statement heading-36 text-center" data-about-statement>
+      {words.map((word) => <><span class="about-word inline-block">{word}</span>{" "}</>)}
+    </h2>
+
+    <div class="about-gallery" aria-hidden="true" data-about-gallery>
+      {
+        tiles.map((src) => (
+          <div class="about-tile overflow-hidden rounded-sm border border-border bg-surface" data-about-tile>
+            <img src={src} alt="" loading="lazy" draggable="false" class="block size-full object-cover" />
+          </div>
+        ))
+      }
+    </div>
+
+    <p class="about-hint container-wide text-12 uppercase text-text-muted" data-about-hint>Scroll to meet Uniflow</p>
+  </div>
+</section>
+
+<style>
+  @layer components {
+    /* Scroll length: story + 1.1 viewports for the pixel dissolve into Stats */
+    .about-scene {
+      height: 385svh;
+      background-color: var(--color-secondary);
+    }
+    .about-stage {
+      position: sticky;
+      top: 0;
+      z-index: 4; /* above Stats while the masked surface releases it */
+      height: 100svh;
+      min-height: 33.75rem; /* 540px */
+      isolation: isolate;
+      pointer-events: none;
+    }
+    /* Next section slides under the last viewport of the scene */
+    .about-scene + :global(section) {
+      margin-top: -100svh;
+      z-index: 3;
+    }
+
+    .about-grid {
+      position: absolute;
+      inset: 0;
+      opacity: 0.45;
+      --line: color-mix(in srgb, var(--color-grey-10) 33%, transparent);
+      background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+      background-size: 2.5rem 2.5rem;
+      mask-image: linear-gradient(transparent 8%, #000 48%, transparent 100%);
+    }
+
+    .about-strip {
+      position: absolute;
+      z-index: 3;
+      inset: 4.5rem 0 auto; /* clears the fixed nav CTA */
+      display: flex;
+      justify-content: space-between;
+      will-change: opacity;
+    }
+    .about-strip span {
+      position: relative;
+      padding-top: 1.5rem;
+    }
+    .about-strip::before {
+      content: "";
+      position: absolute;
+      inset: 0 var(--container-padding) auto;
+      border-top: 0.5px solid var(--color-border);
+    }
+    /* Tick above each label */
+    .about-strip span::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0.5px;
+      height: 0.8125rem; /* 13px */
+      background-color: var(--color-border);
+    }
+    .about-strip span:nth-child(2) {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .about-strip span:nth-child(2)::before {
+      left: 50%;
+    }
+    .about-strip span:last-child::before {
+      left: auto;
+      right: 0;
+    }
+
+    .about-opening {
+      position: absolute;
+      z-index: 2;
+      left: 0;
+      top: 30%;
+      width: 100%;
+    }
+
+    .about-canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .about-statement {
+      position: absolute;
+      z-index: 2;
+      top: 6%;
+      left: 6%;
+      width: 88%;
+      opacity: 0;
+    }
+    .about-word {
+      color: var(--color-border);
+      will-change: color;
+    }
+
+    .about-gallery {
+      position: absolute;
+      z-index: 2;
+      left: -30%;
+      top: 83%;
+      width: 160%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10vw;
+      will-change: transform;
+    }
+    .about-tile {
+      flex: none;
+      width: 2.875rem; /* 46px */
+      aspect-ratio: 1;
+      opacity: 0;
+      transform: translateY(11.25rem);
+    }
+    .about-tile:nth-child(3n + 2) {
+      width: 2.5rem; /* 40px */
+    }
+
+    .about-hint {
+      position: absolute;
+      z-index: 2;
+      bottom: 11%;
+      left: 0;
+    }
+
+    @media (width >= 48rem) {
+      .about-opening {
+        top: 50%;
+        width: 44%;
+        transform: translateY(-50%);
+      }
+      .about-statement {
+        left: 50%;
+        width: 76%;
+        max-width: 56.25rem; /* 900px */
+        translate: -50% 0; /* `translate`, not `transform`: the scroll script owns transform */
+      }
+      .about-strip {
+        top: 6.5rem; /* 104px */
+      }
+      .about-gallery {
+        left: 0;
+        top: 82%;
+        width: 100%;
+        gap: 4vw;
+        padding-inline: 2.2%;
+      }
+      .about-tile {
+        width: clamp(2.875rem, 5.7vw, 5.25rem); /* 46 → 84px */
+      }
+      .about-tile:nth-child(3n + 2) {
+        width: clamp(2.625rem, 4.7vw, 4.25rem); /* 42 → 68px */
+      }
+      .about-hint {
+        bottom: 8%;
+      }
+    }
+    @media (width >= 62rem) {
+      .about-stage {
+        min-height: 43.75rem; /* 700px */
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .about-scene {
+        height: 275svh;
+      }
+      .about-word {
+        color: var(--color-grey-90);
+      }
+    }
+  }
+</style>

@@ -1,0 +1,379 @@
+---
+/**
+ * Site navbar + menu — Figma "NavBar / Web / Default" (109:802), "Menu - Web" (20:14996), "Menu - Mobile" (20:15150).
+ * Open/close animation: src/scripts/menu.js (GSAP). Desktop (lg+) opens a card behind the CTA cluster;
+ * below lg it opens a full-screen panel.
+ */
+import LogoLight from "../../assets/svg/menu/logo-light.svg";
+import LogoDark from "../../assets/svg/menu/logo-dark.svg";
+import IconHamburger from "../../assets/svg/menu/icon-hamburger.svg";
+import MenuCloseDesktop from "../../assets/svg/menu/menu-close-desktop.svg";
+import MenuCloseMobile from "../../assets/svg/menu/menu-close-mobile.svg";
+import DividerDesktop from "../../assets/svg/menu/divider-desktop.svg";
+import DividerMobile from "../../assets/svg/menu/divider-mobile.svg";
+import IconInstagram from "../../assets/svg/menu/icon-instagram.svg";
+import SocialXButton from "../../assets/svg/menu/social-x-button.svg";
+import IconLinkedin from "../../assets/svg/menu/icon-linkedin.svg";
+
+const primaryLinks = [
+  { label: "HOME", href: "#top" },
+  { label: "WORK", href: "#work" },
+  { label: "SERVICES", href: "#services" },
+  { label: "ABOUT", href: "#about" },
+  { label: "CONTACT", href: "#contact" },
+];
+const legalLinks = [
+  { label: "TERMS & CONDITIONS", href: "#" },
+  { label: "PRIVACY POLICY", href: "#" },
+];
+// Placeholder hrefs — replace with the real profiles.
+const socials = { instagram: "#", x: "#", linkedin: "#" };
+
+const chars = (label: string) => [...label].map((c) => (c === " " ? " " : c));
+---
+
+<header id="top" class="site-header absolute inset-x-0 top-0 z-50" data-menu-root>
+  <div class="nav-row relative z-2 flex items-start justify-between padding-x-16 padding-top-24 lg:padding-32">
+    <a href="#top" class="nav-logo relative z-1 block" aria-label="Uniflow — home" data-menu-link>
+      <LogoLight class="nav-logo-light" aria-hidden="true" />
+    </a>
+
+    <div class="nav-main flex items-start justify-end lg:justify-between">
+      <div class="nav-info hidden items-start justify-between lg:flex" data-nav-info>
+        <div class="flex items-start gap-figma-12">
+          <span class="nav-square" aria-hidden="true"></span>
+          <p class="nav-text text-12 font-semibold leading-base tracking-sm">SEAMLESS DIGITAL EXPERIENCES.<br />BUILT WITH CLARITY.</p>
+        </div>
+        <div class="nav-time flex flex-col items-end justify-center gap-figma-8">
+          <div class="flex w-full items-center gap-figma-9">
+            <span class="nav-square" aria-hidden="true"></span>
+            <p class="nav-text text-12 nav-time-text font-semibold leading-base tracking-sm"><time data-ist-clock>[ 2.30PM ]</time></p>
+          </div>
+          <p class="nav-text text-12 nav-time-text font-semibold leading-base tracking-sm">INDIAN<br />STANDARD TIME</p>
+        </div>
+      </div>
+
+      <!-- CTA cluster: stays fixed while the rest of the navbar scrolls away.
+           The desktop menu card is anchored to this box so it always sits behind the buttons. -->
+      <div class="nav-cta fixed flex items-center gap-figma-2">
+        <a href="#contact" class="nav-cta-button relative z-1 hidden items-center justify-center text-12 font-semibold uppercase lg:flex" data-menu-cta data-menu-link>
+          START A PROJECT
+        </a>
+
+        <button
+          type="button"
+          class="menu-toggle relative z-1 flex-none"
+          aria-expanded="false"
+          aria-controls="site-menu"
+          aria-label="Open menu"
+          data-menu-toggle
+        >
+          <span class="menu-toggle-closed absolute inset-0 flex items-center justify-center" data-menu-icon-closed>
+            <IconHamburger aria-hidden="true" />
+          </span>
+          <span class="menu-toggle-open absolute inset-0" data-menu-icon-open>
+            <MenuCloseDesktop class="hidden lg:block" aria-hidden="true" />
+            <MenuCloseMobile class="block lg:hidden" aria-hidden="true" />
+          </span>
+        </button>
+
+        <nav id="site-menu" class="menu-panel" aria-label="Main menu" data-menu-panel inert>
+          <!-- Mobile: dark logo lives in the panel so it shows even when the page is scrolled -->
+          <a href="#top" class="menu-logo lg:hidden" aria-label="Uniflow — home" data-menu-link>
+            <LogoDark aria-hidden="true" />
+          </a>
+          <div class="menu-content flex flex-col gap-figma-36 lg:gap-figma-28">
+            <ul class="menu-list flex flex-col gap-figma-16 lg:gap-figma-14">
+              {
+                primaryLinks.map((link) => (
+                  <li>
+                    <a href={link.href} class="menu-link" data-menu-link data-menu-item>
+                      <span class="sr-only">{link.label}</span>
+                      <span class="menu-link-roll" aria-hidden="true">
+                        {chars(link.label).map((c, i) => <span class="menu-char" data-char={c} style={`--i:${i}`}>{c}</span>)}
+                      </span>
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+
+            <div class="menu-divider" data-menu-divider aria-hidden="true">
+              <DividerDesktop class="hidden lg:block" />
+              <DividerMobile class="block lg:hidden" />
+            </div>
+
+            <ul class="menu-list flex flex-col gap-figma-16 lg:gap-figma-14">
+              {
+                legalLinks.map((link) => (
+                  <li>
+                    <a href={link.href} class="menu-link" data-menu-link data-menu-item>
+                      <span class="sr-only">{link.label}</span>
+                      <span class="menu-link-roll" aria-hidden="true">
+                        {chars(link.label).map((c, i) => <span class="menu-char" data-char={c} style={`--i:${i}`}>{c}</span>)}
+                      </span>
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+
+            <div class="menu-divider" data-menu-divider aria-hidden="true">
+              <DividerDesktop class="hidden lg:block" />
+              <DividerMobile class="block lg:hidden" />
+            </div>
+
+            <div class="flex flex-col gap-figma-16">
+              <p class="menu-label" data-menu-item>FOLLOW US</p>
+              <div class="flex items-center gap-figma-8">
+                <a href={socials.instagram} class="menu-social is-filled" aria-label="Instagram" data-menu-social>
+                  <IconInstagram aria-hidden="true" />
+                </a>
+                <a href={socials.x} class="menu-social is-bare" aria-label="X (Twitter)" data-menu-social>
+                  <SocialXButton aria-hidden="true" />
+                </a>
+                <a href={socials.linkedin} class="menu-social" aria-label="LinkedIn" data-menu-social>
+                  <IconLinkedin aria-hidden="true" />
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mobile-only bottom CTA -->
+          <a href="#contact" class="menu-mobile-cta flex items-center justify-center text-12 font-semibold uppercase lg:hidden" data-menu-link data-menu-mobile-cta>
+            START A PROJECT
+          </a>
+        </nav>
+      </div>
+    </div>
+  </div>
+</header>
+
+<script>
+  import "../../scripts/menu.js";
+</script>
+
+<style>
+  @layer components {
+    /* ---------- Bar ---------- */
+    .nav-logo {
+      width: 105.85px; /* mobile logo */
+      height: 24px;
+    }
+    .nav-logo :global(svg) {
+      width: 100%;
+      height: 100%;
+    }
+    .nav-square {
+      flex: none;
+      width: 4px;
+      height: 4px;
+      background-color: var(--color-grey-10);
+    }
+    .nav-text {
+      color: var(--color-grey-10);
+      white-space: nowrap;
+      text-box: trim-both cap alphabetic; /* Figma text-box-trim */
+    }
+    .nav-time {
+      width: 104px;
+    }
+    .nav-time-text {
+      width: 91px;
+    }
+
+    /* Fixed CTA cluster — offsets match the navbar row padding (mobile 24/16, desktop = padding-32) */
+    .nav-cta {
+      top: 24px;
+      right: 16px;
+    }
+
+    /* START A PROJECT (default: white / black text; open: black / white text, 4px radius).
+       Light grey border keeps the white buttons visible over white sections. */
+    .nav-cta-button {
+      text-box: trim-both cap alphabetic;
+      width: 175px;
+      height: 28px;
+      padding: 8px 16px;
+      border: 1px solid var(--color-grey-20);
+      background-color: var(--color-white);
+      color: var(--color-black);
+      text-decoration: none;
+    }
+
+    /* Menu toggle: white hamburger box → black X box (both 32×28) */
+    .menu-toggle {
+      width: 32px;
+      height: 28px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+    }
+    .menu-toggle-closed {
+      border: 1px solid var(--color-grey-20);
+      background-color: var(--color-white);
+    }
+    .menu-toggle-open {
+      opacity: 0;
+    }
+    .menu-toggle:focus-visible,
+    .nav-cta-button:focus-visible,
+    .menu-link:focus-visible,
+    .menu-social:focus-visible,
+    .menu-mobile-cta:focus-visible {
+      outline: 2px solid var(--color-secondary);
+      outline-offset: 2px;
+    }
+
+    @media (width >= 62rem) {
+      .nav-cta {
+        top: clamp(1.5rem, calc(1.3333rem + 0.7407vw), 2rem); /* = padding-32 */
+        right: clamp(1.5rem, calc(1.3333rem + 0.7407vw), 2rem);
+      }
+      .nav-logo {
+        width: 131.942px;
+        height: 29.916px;
+      }
+      .nav-main {
+        width: calc(793 * var(--px));
+      }
+      .nav-info {
+        width: calc(454 * var(--px));
+      }
+    }
+
+    /* ---------- Menu panel ---------- */
+    .menu-panel {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 106px 16px 21px;
+      background-color: var(--color-white);
+      overflow-y: auto;
+      visibility: hidden;
+      clip-path: inset(0 0 100% 0);
+    }
+    .menu-content {
+      width: 100%;
+    }
+    .menu-logo {
+      position: absolute;
+      top: 24px;
+      left: 16px;
+      display: block;
+      width: 105.85px;
+      height: 24px;
+    }
+    .menu-logo :global(svg) {
+      width: 100%;
+      height: 100%;
+    }
+    .menu-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .menu-list li {
+      margin: 0;
+    }
+    .menu-link,
+    .menu-label {
+      display: block;
+      width: fit-content;
+      font-family: var(--font-tertiary);
+      font-size: 14px;
+      line-height: 1.4;
+      letter-spacing: var(--tracking-sm);
+      text-transform: uppercase;
+      color: var(--color-grey-80);
+      text-decoration: none;
+      text-box: trim-both cap alphabetic; /* Figma text-box-trim */
+    }
+    .menu-divider :global(svg) {
+      width: 100%;
+    }
+    .menu-social {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 33px;
+      height: 33px;
+      border: 0.5px solid var(--color-grey-40);
+      border-radius: var(--radius-sm);
+      overflow: clip;
+    }
+    .menu-social.is-filled {
+      background-color: var(--color-white);
+    }
+    .menu-social.is-bare {
+      border: 0;
+    }
+    .menu-mobile-cta {
+      flex: none;
+      width: 100%;
+      height: 40px;
+      margin-top: 36px;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      background-color: var(--color-black);
+      color: var(--color-white);
+      text-decoration: none;
+    }
+
+    /* Desktop: card behind the CTA cluster (Figma: 226×405, 8px outside the buttons) */
+    @media (width >= 62rem) {
+      .menu-panel {
+        position: absolute;
+        inset: auto;
+        top: -8px;
+        right: -8px;
+        display: block;
+        width: 226px;
+        height: 405px;
+        padding: 65px 15px 0;
+        border: 1px solid var(--color-grey-20);
+        border-radius: var(--radius-sm);
+        overflow: clip;
+      }
+      .menu-link,
+      .menu-label {
+        font-size: 12px;
+      }
+    }
+
+    /* ---------- Label roll on hover (per-character, staggered) ---------- */
+    .menu-link-roll {
+      display: inline-flex;
+      overflow: hidden;
+      vertical-align: top;
+    }
+    .menu-char {
+      position: relative;
+      display: inline-block;
+      transition: transform 0.5s var(--ease-esse);
+      transition-delay: calc(var(--i) * 14ms);
+    }
+    .menu-char::after {
+      content: attr(data-char);
+      position: absolute;
+      top: 100%;
+      left: 0;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .menu-link:hover .menu-char,
+      .menu-link:focus-visible .menu-char {
+        transform: translateY(-100%);
+      }
+    }
+  }
+
+  /* Scroll lock while the menu is open (Lenis is also stopped in menu.js) */
+  :global(html.is-menu-open) {
+    overflow: hidden;
+  }
+</style>

@@ -1,0 +1,62 @@
+---
+import Tag from "../ui/Tag.astro";
+---
+
+<section class="section section-pixel">
+  <div class="white-fade"></div>
+  <div class="white-fade is-bottom"></div>
+  <div class="container">
+    <div>
+      <div class="spacer-140" aria-hidden="true"></div>
+
+      <div class="team-layout relative flex flex-col gap-figma-24 lg:flex-row lg:items-center lg:justify-center lg:gap-0">
+        <div class="team-heading bg-white padding-x-8 padding-y-16 lg:absolute lg:left-0 lg:-ml-2">
+          <Tag label="OUR SERVICES" />
+          <h2 class="heading-56 padding-top-12">Meet the people behind the work</h2>
+        </div>
+
+        <div class="team-photo overflow-hidden rounded-2xl">
+          <img
+            src="/images/frame-269.webp"
+            srcset="/images/frame-269-p-500.webp 500w, /images/frame-269-p-800.webp 800w, /images/frame-269.webp 880w"
+            sizes="(min-width: 992px) 31vw, 100vw"
+            loading="lazy"
+            alt=""
+            class="parallax-img size-full object-cover"
+          />
+        </div>
+
+        <div class="team-copy bg-white padding-32 lg:absolute lg:right-0">
+          <p class="para-14">
+            At Uniflow, we believe exceptional digital experiences are never the result of a single discipline. They emerge from collaboration, curiosity, and a shared commitment to doing great work.<br /><br />Our team brings together strategy, design, and development to create websites that not only look beautiful but perform with purpose. Every project is shaped by the people behind it.
+          </p>
+        </div>
+      </div>
+
+      <div class="spacer-140" aria-hidden="true"></div>
+    </div>
+  </div>
+</section>
+
+<style>
+  @layer components {
+    .team-photo {
+      width: 100%;
+      aspect-ratio: 440 / 597;
+    }
+
+    @media (width >= 62rem) {
+      .team-heading {
+        width: calc(424 * var(--px));
+      }
+      .team-photo {
+        width: calc(440 * var(--px));
+        height: calc(597 * var(--px));
+        aspect-ratio: auto;
+      }
+      .team-copy {
+        width: calc(385 * var(--px));
+      }
+    }
+  }
+</style>

@@ -1,0 +1,53 @@
+---
+/** Iframe content for the style guide's fluid preview (dev only). */
+import Layout from "../layouts/Layout.astro";
+import manifest from "../styles/flowscale.manifest.json";
+
+const types = manifest.typography;
+const spacers = manifest.spacing.filter((s) => s.kind === "spacer" && s.px >= 24);
+---
+
+<Layout title="FlowScale · Fluid preview" scripts={false}>
+  <main class="container padding-y-32">
+    <p class="text-12 text-grey-50">viewport: <span data-vw>—</span></p>
+    {
+      types.map((t) => (
+        <div class="border-b border-grey-20 padding-y-16">
+          <p class="text-12 text-grey-50">.{t.className} · <span data-size={t.className}></span></p>
+          <p class={t.className}>We make websites impossible to ignore.</p>
+        </div>
+      ))
+    }
+    <div class="flex flex-wrap items-end gap-figma-16 margin-top-32">
+      {
+        spacers.map((s) => (
+          <div class="text-center">
+            <div class="preview-bar w-8"><div class={s.className}></div></div>
+            <p class="text-12 padding-top-12">{s.px}</p>
+          </div>
+        ))
+      }
+    </div>
+  </main>
+</Layout>
+
+<script>
+  const update = () => {
+    const vw = document.querySelector("[data-vw]");
+    if (vw) vw.textContent = `${window.innerWidth}px`;
+    document.querySelectorAll<HTMLElement>("[data-size]").forEach((el) => {
+      const target = el.parentElement?.nextElementSibling;
+      if (target) el.textContent = getComputedStyle(target).fontSize;
+    });
+  };
+  update();
+  window.addEventListener("resize", update);
+</script>
+
+<style>
+  @layer components {
+    .preview-bar > div {
+      background: var(--color-secondary);
+    }
+  }
+</style>

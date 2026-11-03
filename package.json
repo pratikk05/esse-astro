@@ -9,9 +9,16 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "flowscale": "node tools/flowscale.mjs"
   },
   "dependencies": {
-    "astro": "^7.4.5"
+    "@tailwindcss/vite": "^4.3.3",
+    "astro": "^7.4.5",
+    "gsap": "3.15.0",
+    "lenis": "1.2.3",
+    "tailwindcss": "^4.3.3",
+    "three": "0.128.0",
+    "ukiyojs": "4.0.4"
   }
 }

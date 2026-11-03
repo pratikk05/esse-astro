@@ -1,0 +1,111 @@
+/*
+  FlowScale design tokens.
+  Values come from the original Webflow build (uniflow-aa34f9.webflow.io).
+  @theme tokens also generate Tailwind utilities (bg-*, text-*, border-*, font-*, leading-*, tracking-*, rounded-*, ease-*).
+*/
+
+@theme {
+  /* ---------- Breakpoints (match the original Webflow breakpoints) ---------- */
+  --breakpoint-sm: 30rem;   /* 480px */
+  --breakpoint-md: 48rem;   /* 768px */
+  --breakpoint-lg: 62rem;   /* 992px — desktop layout starts here */
+  --breakpoint-xl: 80rem;   /* 1280px */
+  --breakpoint-2xl: 90rem;  /* 1440px — Figma reference width */
+
+  /* ---------- Fonts ---------- */
+  --font-primary: "42 Dotsans", Arial, sans-serif;     /* heading-* */
+  --font-secondary: "42 Dotsans", Arial, sans-serif;   /* para-*  (the design uses one sans for headings and body) */
+  --font-tertiary: Jetbrainsmono, Verdana, sans-serif; /* text-*  labels, tags, numbers */
+
+  /* ---------- Font weights ---------- */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* ---------- Line heights ---------- */
+  --leading-display: 1;    /* heading-76, heading-56, text-* */
+  --leading-heading: 1.1;  /* heading-36, heading-32 */
+  --leading-title: 1.2;    /* heading-24 */
+  --leading-body: 1.4;     /* heading-16/14, para-* */
+  --leading-base: 1.5;     /* body default */
+
+  /* ---------- Letter spacing ---------- */
+  --tracking-display: -0.07em;  /* heading-76 */
+  --tracking-xl: -0.06em;       /* heading-56, heading-24, body default */
+  --tracking-lg: -0.04em;       /* heading-36, heading-32 */
+  --tracking-md: -0.025em;      /* para-18 */
+  --tracking-sm: -0.02em;       /* heading-16/14, para-16/14 */
+  --tracking-mono: -0.01em;     /* text-* */
+
+  /* ---------- Colours ---------- */
+  --color-black: #000;
+  --color-white: #fff;
+
+  --color-primary: #2d62ff;          /* Webflow "brand blue" (CTA symbol, focus) */
+  --color-secondary: #2929fd;        /* electric blue (pixel section, CTA hover) */
+  --color-secondary-light: #6a85ff;  /* unrevealed words on electric blue (Stats statement) */
+  --color-accent: #1bdbce;           /* tag square */
+  --color-background: #fff;
+  --color-surface: #efefef;          /* grey sections */
+  --color-surface-light: #f7f7f7;    /* logo tiles */
+  --color-text: #000;
+  --color-text-muted: #586464;       /* = grey-60 */
+
+  --color-grey-10: #e3e8e8;          /* Figma greys/grey-10 (nav text on dark) */
+  --color-grey-20: #c8d2d2;
+  --color-grey-40: #929c9c;
+  --color-grey-50: #6d7777;
+  --color-grey-60: #586464;
+  --color-grey-70: #3c4646;
+  --color-grey-80: #2d3737;          /* Figma greys/grey-80 (menu links) */
+  --color-grey-90: #0d1111;
+
+  --color-border: #aeb8b8;
+  --color-border-stat: #4a5dff;
+  --color-line-on-dark: #ffffff12;   /* hero/grid hairlines on black */
+  --color-line-on-light: #00000012;  /* grid hairlines on grey */
+
+  --color-success: #cef5ca;
+  --color-success-dark: #114e0b;
+  --color-warning: #fcf8d8;
+  --color-warning-dark: #5e5515;
+  --color-error: #f8e4e4;
+  --color-error-dark: #3b0b0b;
+  --color-focus: #4d65ff;
+
+  /* ---------- Radii ---------- */
+  --radius-xs: 0.125rem;   /* 2px  */
+  --radius-sm: 0.25rem;    /* 4px  */
+  --radius-lg: 0.5rem;     /* 8px  */
+  --radius-panel: 0.625rem;/* 10px */
+  --radius-xl: 0.75rem;    /* 12px */
+  --radius-2xl: 1rem;      /* 16px */
+
+  /* ---------- Motion ---------- */
+  --ease-esse: cubic-bezier(0.22, 0.8, 0.25, 1);
+  --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+:root {
+  /* Fluid engine boundaries (documentation + used by tools/flowscale.mjs) */
+  --fluid-min-vw: 360;
+  --fluid-max-vw: 1440;
+
+  /*
+    Layout unit for desktop geometry (>= lg): 1 Figma px at 1440px viewport,
+    scaling down proportionally below it and capped above it.
+    e.g. width: calc(678.4 * var(--px)) → 678.4px at 1440, 467px at 992.
+  */
+  --px: calc(min(100vw, 1440px) / 1440);
+
+  /* Containers */
+  --container-max: 90.2970rem;                                  /* 1444.75px content width */
+  --container-padding: clamp(1.25rem, calc(1rem + 1.1111vw), 2rem); /* 20px → 32px */
+
+  /* Durations */
+  --duration-fast: 200ms;
+  --duration-base: 500ms;
+  --duration-slow: 800ms;
+}

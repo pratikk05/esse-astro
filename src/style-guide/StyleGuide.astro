@@ -1,0 +1,296 @@
+---
+/**
+ * FlowScale style guide — dev only (see astro.config.mjs).
+ * Everything here is rendered from src/styles/flowscale.manifest.json using the real
+ * production classes; regenerate with `pnpm flowscale` after changing tokens or the config.
+ */
+import Layout from "../layouts/Layout.astro";
+import manifest from "../styles/flowscale.manifest.json";
+import Tag from "../components/ui/Tag.astro";
+import Button from "../components/ui/Button.astro";
+import WorkCard from "../components/ui/WorkCard.astro";
+import ArrowNext from "../assets/svg/arrow-next.svg";
+
+const { typography, spacing, colors, leading, tracking, fonts, viewport } = manifest;
+
+const fontLabel = (token: string) => (fonts as Record<string, string>)[token.replace("--font-", "")]?.split(",")[0].replaceAll('"', "") ?? token;
+const of = (kinds: string[]) => spacing.filter((s) => kinds.some((k) => s.kind === k || s.kind.startsWith(k + "-")));
+const groups = {
+  heading: typography.filter((t) => t.className.startsWith("heading-")),
+  para: typography.filter((t) => t.className.startsWith("para-")),
+  text: typography.filter((t) => t.className.startsWith("text-")),
+};
+const spacers = of(["spacer"]);
+const gaps = of(["gap"]);
+const paddings = of(["padding"]);
+const margins = of(["margin"]);
+
+const nav = [
+  ["typography", "Typography"],
+  ["spacers", "Spacers"],
+  ["gaps", "Gaps"],
+  ["padding-margin", "Padding & margin"],
+  ["colours", "Colours"],
+  ["buttons", "Buttons"],
+  ["components", "Components"],
+  ["fluid-preview", "Fluid preview"],
+];
+const sample = "We make websites impossible to ignore.";
+---
+
+<Layout title="FlowScale · Style guide" scripts={false}>
+  <header class="sg-header sticky top-0 z-10 border-b border-grey-20 bg-white/95 backdrop-blur">
+    <div class="container flex flex-wrap items-center justify-between gap-figma-16 padding-y-16">
+      <p class="heading-16 font-bold">FlowScale <span class="text-grey-50 font-normal">style guide</span></p>
+      <nav aria-label="Style guide sections">
+        <ul class="m-0 flex list-none flex-wrap gap-figma-16 p-0">
+          {nav.map(([id, label]) => <li class="m-0"><a href={`#${id}`} class="text-12 text-grey-60 no-underline hover:text-black">{label}</a></li>)}
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container padding-bottom-160">
+    <section class="padding-y-96">
+      <Tag label="DESIGN SYSTEM" />
+      <h1 class="heading-76 padding-top-12">FlowScale</h1>
+      <p class="sg-lead para-16 margin-top-24 text-grey-60">
+        Live reference for every FlowScale class, rendered with the production CSS. Class numbers are Figma px (16px root).
+        Fluid values scale linearly from {viewport.min}px to {viewport.max}px viewport. Source: <code>tools/flowscale.config.mjs</code> → <code>pnpm flowscale</code>.
+      </p>
+    </section>
+
+    <!-- A. Typography -->
+    <section id="typography" class="sg-section">
+      <h2 class="heading-36">Typography</h2>
+      {
+        Object.entries(groups).map(([prefix, items]) => (
+          <div class="margin-top-64">
+            <h3 class="text-14 uppercase text-grey-50">{prefix}-* · {fontLabel(items[0]?.family ?? "")}</h3>
+            <div class="flex flex-col">
+              {items.map((t) => (
+                <article class="sg-type-row grid gap-figma-24 border-b border-grey-20 padding-y-32 lg:grid-cols-[minmax(0,1fr)_22rem]">
+                  <p class={t.className}>{sample}</p>
+                  <dl class="sg-specs m-0 grid grid-cols-2 gap-x-4 gap-y-1 text-12">
+                    <dt>Class</dt><dd><code>.{t.className}</code></dd>
+                    <dt>Font</dt><dd>{fontLabel(t.family)}</dd>
+                    <dt>Figma size</dt><dd>{t.size}px</dd>
+                    <dt>Rem</dt><dd>{t.rem}</dd>
+                    <dt>Line height</dt><dd>{(leading as Record<string, string>)[t.leading]}</dd>
+                    <dt>Letter spacing</dt><dd>{(tracking as Record<string, string>)[t.tracking]}</dd>
+                    <dt>Weight</dt><dd>{t.weight}</dd>
+                    <dt>Fluid min</dt><dd>{t.min}px @ {viewport.min}</dd>
+                    <dt>Fluid max</dt><dd>{t.max}px @ {viewport.max}</dd>
+                    <dt>Source</dt><dd>{t.source}</dd>
+                  </dl>
+                </article>
+              ))}
+            </div>
+          </div>
+        ))
+      }
+    </section>
+
+    <!-- B. Spacers -->
+    <section id="spacers" class="sg-section">
+      <h2 class="heading-36">Spacers</h2>
+      <p class="para-14 margin-top-16 text-grey-60">Vertical rhythm only — use <code>gap-figma-*</code> inside flex/grid.</p>
+      <div class="flex flex-col gap-figma-16 margin-top-32">
+        {
+          spacers.map((s) => (
+            <div class="grid grid-cols-[9rem_minmax(0,1fr)] items-center gap-figma-16">
+              <p class="text-12"><code>.{s.className}</code><br /><span class="text-grey-50">{s.min}→{s.max}px</span></p>
+              <div class="sg-spacer"><div class={s.className}></div></div>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- C. Gaps -->
+    <section id="gaps" class="sg-section">
+      <h2 class="heading-36">Gaps</h2>
+      <p class="para-14 margin-top-16 text-grey-60">Namespaced <code>gap-figma-*</code> so Tailwind’s <code>gap-*</code> keeps working.</p>
+      <div class="grid gap-figma-24 margin-top-32 md:grid-cols-2">
+        {
+          gaps.map((g) => (
+            <div>
+              <p class="text-12"><code>.{g.className}</code> <span class="text-grey-50">{g.min}→{g.max}px</span></p>
+              <div class={`sg-gap flex margin-top-12 ${g.className}`}>
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- D. Padding & margin -->
+    <section id="padding-margin" class="sg-section">
+      <h2 class="heading-36">Padding &amp; margin</h2>
+      <div class="grid gap-figma-24 margin-top-32 sm:grid-cols-2 lg:grid-cols-4">
+        {
+          paddings.map((p) => (
+            <div>
+              <p class="text-12"><code>.{p.className}</code> <span class="text-grey-50">{p.min}→{p.max}px</span></p>
+              <div class={`sg-pad margin-top-12 ${p.className}`}><div></div></div>
+            </div>
+          ))
+        }
+      </div>
+      <div class="grid gap-figma-24 margin-top-64 sm:grid-cols-2 lg:grid-cols-4">
+        {
+          margins.map((m) => (
+            <div>
+              <p class="text-12"><code>.{m.className}</code> <span class="text-grey-50">{m.min}→{m.max}px</span></p>
+              <div class="sg-margin margin-top-12"><div class={m.className}></div></div>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- E. Colours -->
+    <section id="colours" class="sg-section">
+      <h2 class="heading-36">Colours</h2>
+      <div class="grid grid-cols-2 gap-figma-16 margin-top-32 md:grid-cols-4 lg:grid-cols-6">
+        {
+          colors.map((c) => (
+            <figure class="m-0">
+              <div class="sg-swatch rounded-lg" style={`background: var(${c.token})`}></div>
+              <figcaption class="text-12 padding-top-12">
+                <strong>{c.name}</strong><br />
+                <span class="text-grey-50">{c.value}</span>
+                {c.note && <><br /><span class="text-grey-40">{c.note}</span></>}
+              </figcaption>
+            </figure>
+          ))
+        }
+      </div>
+    </section>
+
+    <!-- F. Buttons -->
+    <section id="buttons" class="sg-section">
+      <h2 class="heading-36">Buttons</h2>
+      <div class="flex flex-wrap items-center gap-figma-32 margin-top-32">
+        <div><p class="text-12 text-grey-50 padding-bottom-12">primary</p><Button>Get in touch</Button></div>
+        <div><p class="text-12 text-grey-50 padding-bottom-12">primary · small</p><Button size="small">Get in touch</Button></div>
+        <div><p class="text-12 text-grey-50 padding-bottom-12">secondary (flow)</p><Button variant="secondary">View work</Button></div>
+        <div><p class="text-12 text-grey-50 padding-bottom-12">icon</p><Button variant="icon" label="Next"><ArrowNext aria-hidden="true" /></Button></div>
+      </div>
+      <p class="para-14 margin-top-24 text-grey-50">Outline and text buttons aren’t part of the current design — add them to <code>Button.astro</code> when they’re designed.</p>
+    </section>
+
+    <!-- G. Components -->
+    <section id="components" class="sg-section">
+      <h2 class="heading-36">Components</h2>
+      <h3 class="text-14 uppercase text-grey-50 margin-top-32">Tag</h3>
+      <div class="flex flex-wrap items-center gap-figma-32 margin-top-16">
+        <Tag label="SELECTED WORKS" />
+        <div class="bg-black padding-16"><Tag label="HOW WE DO IT" tone="light" /></div>
+      </div>
+      <h3 class="text-14 uppercase text-grey-50 margin-top-64">Work card</h3>
+      <div class="flex flex-col gap-figma-24 margin-top-16 lg:flex-row lg:items-end">
+        <WorkCard name="NEXUS LAB" industry="SaaS / Technology" year="2024" duration="6 Weeks" />
+        <WorkCard size="small" name="NEXUS LAB" industry="SaaS / Technology" year="2024" duration="6 Weeks" />
+      </div>
+    </section>
+
+    <!-- H. Fluid preview -->
+    <section id="fluid-preview" class="sg-section">
+      <h2 class="heading-36">Fluid preview</h2>
+      <p class="para-14 margin-top-16 text-grey-60">Drag to resize the frame — clamp() values inside respond to the frame width.</p>
+      <div class="flex flex-wrap items-center gap-figma-16 margin-top-24">
+        <input id="sg-width" type="range" min="320" max="1440" step="1" value="1440" aria-label="Preview width" class="w-64" />
+        <output id="sg-width-out" for="sg-width" class="text-14">1440px</output>
+        {[360, 768, 992, 1440].map((w) => <Button variant="primary" size="small" data-preview-width={String(w)}>{w}</Button>)}
+      </div>
+      <div class="sg-frame-wrap margin-top-24">
+        <iframe id="sg-frame" src="/style-guide/preview" title="Fluid typography and spacing preview" style="width: 1440px"></iframe>
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<script>
+  const range = document.querySelector<HTMLInputElement>("#sg-width");
+  const out = document.querySelector<HTMLOutputElement>("#sg-width-out");
+  const frame = document.querySelector<HTMLIFrameElement>("#sg-frame");
+  const setWidth = (w: number) => {
+    if (!range || !out || !frame) return;
+    range.value = String(w);
+    out.value = `${w}px`;
+    frame.style.width = `${w}px`;
+  };
+  range?.addEventListener("input", () => setWidth(Number(range.value)));
+  document.querySelectorAll<HTMLElement>("[data-preview-width]").forEach((btn) =>
+    btn.addEventListener("click", () => setWidth(Number(btn.dataset.previewWidth))),
+  );
+</script>
+
+<style>
+  @layer components {
+    .sg-section {
+      border-top: 1px solid var(--color-grey-20);
+      padding-block: 4rem;
+    }
+    .sg-lead {
+      max-width: 40rem;
+    }
+    .sg-specs dt { color: var(--color-grey-50); }
+    .sg-specs dd { margin: 0; }
+    code {
+      font-family: var(--font-tertiary);
+      font-size: 0.9em;
+      letter-spacing: var(--tracking-mono);
+    }
+
+    .sg-spacer {
+      background: repeating-linear-gradient(45deg, #2929fd14 0 6px, transparent 6px 12px);
+      border-inline: 2px solid var(--color-secondary);
+    }
+    .sg-spacer > div {
+      background: #2929fd33;
+    }
+    .sg-gap {
+      outline: 1px dashed var(--color-grey-20);
+    }
+    .sg-gap > span {
+      width: 3rem;
+      height: 3rem;
+      border-radius: var(--radius-sm);
+      background: var(--color-secondary);
+    }
+    .sg-pad {
+      background: #1bdbce55;
+    }
+    .sg-pad > div,
+    .sg-margin > div {
+      min-height: 2.5rem;
+      border-radius: var(--radius-xs);
+      background: var(--color-secondary);
+    }
+    .sg-margin {
+      display: flow-root;
+      background: #ffb34755;
+    }
+    .sg-swatch {
+      aspect-ratio: 4 / 3;
+      border: 1px solid var(--color-grey-20);
+    }
+    .sg-frame-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--color-grey-20);
+      border-radius: var(--radius-xl);
+      background: var(--color-surface);
+    }
+    #sg-frame {
+      display: block;
+      max-width: none;
+      height: 70vh;
+      border: 0;
+      background: var(--color-white);
+      transition: width var(--duration-fast) ease;
+    }
+  }
+</style>

@@ -1,0 +1,341 @@
+---
+/**
+ * CTA — electric-blue stage with a dither background, sliding button and hover chime.
+ * Background: the shared pixel shader (scripts/modules/pixel-background.js) — colour via data-ink.
+ * Height: one full viewport, never shorter than 670px.
+ */
+import Tag from "../ui/Tag.astro";
+
+interface Props {
+  metaLeft?: string;
+  metaRight?: string;
+  eyebrow?: string;
+  title?: string;
+  support?: string;
+  /** Link target; without it the CTA is a <button> that fires a `uniflow:enquiry` event. */
+  href?: string;
+  /** Hover chime on/off. */
+  sound?: boolean;
+}
+
+const {
+  metaLeft = "HAVE A PROJECT IN MIND?",
+  metaRight = "LET’S MAKE IT HAPPEN",
+  eyebrow = "BRIDGING STRATEGY, DESIGN & DEVELOPMENT",
+  title = "Let’s build what’s next",
+  support = "From first idea to a digital experience built to perform",
+  href,
+  sound = true,
+} = Astro.props;
+
+// Arrow made of 13 diamonds: [svg path, flicker keyframe number]
+const dots: [string, number][] = [
+  ["M9.34536 22.1728L12.8281 18.6901L16.3109 22.1728L12.8281 25.6556L9.34536 22.1728Z", 3],
+  ["M14.018 17.5011L17.5007 14.0184L20.9834 17.5012L17.5008 20.9838L14.018 17.5011Z", 3],
+  ["M28.0363 20.6698L31.5191 17.1869L35.0019 20.6697L31.519 24.1526L28.0363 20.6698Z", 9],
+  ["M28.0364 28.5103L31.5191 25.0276L35.0019 28.5104L31.5192 31.9931L28.0364 28.5103Z", 10],
+  ["M3.06208 3.89126L6.54478 0.408554L10.0276 3.89134L6.54486 7.37404L3.06208 3.89126Z", 8],
+  ["M0 31.5182L3.48278 28.0354L6.96557 31.5182L3.48278 35.001L0 31.5182Z", 1],
+  ["M4.67285 26.8465L8.15548 23.3638L11.6383 26.8466L8.15564 30.3293L4.67285 26.8465Z", 2],
+  ["M18.7434 3.89403L22.2261 0.411326L25.7089 3.89411L22.2262 7.37682L18.7434 3.89403Z", 6],
+  ["M18.6907 12.8293L22.1735 9.34649L25.6563 12.8293L22.1735 16.3121L18.6907 12.8293Z", 4],
+  ["M23.3634 8.15471L26.846 4.67209L30.3288 8.15488L26.8462 11.6375L23.3634 8.15471Z", 5],
+  ["M28.0361 3.48289L31.5189 0.000106563L35.0016 3.48289L31.5189 6.96567L28.0361 3.48289Z", 5],
+  ["M10.9026 3.89403L14.3855 0.411165L17.8683 3.89395L14.3854 7.37682L10.9026 3.89403Z", 7],
+  ["M28.0363 12.8293L31.519 9.34657L35.0017 12.8294L31.519 16.3121L28.0363 12.8293Z", 9],
+];
+
+const Action = href ? "a" : "button";
+---
+
+<section id="contact" class="cta-stage bg-secondary text-white" aria-label={metaLeft} data-cta-sound={sound ? "1" : "0"}>
+  <div class="cta-pattern" aria-hidden="true">
+    <div class="bayer-dither-bg" data-ripples="1" data-shape="circle" data-pixel-size="3" data-ink="#BDD7F8"></div>
+  </div>
+
+  <header class="cta-meta container-wide flex justify-between text-12 font-semibold text-grey-10">
+    <p>{metaLeft}</p>
+    <p>{metaRight}</p>
+  </header>
+
+  <div class="cta-center flex flex-col items-center">
+    <Tag label={eyebrow} tone="light" class="cta-eyebrow font-semibold" />
+    <Action class="cta-action" {...(href ? { href } : { type: "button" })} aria-label={title}>
+      <span class="cta-symbol" aria-hidden="true">
+        <svg class="cta-arrow-default" width="35.0019" height="35.001" viewBox="0 0 35.0019 35.001" fill="none">
+          {dots.map(([d]) => <path d={d} fill="currentColor" />)}
+        </svg>
+        <svg class="cta-arrow-hover" width="35.0019" height="35.001" viewBox="0 0 35.0019 35.001" fill="none">
+          {dots.map(([d, n]) => <path d={d} fill="currentColor" style={`--dot-animation: cta-dot-${n}`} />)}
+        </svg>
+      </span>
+      <span class="cta-copy">{title}</span>
+    </Action>
+    <p class="cta-support para-18 text-center">{support}</p>
+  </div>
+</section>
+
+<style>
+  @layer components {
+    .cta-stage {
+      position: relative;
+      isolation: isolate;
+      height: 100svh;
+      min-height: 41.875rem; /* 670px */
+      overflow: hidden;
+    }
+
+    .cta-pattern {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      opacity: 0.13;
+      transition: opacity 0.65s var(--ease-esse);
+    }
+
+    .cta-meta {
+      position: absolute;
+      inset: 2.875rem 0 auto; /* 46px */
+      gap: 1.25rem;
+    }
+    .cta-meta p {
+      margin: 0;
+      text-box: trim-both cap alphabetic;
+    }
+
+    .cta-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: min(58.75rem, 100% - 2 * var(--container-padding)); /* 940px */
+      transform: translate(-50%, -50%);
+      container-type: inline-size;
+    }
+    .cta-center :global(.cta-eyebrow) {
+      margin-bottom: 1.875rem; /* 30px */
+      white-space: nowrap;
+    }
+
+    /* One proportional button across every viewport: 350 × 61, scaled with the container */
+    .cta-action {
+      --size: 14.857143cqw;
+      --inset: 1.285714cqw;
+      position: relative;
+      display: block;
+      width: 100%;
+      aspect-ratio: 350 / 61;
+      padding: 0;
+      border: 0;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      color: var(--color-white);
+      font: inherit;
+      text-decoration: none;
+      cursor: pointer;
+      isolation: isolate;
+      transition: background 0.5s var(--ease-esse), color 0.5s var(--ease-esse), box-shadow 0.5s var(--ease-esse);
+    }
+    .cta-action::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border: 0.5px solid #bbd0ff;
+      border-radius: inherit;
+      pointer-events: none;
+      transition: opacity 0.5s;
+    }
+    .cta-symbol {
+      position: absolute;
+      top: var(--inset);
+      left: var(--inset);
+      display: grid;
+      place-items: center;
+      width: var(--size);
+      height: var(--size);
+      overflow: hidden;
+      border-radius: 0.571429cqw;
+      background: var(--color-white);
+      color: var(--color-secondary);
+      transition: left 0.65s var(--ease-esse), background 0.5s var(--ease-esse), color 0.5s var(--ease-esse);
+    }
+    .cta-symbol svg {
+      position: absolute;
+      display: block;
+      overflow: visible;
+      transform: scale(calc(100cqw / 350px * 0.514286));
+      transition: opacity 0.5s;
+    }
+    .cta-arrow-hover {
+      opacity: 0;
+    }
+    .cta-copy {
+      position: absolute;
+      top: 50%;
+      left: calc(var(--inset) + var(--size));
+      right: var(--inset);
+      transform: translateY(-50%);
+      font-family: var(--font-primary);
+      font-size: max(0.625rem, 7.428571cqw);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.08;
+      letter-spacing: -0.05em;
+      text-align: center;
+      white-space: nowrap;
+      transition: left 0.65s var(--ease-esse), right 0.65s var(--ease-esse);
+    }
+    .cta-support {
+      width: 18.375rem; /* 294px */
+      max-width: 100%;
+      margin-top: 1.5rem;
+      opacity: 0;
+      transform: translateY(0.5rem);
+      transition: opacity 0.4s, transform 0.5s var(--ease-esse);
+    }
+    /* Support line appears with the button hover / focus / tap */
+    .cta-action:is(:hover, :focus-visible) + .cta-support,
+    .is-active .cta-support {
+      opacity: 1;
+      transform: none;
+      transition-delay: 0.16s;
+    }
+
+    /* Hover / keyboard focus / tapped (touch toggles .is-active) */
+    .cta-stage:has(.cta-action:is(:hover, :focus-visible)) .cta-pattern,
+    .cta-stage.is-active .cta-pattern {
+      opacity: 0.78125;
+    }
+    .cta-action:is(:hover, :focus-visible),
+    .is-active .cta-action {
+      background: var(--color-white);
+      color: var(--color-secondary);
+      box-shadow: 0 0 50px #ffffff26, 0 0 13px #ffffff38;
+    }
+    .cta-action:is(:hover, :focus-visible)::before,
+    .is-active .cta-action::before {
+      opacity: 0;
+    }
+    .cta-action:is(:hover, :focus-visible) .cta-symbol,
+    .is-active .cta-symbol {
+      left: calc(100% - var(--size) - var(--inset));
+      background: var(--color-secondary);
+      color: var(--color-white);
+    }
+    .cta-action:is(:hover, :focus-visible) .cta-copy,
+    .is-active .cta-copy {
+      left: var(--inset);
+      right: calc(var(--inset) + var(--size));
+    }
+    .cta-action:is(:hover, :focus-visible) .cta-arrow-default,
+    .is-active .cta-arrow-default {
+      opacity: 0;
+    }
+    .cta-action:is(:hover, :focus-visible) .cta-arrow-hover,
+    .is-active .cta-arrow-hover {
+      opacity: 1;
+    }
+    .cta-action:is(:hover, :focus-visible) .cta-arrow-hover path,
+    .is-active .cta-arrow-hover path {
+      animation: var(--dot-animation) 1.5s linear 1;
+    }
+    .cta-action:focus-visible {
+      outline: 2px solid var(--color-white);
+      outline-offset: 6px;
+    }
+
+    @media (width < 37.5rem) {
+      .cta-meta {
+        top: 2rem;
+        align-items: flex-start;
+        gap: 1.5rem;
+        font-size: 0.625rem;
+        line-height: 1.5;
+      }
+      .cta-meta p {
+        max-width: 48%;
+        text-box: none;
+      }
+      .cta-meta p:last-child {
+        text-align: right;
+      }
+      .cta-center :global(.cta-eyebrow) {
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        white-space: normal;
+        text-align: center;
+      }
+      .cta-center :global(.cta-eyebrow p) {
+        max-width: 17.5rem;
+        font-size: 0.625rem;
+        line-height: 1.6;
+        text-wrap: balance;
+      }
+      .cta-support {
+        width: min(17.5rem, 100%);
+        margin-top: 1.375rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .cta-stage *,
+      .cta-stage *::before {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+  }
+
+  @keyframes cta-dot-1 { 0% { fill-opacity: .29 } 14.29% { fill-opacity: .42 } 28.57% { fill-opacity: .75 } 42.86% { fill-opacity: .84 } 57.14% { fill-opacity: .4 } 71.43% { fill-opacity: .26 } 85.71% { fill-opacity: .02 } to { fill-opacity: .29 } }
+  @keyframes cta-dot-2 { 0% { fill-opacity: .26 } 14.29% { fill-opacity: .34 } 28.57% { fill-opacity: .69 } 42.86% { fill-opacity: .87 } 57.14% { fill-opacity: .56 } 71.43% { fill-opacity: .33 } 85.71% { fill-opacity: .12 } to { fill-opacity: .26 } }
+  @keyframes cta-dot-3 { 0% { fill-opacity: .22 } 14.29% { fill-opacity: .32 } 28.57% { fill-opacity: .55 } 42.86% { fill-opacity: .87 } 57.14% { fill-opacity: .58 } 71.43% { fill-opacity: .35 } 85.71% { fill-opacity: .16 } to { fill-opacity: .22 } }
+  @keyframes cta-dot-4 { 0% { fill-opacity: .2 } 14.29% { fill-opacity: .23 } 28.57% { fill-opacity: .46 } 42.86% { fill-opacity: .95 } 57.14% { fill-opacity: .67 } 71.43% { fill-opacity: .42 } 85.71% { fill-opacity: .22 } to { fill-opacity: .2 } }
+  @keyframes cta-dot-5 { 0% { fill-opacity: .08 } 14.29% { fill-opacity: .22 } 28.57% { fill-opacity: .4 } 42.86% { fill-opacity: 1 } 57.14% { fill-opacity: .68 } 71.43% { fill-opacity: .48 } 85.71% { fill-opacity: .28 } to { fill-opacity: .08 } }
+  @keyframes cta-dot-6 { 0% { fill-opacity: .06 } 14.29% { fill-opacity: .22 } 28.57% { fill-opacity: .4 } 42.86% { fill-opacity: 1 } 57.14% { fill-opacity: .76 } 71.43% { fill-opacity: .49 } 85.71% { fill-opacity: .29 } to { fill-opacity: .06 } }
+  @keyframes cta-dot-7 { 0% { fill-opacity: .21 } 14.29% { fill-opacity: .3 } 28.57% { fill-opacity: .51 } 42.86% { fill-opacity: .9 } 57.14% { fill-opacity: .66 } 71.43% { fill-opacity: .38 } 85.71% { fill-opacity: .17 } to { fill-opacity: .21 } }
+  @keyframes cta-dot-8 { 0% { fill-opacity: .17 } 14.29% { fill-opacity: .22 } 28.57% { fill-opacity: .46 } 42.86% { fill-opacity: .97 } 57.14% { fill-opacity: .67 } 71.43% { fill-opacity: .46 } 85.71% { fill-opacity: .22 } to { fill-opacity: .17 } }
+  @keyframes cta-dot-9 { 0% { fill-opacity: .29 } 14.29% { fill-opacity: .49 } 28.57% { fill-opacity: .76 } 42.86% { fill-opacity: .81 } 57.14% { fill-opacity: .4 } 71.43% { fill-opacity: .2 } 85.71% { fill-opacity: .02 } to { fill-opacity: .29 } }
+  @keyframes cta-dot-10 { 0% { fill-opacity: .26 } 14.29% { fill-opacity: .36 } 28.57% { fill-opacity: .72 } 42.86% { fill-opacity: .85 } 57.14% { fill-opacity: .51 } 71.43% { fill-opacity: .26 } 85.71% { fill-opacity: .04 } to { fill-opacity: .26 } }
+</style>
+
+<script>
+  // Hover chime: a tiny synthesized "blip" (Web Audio, no audio file). Audio unlocks on the first gesture.
+  let audio: AudioContext | undefined;
+  let lastChime = -Infinity;
+
+  const unlock = () => {
+    try {
+      audio ||= new AudioContext();
+      if (audio.state === "suspended") audio.resume().catch(() => {});
+    } catch {}
+  };
+  document.addEventListener("pointerdown", unlock, { passive: true });
+  document.addEventListener("keydown", unlock);
+
+  function chime() {
+    if (audio?.state !== "running") return;
+    const now = audio.currentTime;
+    if (now - lastChime < 0.22) return;
+    lastChime = now;
+    const osc = audio.createOscillator();
+    const vol = audio.createGain();
+    osc.frequency.setValueAtTime(740, now);
+    osc.frequency.exponentialRampToValueAtTime(1046.5, now + 0.075);
+    vol.gain.setValueAtTime(0, now);
+    vol.gain.linearRampToValueAtTime(0.035, now + 0.008);
+    vol.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+    osc.connect(vol).connect(audio.destination);
+    osc.start(now);
+    osc.stop(now + 0.18);
+  }
+
+  document.querySelectorAll<HTMLElement>(".cta-stage").forEach((stage) => {
+    const action = stage.querySelector<HTMLElement>(".cta-action");
+    if (!action) return;
+    const sound = stage.dataset.ctaSound !== "0";
+    action.addEventListener("pointerenter", (e) => sound && e.pointerType !== "touch" && chime());
+    action.addEventListener("focus", () => sound && action.matches(":focus-visible") && chime());
+    action.addEventListener("click", () => {
+      if (matchMedia("(hover: none)").matches) stage.classList.toggle("is-active");
+      action.dispatchEvent(new CustomEvent("uniflow:enquiry", { bubbles: true }));
+    });
+  });
+</script>

@@ -1,0 +1,67 @@
+---
+import Tag from "../ui/Tag.astro";
+import ProcessIllustration from "../../assets/svg/process-illustration.svg";
+
+const steps = Array.from({ length: 3 }, () => ({
+  label: "01 / UNDERSTAND",
+  title: "Discover & Define",
+  text: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed vulputate",
+}));
+---
+
+<section class="section bg-black text-white">
+  <!-- Pixel ripple background (scripts/modules/pixel-background.js) -->
+  <div class="pixel-bg-wrapper">
+    <div class="pixel-section is-black">
+      <div data-ripples="1" data-shape="circle" data-pixel-size="3" data-ink="#3E3E3E" class="bayer-dither-bg"></div>
+    </div>
+  </div>
+
+  <div class="container relative z-1">
+    <div class="padding-top-52 padding-bottom-122">
+      <div class="grid grid-cols-2 border-t border-grey-50 padding-top-28">
+        <p class="text-12">[02]</p>
+        <Tag label="HOW WE DO IT" tone="light" class="justify-end" />
+      </div>
+
+      <h2 class="process-statement heading-32 margin-top-111">
+        From first conversation to what’s next. We connect strategy, <br class="hidden lg:inline" />design, and development to turn the right ideas into brands and digital experiences that move your business forward.
+      </h2>
+
+      <div class="grid grid-cols-1 gap-figma-95 margin-top-120 md:grid-cols-2 lg:grid-cols-3">
+        {
+          steps.map((step) => (
+            <div class="flex flex-col gap-figma-65 padding-left-40">
+              <p class="text-12 text-grey-40">{step.label}</p>
+              <div class="process-illustration">
+                <ProcessIllustration aria-hidden="true" />
+              </div>
+              <div>
+                <h3 class="heading-16">{step.title}</h3>
+                <p class="process-text para-14 font-normal text-grey-50 padding-top-12">{step.text}</p>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  @layer components {
+    .process-statement {
+      width: 30.625em; /* 980px at 32px */
+      max-width: 100%;
+    }
+    .process-illustration {
+      width: 19.875rem; /* 318px */
+      max-width: 100%;
+      height: 12.875rem; /* 206px */
+    }
+    .process-text {
+      width: 18.6429em; /* 261px at 14px */
+      max-width: 100%;
+    }
+  }
+</style>

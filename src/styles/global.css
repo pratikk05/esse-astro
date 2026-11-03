@@ -1,0 +1,21 @@
+/*
+  FlowScale entry stylesheet.
+  FlowScale = design language · Tailwind = utility engine · Astro = components · clamp() = fluid glue.
+
+  Tailwind Preflight is intentionally not loaded: base.css carries the original
+  Webflow normalize so element rendering matches the source design.
+*/
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+/* `.container` is the FlowScale layout class (layout.css), not Tailwind's container utility. */
+@source not inline("container");
+
+@import "./tokens.css";
+@import "./base.css";
+@import "./layout.css";
+@import "./typography.css"; /* generated: pnpm flowscale */
+@import "./spacing.css";    /* generated: pnpm flowscale */
+
+@import "lenis/dist/lenis.css";

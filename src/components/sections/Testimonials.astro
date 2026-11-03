@@ -1,0 +1,353 @@
+---
+import Button from "../ui/Button.astro";
+// Ported 1:1 from Uniflow-Client-Stories-Final.html.
+// Slides 2–4 + the dot-particle logo morph live in scripts/modules/testimonial.js; this is slide 1.
+
+// Pixel arrow: each dot gets its own flicker keyframe (arrow-dot-1…10) on hover.
+const arrowDots: [number, string][] = [
+  [1, "M8.00535 4.9248H6.56644V6.36371H8.00535V4.9248Z"],
+  [2, "M6.36391 4.92578H4.92508V6.36468H6.36391V4.92578Z"],
+  [3, "M4.722 8.20801H3.2831V9.64688H4.722V8.20801Z"],
+  [3, "M6.36393 9.85059H4.9251V11.2895H6.36393V9.85059Z"],
+  [4, "M6.36387 0H4.92503V1.43887H6.36387V0Z"],
+  [5, "M11.289 4.92578H9.85005V6.36468H11.289V4.92578Z"],
+  [5, "M9.6475 4.92578H8.20866V6.36468H9.6475V4.92578Z"],
+  [6, "M3.08056 3.2832H1.64172V4.72207H3.08056V3.2832Z"],
+  [7, "M4.72249 4.92578H3.28358V6.36468H4.72249V4.92578Z"],
+  [8, "M3.0803 4.9248H1.64147V6.36371H3.0803V4.9248Z"],
+  [9, "M1.4389 4.92578H0V6.36468H1.4389V4.92578Z"],
+  [9, "M4.72221 1.6416H3.28331V3.08047H4.72221V1.6416Z"],
+  [10, "M3.0808 6.56738H1.64197V8.00625H3.0808V6.56738Z"],
+];
+const controls = [
+  { label: "Previous testimonial", hook: { "data-stories-prev": "" }, flip: false },
+  { label: "Next testimonial", hook: { "data-stories-next": "" }, flip: true },
+];
+---
+
+<section class="stories section overflow-hidden bg-surface text-black" aria-labelledby="stories-title" data-stories>
+  <div class="stories-inner container padding-y-100">
+    <header class="stories-header">
+      <h2 id="stories-title" class="stories-trim heading-56 leading-title">Client Stories</h2>
+      <div class="stories-header-right flex items-start justify-between">
+        <p class="stories-intro stories-trim text-12 leading-base tracking-sm font-semibold text-grey-60">
+          REAL FEEDBACK FROM CLIENTS WE’VE WORKED WITH ACROSS WEBFLOW DEVELOPMENT AND DIGITAL BUILDS
+        </p>
+        <nav class="stories-controls flex flex-none gap-figma-8" aria-label="Testimonial navigation">
+          {
+            controls.map(({ label, hook, flip }) => (
+              <Button variant="icon" label={label} class:list={["stories-arrow", { "is-flipped": flip }]} {...hook}>
+                <span class="stories-arrow-frame" aria-hidden="true">
+                  <svg width="11.289" height="11.2895" viewBox="0 0 11.289 11.2895" fill="none" overflow="visible">
+                    {arrowDots.map(([n, d]) => <path style={`--dot-animation:arrow-dot-${n}`} d={d} fill="currentColor" />)}
+                  </svg>
+                </span>
+              </Button>
+            ))
+          }
+        </nav>
+      </div>
+    </header>
+
+    <div class="stories-body">
+      <div class="stories-proof">
+        <p class="stories-index stories-trim text-14 leading-body tracking-sm font-semibold" data-stories-index>01 <span class="text-border">/ 04</span></p>
+        <div class="stories-logo" data-stories-logo data-ink="#000000">
+          <img class="stories-logo-img" src="/images/frame-335-cf0dca.png" alt="Pineapple client logo" />
+        </div>
+      </div>
+
+      <article class="stories-testimonial" aria-live="polite" aria-atomic="true" data-stories-article>
+        <blockquote class="stories-trim heading-32 text-grey-40">
+          “They <strong>understood the details</strong> and delivered exactly what the design needed. The<br class="stories-break" /> process was clear, communication was smooth, and the final result felt <strong>refined and well executed.</strong>”
+        </blockquote>
+        <footer class="stories-author flex items-center gap-figma-16">
+          <div class="stories-portrait"><img src="/images/testimonial-vikram-singh.webp" alt="Vikram Singh" loading="lazy" decoding="async" /></div>
+          <div class="stories-author-details flex flex-col">
+            <p class="stories-trim heading-16 font-bold">Vikram Singh</p>
+            <p class="stories-trim heading-16 text-grey-60">Weblow Development</p>
+          </div>
+        </footer>
+      </article>
+    </div>
+  </div>
+</section>
+
+<style>
+  @layer components {
+    .stories {
+      height: 42.5rem; /* 680px, fixed like the prototype */
+    }
+    /* 32px left / 64px right at desktop */
+    .stories-inner {
+      padding-right: calc(var(--container-padding) * 2);
+    }
+    /* Trim leading to cap height / baseline so spacing matches Figma exactly */
+    .stories :global(.stories-trim) {
+      margin: 0;
+      text-box: trim-both cap alphabetic;
+    }
+
+    /* ---- Header ---- */
+    .stories-header {
+      display: grid;
+      grid-template-columns: 52.083333% 1fr;
+      align-items: start;
+      min-height: 3.875rem; /* 62px */
+      margin-bottom: 2.375rem; /* 38px */
+    }
+    .stories-header-right {
+      gap: 1.5rem;
+    }
+    .stories-intro {
+      max-width: 22.5rem; /* 360px */
+      margin-top: 0.5rem;
+    }
+
+    /* ---- Arrow buttons (Button variant="icon") ---- */
+    .stories-controls :global(.stories-arrow) {
+      display: grid;
+      place-items: center;
+      padding: 0;
+      color: var(--color-grey-80);
+      transition:
+        background-color var(--duration-fast),
+        border-color var(--duration-fast),
+        scale 0.12s;
+    }
+    .stories-controls :global(.stories-arrow.is-flipped) {
+      transform: scaleX(-1);
+    }
+    .stories-controls :global(.stories-arrow:is(:hover, :focus-visible)) {
+      background-color: var(--color-black);
+      border-color: var(--color-black);
+      color: var(--color-white);
+    }
+    .stories-controls :global(.stories-arrow:active) {
+      background-color: var(--color-grey-80);
+      scale: 0.94;
+    }
+    .stories-arrow-frame {
+      position: relative;
+      display: block;
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+    .stories-arrow-frame svg {
+      position: absolute;
+      left: 25.46%;
+      top: 20%;
+      display: block;
+      width: 11.289px;
+      height: 11.2895px;
+    }
+    .stories-controls :global(.stories-arrow:is(:hover, :focus-visible)) path {
+      animation: var(--dot-animation) 1.5s linear 1;
+    }
+
+    /* ---- Body ---- */
+    .stories-body {
+      display: grid;
+      grid-template-columns: calc(52.083333% - 3.625rem) 1fr;
+      gap: 3.625rem; /* 58px */
+      align-items: start;
+      padding-top: 2.8125rem; /* 45px */
+      border-top: 1px solid var(--color-grey-20);
+    }
+    .stories-proof {
+      min-width: 0;
+    }
+    .stories-logo {
+      position: relative;
+      width: 100%;
+      height: 21.25rem; /* 340px */
+      margin: 0.5rem auto 0;
+    }
+    .stories-logo-img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+    /* Canvas is injected by testimonial.js; padded so pushed dots don't clip */
+    .stories-logo :global(.stories-particles) {
+      position: absolute;
+      left: -35px;
+      top: -35px;
+      width: calc(100% + 70px);
+      height: calc(100% + 70px);
+      pointer-events: none;
+    }
+    .stories-logo:not(.is-ready) :global(.stories-particles) {
+      visibility: hidden;
+    }
+
+    .stories-testimonial :global(blockquote strong) {
+      font-weight: inherit;
+      color: var(--color-grey-80);
+    }
+    .stories-testimonial :global(.stories-author) {
+      margin-top: 8rem; /* 128px */
+    }
+    .stories-portrait {
+      flex: none;
+      width: 2.75rem;
+      height: 2.75rem;
+      overflow: hidden;
+      border-radius: var(--radius-xs);
+      filter: grayscale(1);
+    }
+    .stories-portrait img {
+      display: block;
+      width: 100%;
+      height: 124.22%;
+      object-fit: cover;
+      object-position: top;
+    }
+    .stories-testimonial :global(.stories-initials) {
+      display: grid;
+      place-items: center;
+      width: 2.75rem;
+      height: 2.75rem;
+      flex: none;
+      border-radius: var(--radius-xs);
+      background-color: var(--color-grey-10);
+      color: var(--color-grey-60);
+      font: 500 0.8125rem var(--font-tertiary);
+    }
+    .stories-testimonial :global(.stories-author-details) {
+      gap: 0.875rem; /* 14px */
+    }
+
+    /* ---- ≤1100px ---- */
+    @media (max-width: 68.75rem) {
+      .stories-inner {
+        padding-right: var(--container-padding);
+      }
+      .stories-header {
+        grid-template-columns: 45% 1fr;
+      }
+      .stories-intro {
+        max-width: 18.125rem;
+      }
+      .stories-body {
+        grid-template-columns: calc(45% - 2rem) 1fr;
+        gap: 2rem;
+      }
+      .stories-testimonial :global(.stories-author) {
+        margin-top: 5.625rem; /* 90px */
+      }
+    }
+
+    /* ---- ≤650px ---- */
+    @media (max-width: 40.625rem) {
+      .stories-header {
+        display: block;
+        margin-bottom: 1.75rem;
+      }
+      .stories-header-right {
+        margin-top: 1.5rem;
+        gap: 1rem;
+      }
+      .stories-intro {
+        max-width: 15rem;
+        margin-top: 0;
+      }
+      .stories-controls {
+        gap: 0.375rem;
+      }
+      .stories-controls :global(.stories-arrow) {
+        width: 2.25rem;
+        height: 2.25rem;
+      }
+      .stories-body {
+        display: block;
+        padding-top: 1.25rem;
+      }
+      .stories-proof {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1.25rem;
+        margin-bottom: 1.625rem;
+      }
+      .stories-index {
+        flex: none;
+      }
+      .stories-logo {
+        flex: none;
+        width: clamp(11.875rem, 46vw, 15rem);
+        height: 5.5rem;
+        margin: 0;
+      }
+      .stories-testimonial :global(.stories-author) {
+        margin-top: 4rem;
+      }
+      .stories-testimonial :global(.stories-author-details) {
+        gap: 0.625rem;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .stories-controls :global(.stories-arrow) {
+        transition: none;
+      }
+      .stories-controls :global(.stories-arrow) path {
+        animation: none !important;
+      }
+    }
+  }
+
+  /* Breakpoint type tweaks from the prototype — unlayered so they beat the FlowScale utilities */
+  /* Prototype uses fixed sizes per breakpoint: 56/32 → 48/28 → 40/26 */
+  .stories-header h2 {
+    font-size: 3.5rem;
+  }
+  .stories-testimonial :global(blockquote) {
+    font-size: 2rem;
+  }
+  @media (max-width: 68.75rem) {
+    .stories-header h2 {
+      font-size: 3rem;
+    }
+    .stories-testimonial :global(blockquote) {
+      font-size: 1.75rem;
+    }
+    .stories-intro {
+      font-size: 0.625rem;
+      line-height: 1rem;
+    }
+  }
+  @media (max-width: 40.625rem) {
+    .stories-header h2 {
+      font-size: 2.5rem;
+    }
+    .stories-testimonial :global(blockquote) {
+      font-size: 1.625rem;
+    }
+    .stories-intro {
+      line-height: 0.9375rem;
+    }
+    .stories-index {
+      font-size: 0.75rem;
+    }
+    .stories-testimonial :global(blockquote) {
+      line-height: 1.15;
+    }
+    .stories-testimonial :global(.stories-author-details p) {
+      font-size: 0.875rem;
+    }
+  }
+
+  /* Per-dot flicker for the pixel arrows (global names, referenced via --dot-animation) */
+  @keyframes arrow-dot-1 { 0.0% { fill-opacity: .29 } 14.2857% { fill-opacity: .42 } 28.5714% { fill-opacity: .75 } 42.8571% { fill-opacity: .84 } 57.1429% { fill-opacity: .4 } 71.4286% { fill-opacity: .26 } 85.7143% { fill-opacity: .02 } to { fill-opacity: .29 } }
+  @keyframes arrow-dot-2 { 0.0% { fill-opacity: .26 } 14.2857% { fill-opacity: .34 } 28.5714% { fill-opacity: .69 } 42.8571% { fill-opacity: .87 } 57.1429% { fill-opacity: .56 } 71.4286% { fill-opacity: .33 } 85.7143% { fill-opacity: .12 } to { fill-opacity: .26 } }
+  @keyframes arrow-dot-3 { 0.0% { fill-opacity: .22 } 14.2857% { fill-opacity: .32 } 28.5714% { fill-opacity: .55 } 42.8571% { fill-opacity: .87 } 57.1429% { fill-opacity: .58 } 71.4286% { fill-opacity: .35 } 85.7143% { fill-opacity: .16 } to { fill-opacity: .22 } }
+  @keyframes arrow-dot-4 { 0.0% { fill-opacity: .2 } 14.2857% { fill-opacity: .23 } 28.5714% { fill-opacity: .46 } 42.8571% { fill-opacity: .95 } 57.1429% { fill-opacity: .67 } 71.4286% { fill-opacity: .42 } 85.7143% { fill-opacity: .22 } to { fill-opacity: .2 } }
+  @keyframes arrow-dot-5 { 0.0% { fill-opacity: .08 } 14.2857% { fill-opacity: .22 } 28.5714% { fill-opacity: .4 } 42.8571% { fill-opacity: 1 } 57.1429% { fill-opacity: .68 } 71.4286% { fill-opacity: .48 } 85.7143% { fill-opacity: .28 } to { fill-opacity: .08 } }
+  @keyframes arrow-dot-6 { 0.0% { fill-opacity: .06 } 14.2857% { fill-opacity: .22 } 28.5714% { fill-opacity: .4 } 42.8571% { fill-opacity: 1 } 57.1429% { fill-opacity: .76 } 71.4286% { fill-opacity: .49 } 85.7143% { fill-opacity: .29 } to { fill-opacity: .06 } }
+  @keyframes arrow-dot-7 { 0.0% { fill-opacity: .21 } 14.2857% { fill-opacity: .3 } 28.5714% { fill-opacity: .51 } 42.8571% { fill-opacity: .9 } 57.1429% { fill-opacity: .66 } 71.4286% { fill-opacity: .38 } 85.7143% { fill-opacity: .17 } to { fill-opacity: .21 } }
+  @keyframes arrow-dot-8 { 0.0% { fill-opacity: .17 } 14.2857% { fill-opacity: .22 } 28.5714% { fill-opacity: .46 } 42.8571% { fill-opacity: .97 } 57.1429% { fill-opacity: .67 } 71.4286% { fill-opacity: .46 } 85.7143% { fill-opacity: .22 } to { fill-opacity: .17 } }
+  @keyframes arrow-dot-9 { 0.0% { fill-opacity: .29 } 14.2857% { fill-opacity: .49 } 28.5714% { fill-opacity: .76 } 42.8571% { fill-opacity: .81 } 57.1429% { fill-opacity: .4 } 71.4286% { fill-opacity: .2 } 85.7143% { fill-opacity: .02 } to { fill-opacity: .29 } }
+  @keyframes arrow-dot-10 { 0.0% { fill-opacity: .26 } 14.2857% { fill-opacity: .36 } 28.5714% { fill-opacity: .72 } 42.8571% { fill-opacity: .85 } 57.1429% { fill-opacity: .51 } 71.4286% { fill-opacity: .26 } 85.7143% { fill-opacity: .04 } to { fill-opacity: .26 } }
+</style>

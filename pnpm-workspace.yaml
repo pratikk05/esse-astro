@@ -1,2 +1,7 @@
 minimumReleaseAgeExclude:
   - astro@7.4.5
+
+# Expose Astro's `cookie` at node_modules/cookie so the prerender bundle doesn't
+# resolve a stray older copy from a parent folder (e.g. ~/node_modules).
+publicHoistPattern:
+  - cookie

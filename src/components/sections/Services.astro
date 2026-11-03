@@ -1,0 +1,110 @@
+---
+import Tag from "../ui/Tag.astro";
+
+const card = {
+  src: "/images/project-card-1.avif",
+  srcset:
+    "/images/project-card-1-p-500.avif 500w, /images/project-card-1-p-800.avif 800w, /images/project-card-1-p-1080.avif 1080w, /images/project-card-1.avif 1220w",
+};
+const frame = { src: "/images/frame-317.avif", srcset: "/images/frame-317-p-500.avif 500w, /images/frame-317.avif 584w" };
+const conversion =
+  "Modern, conversion-focused websites that combine exceptional user experience with business objectives to drive measurable results.";
+
+// One image + caption per service, swapped by scripts/modules/services-scroll.js
+const visuals = [
+  { image: card, text: conversion },
+  { image: { src: "/images/bg-hero.avif" }, text: "Strategic brand identities that help businesses establish credibility, differentiate themselves, and create lasting impressions." },
+  { image: card, text: conversion },
+  { image: frame, text: conversion },
+  { image: frame, text: "Data-driven search engine optimization that helps your business rank higher, attract qualified traffic, and generate consistent organic growth." },
+];
+
+const services = Array.from({ length: 5 }, () => ({ number: "[01]", title: ["Webflow", "Development"] }));
+---
+
+<section id="services" class="section bg-surface">
+  <div class="container">
+    <div class="flex h-full flex-col lg:flex-row">
+      <!-- Sticky visual column -->
+      <div class="services-visual sticky top-0 self-stretch max-lg:z-1 max-lg:bg-surface max-lg:padding-y-16 lg:padding-64">
+        <div class="services-visual-stack relative">
+          {
+            visuals.map(({ image, text }) => (
+              <div class="s-image-block absolute inset-0">
+                <div class="s-image-wrapper overflow-hidden rounded-2xl">
+                  <img src={image.src} srcset={image.srcset} sizes="(min-width: 992px) 30vw, 100vw" loading="lazy" alt="" class="image-full size-full object-cover" />
+                </div>
+                <div class="s-conten-wrap padding-top-32">
+                  <h3 class="heading-24">{text}</h3>
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+
+      <!-- Scrolling list -->
+      <div class="services-list flex-1 padding-y-96 lg:padding-x-128">
+        <div class="padding-bottom-12">
+          <Tag label="OUR SERVICES" />
+        </div>
+        <div class="s-t-wrapper">
+          {
+            services.map((service, i) => (
+              <div class:list={["service_block margin-top-80", { "is-active": i === 0 }]}>
+                <p class="text-12">{service.number}</p>
+                <h2 class="heading-76">
+                  {service.title[0]} <br />
+                  {service.title[1]}
+                </h2>
+              </div>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-lines" aria-hidden="true">
+    <div></div><div class="is-on-light"></div><div></div><div></div>
+  </div>
+</section>
+
+<style>
+  @layer components {
+    .services-visual-stack {
+      height: 22rem;
+    }
+    .s-image-wrapper {
+      height: 15rem;
+    }
+    .s-t-wrapper {
+      margin-block: 6rem;
+    }
+    .service_block {
+      opacity: 0.35;
+    }
+    .service_block.is-active {
+      opacity: 1;
+    }
+
+    @media (width >= 62rem) {
+      .services-visual {
+        width: calc(548.8 * var(--px));
+        height: 100%;
+      }
+      .services-visual-stack {
+        height: calc(640 * var(--px));
+      }
+      .s-image-wrapper {
+        height: calc(480 * var(--px));
+      }
+      .services-list {
+        width: calc(548.8 * var(--px));
+      }
+      .s-t-wrapper {
+        margin-block: calc(291.2 * var(--px));
+      }
+    }
+  }
+</style>
