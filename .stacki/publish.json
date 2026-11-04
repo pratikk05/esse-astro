@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "defaultTarget": "all",
+  "githubAccount": "pratikk05",
+  "hosting": {
+    "provider": "none"
+  },
+  "buildScript": "build",
+  "beforePublish": [],
+  "afterPublish": []
+}
