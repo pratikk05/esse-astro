@@ -1,0 +1,259 @@
+---
+/**
+ * Select — custom dropdown (no OS-native popup, so it looks identical on Windows, macOS, iOS and Android).
+ * ARIA "select-only combobox": button + listbox, full keyboard support (arrows, Home/End, Enter/Space,
+ * Escape, type-ahead). The chosen value is submitted through a hidden input.
+ * Colours follow the nearest [data-theme="dark" | "light"] ancestor (see .form-theme in contact.astro).
+ */
+interface Props {
+  name: string;
+  label: string;
+  options: { value: string; label: string }[];
+  placeholder?: string;
+  required?: boolean;
+  id?: string;
+}
+const { name, label, options, placeholder = "Select", required = false, id = `select-${name}` } = Astro.props;
+---
+
+<div class="ui-select" data-select data-required={required ? "" : undefined}>
+  <input type="hidden" name={name} value="" data-select-input />
+  <button
+    type="button"
+    class="ui-select-trigger field-control para-14"
+    id={id}
+    role="combobox"
+    aria-haspopup="listbox"
+    aria-expanded="false"
+    aria-controls={`${id}-list`}
+    aria-labelledby={`${id}-label ${id}`}
+    aria-required={required ? "true" : undefined}
+    data-select-trigger
+  >
+    <span class="ui-select-value is-placeholder" data-select-value data-placeholder={placeholder}>{placeholder}</span>
+    <svg class="ui-select-chevron" viewBox="0 0 12 12" width="12" height="12" fill="none" aria-hidden="true">
+      <path d="M2 4.5 6 8.5l4-4" stroke="currentColor" stroke-width="1.2"></path>
+    </svg>
+  </button>
+  <span id={`${id}-label`} class="sr-only">{label}</span>
+  <ul class="ui-select-list" id={`${id}-list`} role="listbox" aria-labelledby={`${id}-label`} tabindex="-1" hidden data-select-list>
+    {
+      options.map((option, i) => (
+        <li class="ui-select-option para-14" id={`${id}-option-${i}`} role="option" aria-selected="false" data-value={option.value}>
+          <span class="ui-select-mark" aria-hidden="true" />
+          {option.label}
+        </li>
+      ))
+    }
+  </ul>
+</div>
+
+<style is:global>
+  @layer components {
+    .ui-select {
+      position: relative;
+    }
+    .ui-select-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      text-align: left;
+      cursor: pointer;
+    }
+    .ui-select-value {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .ui-select-value.is-placeholder {
+      color: var(--field-placeholder);
+    }
+    .ui-select-chevron {
+      flex: none;
+      color: var(--field-muted);
+      transition: transform 0.4s var(--ease-esse);
+    }
+    .ui-select-trigger[aria-expanded="true"] .ui-select-chevron {
+      transform: rotate(180deg);
+    }
+
+    .ui-select-list {
+      position: absolute;
+      inset: calc(100% + 4px) 0 auto;
+      z-index: 20;
+      max-height: 15rem;
+      margin: 0;
+      padding: 4px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      list-style: none;
+      border: 1px solid var(--field-line);
+      border-radius: var(--radius-xs);
+      background: var(--field-popup);
+      box-shadow: 0 16px 40px rgb(0 0 0 / 0.28);
+      opacity: 0;
+      transform: translateY(-6px);
+      transition:
+        opacity 0.25s var(--ease-esse),
+        transform 0.35s var(--ease-esse);
+    }
+    .ui-select-list.is-open {
+      opacity: 1;
+      transform: none;
+    }
+    .ui-select-list.is-above {
+      inset: auto 0 calc(100% + 4px);
+    }
+    .ui-select-list[hidden] {
+      display: none;
+    }
+    .ui-select-option {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      min-height: 2.5rem;
+      margin: 0;
+      padding: 0 0.75rem;
+      border-radius: 1px;
+      color: var(--field-text);
+      font-weight: var(--font-weight-medium);
+      cursor: pointer;
+      user-select: none;
+    }
+    /* Square marker — the same 4px square as the section tags */
+    .ui-select-mark {
+      flex: none;
+      width: 4px;
+      height: 4px;
+      background: var(--field-muted);
+      opacity: 0.5;
+      transition: background 0.2s, opacity 0.2s;
+    }
+    .ui-select-option.is-active {
+      background: var(--field-hover);
+    }
+    .ui-select-option[aria-selected="true"] .ui-select-mark {
+      background: var(--color-secondary);
+      opacity: 1;
+    }
+    .form-theme[data-theme="dark"] .ui-select-option[aria-selected="true"] .ui-select-mark {
+      background: var(--color-accent);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .ui-select-list,
+      .ui-select-chevron {
+        transition: none;
+      }
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>("[data-select]").forEach((root) => {
+    const trigger = root.querySelector<HTMLButtonElement>("[data-select-trigger]")!;
+    const list = root.querySelector<HTMLElement>("[data-select-list]")!;
+    const input = root.querySelector<HTMLInputElement>("[data-select-input]")!;
+    const valueEl = root.querySelector<HTMLElement>("[data-select-value]")!;
+    const options = [...list.querySelectorAll<HTMLElement>("[role=option]")];
+    let active = -1;
+    let typed = "";
+    let typedTimer = 0;
+    const isOpen = () => trigger.getAttribute("aria-expanded") === "true";
+
+    function setActive(index: number) {
+      active = Math.max(0, Math.min(options.length - 1, index));
+      options.forEach((option, i) => option.classList.toggle("is-active", i === active));
+      trigger.setAttribute("aria-activedescendant", options[active].id);
+      options[active].scrollIntoView({ block: "nearest" });
+    }
+    function open() {
+      if (isOpen() || trigger.disabled) return;
+      list.hidden = false;
+      // Flip above the field when there is not enough room below.
+      const rect = trigger.getBoundingClientRect();
+      list.classList.toggle("is-above", innerHeight - rect.bottom < list.offsetHeight + 12 && rect.top > list.offsetHeight + 12);
+      trigger.setAttribute("aria-expanded", "true");
+      const selected = options.findIndex((option) => option.getAttribute("aria-selected") === "true");
+      setActive(selected < 0 ? 0 : selected);
+      requestAnimationFrame(() => list.classList.add("is-open"));
+    }
+    function close() {
+      if (!isOpen()) return;
+      trigger.setAttribute("aria-expanded", "false");
+      trigger.removeAttribute("aria-activedescendant");
+      list.classList.remove("is-open");
+      list.hidden = true;
+    }
+    function select(index: number) {
+      const option = options[index];
+      if (!option) return;
+      options.forEach((o) => o.setAttribute("aria-selected", String(o === option)));
+      input.value = option.dataset.value ?? "";
+      valueEl.textContent = option.textContent?.trim() ?? "";
+      valueEl.classList.remove("is-placeholder");
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    // Used by the form on reset
+    root.addEventListener("select:reset", () => {
+      options.forEach((o) => o.setAttribute("aria-selected", "false"));
+      input.value = "";
+      valueEl.textContent = valueEl.dataset.placeholder ?? "";
+      valueEl.classList.add("is-placeholder");
+      close();
+    });
+
+    trigger.addEventListener("click", () => (isOpen() ? close() : open()));
+    options.forEach((option, i) => {
+      option.addEventListener("pointermove", () => active !== i && setActive(i));
+      option.addEventListener("click", () => {
+        select(i);
+        close();
+        trigger.focus();
+      });
+    });
+    trigger.addEventListener("keydown", (event) => {
+      const { key } = event;
+      if (key === "ArrowDown" || key === "ArrowUp") {
+        event.preventDefault();
+        if (!isOpen()) return open();
+        setActive(active + (key === "ArrowDown" ? 1 : -1));
+      } else if (key === "Home" || key === "End") {
+        if (!isOpen()) return;
+        event.preventDefault();
+        setActive(key === "Home" ? 0 : options.length - 1);
+      } else if (key === "Enter" || key === " ") {
+        event.preventDefault();
+        if (!isOpen()) return open();
+        select(active);
+        close();
+      } else if (key === "Escape") {
+        if (isOpen()) {
+          event.preventDefault();
+          event.stopPropagation();
+          close();
+        }
+      } else if (key === "Tab") {
+        if (isOpen()) {
+          select(active);
+          close();
+        }
+      } else if (key.length === 1 && /\S/.test(key)) {
+        // Type-ahead
+        typed += key.toLowerCase();
+        clearTimeout(typedTimer);
+        typedTimer = window.setTimeout(() => (typed = ""), 600);
+        const match = options.findIndex((option) => option.textContent?.trim().toLowerCase().startsWith(typed));
+        if (match >= 0) {
+          if (!isOpen()) open();
+          setActive(match);
+        }
+      }
+    });
+    document.addEventListener("pointerdown", (event) => {
+      if (isOpen() && !root.contains(event.target as Node)) close();
+    });
+    trigger.addEventListener("blur", () => setTimeout(() => !root.contains(document.activeElement) && close(), 0));
+  });
+</script>

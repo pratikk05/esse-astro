@@ -1,14 +1,17 @@
 ---
 import "../styles/global.css";
 import SiteScripts from "../components/global/SiteScripts.astro";
+import Preloader from "../components/global/Preloader.astro";
 
 interface Props {
   title?: string;
   /** Load the site animation bundle (Lenis, GSAP, WebGL). Off for the style guide. */
   scripts?: boolean;
+  /** Show the dither preloader (home page). */
+  preloader?: boolean;
 }
 
-const { title = "Uniflow", scripts = true } = Astro.props;
+const { title = "Uniflow", scripts = true, preloader = false } = Astro.props;
 ---
 
 <!doctype html>
@@ -27,8 +30,29 @@ const { title = "Uniflow", scripts = true } = Astro.props;
     <script is:inline>
       !function(o,c){var n=c.documentElement,t=" w-mod-";n.className+=t+"js",("ontouchstart"in o||o.DocumentTouch&&c instanceof DocumentTouch)&&(n.className+=t+"touch")}(window,document);
     </script>
+    <!-- Loader mode, decided before first paint (see components/global/Preloader.astro). -->
+    <script is:inline define:vars={{ preloader }}>
+      (function () {
+        var root = document.documentElement, arrived = false, type = "navigate";
+        try { arrived = sessionStorage.getItem("uniflow:transition") === "1"; sessionStorage.removeItem("uniflow:transition"); } catch (e) {}
+        try { type = performance.getEntriesByType("navigation")[0].type; } catch (e) {}
+        if (arrived && type !== "back_forward") {
+          // Came through an internal link: short dither entrance, keep any #anchor.
+          root.dataset.loader = "enter";
+          root.classList.add("is-loading");
+        } else if (preloader && type !== "back_forward") {
+          // First visit or reload: full preloader, always opening on the hero.
+          root.dataset.loader = "load";
+          root.classList.add("is-loading");
+          history.scrollRestoration = "manual";
+          if (location.hash) history.replaceState(null, "", location.pathname + location.search);
+          scrollTo(0, 0);
+        }
+      })();
+    </script>
   </head>
   <body>
+    {scripts && <Preloader />}
     <slot />
     {scripts && <SiteScripts />}
   </body>

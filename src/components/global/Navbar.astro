@@ -15,12 +15,20 @@ import IconInstagram from "../../assets/svg/menu/icon-instagram.svg";
 import SocialXButton from "../../assets/svg/menu/social-x-button.svg";
 import IconLinkedin from "../../assets/svg/menu/icon-linkedin.svg";
 
+interface Props {
+  /** false on inner pages: section links point back to the home page ("/#work"). */
+  home?: boolean;
+}
+const { home = true } = Astro.props;
+const base = home ? "" : "/";
+const contact = "/contact";
+
 const primaryLinks = [
-  { label: "HOME", href: "#top" },
-  { label: "WORK", href: "#work" },
-  { label: "SERVICES", href: "#services" },
-  { label: "ABOUT", href: "#about" },
-  { label: "CONTACT", href: "#contact" },
+  { label: "HOME", href: home ? "#top" : "/" },
+  { label: "WORK", href: `${base}#work` },
+  { label: "SERVICES", href: `${base}#services` },
+  { label: "ABOUT", href: `${base}#about` },
+  { label: "CONTACT", href: contact },
 ];
 const legalLinks = [
   { label: "TERMS & CONDITIONS", href: "#" },
@@ -32,9 +40,9 @@ const socials = { instagram: "#", x: "#", linkedin: "#" };
 const chars = (label: string) => [...label].map((c) => (c === " " ? " " : c));
 ---
 
-<header id="top" class="site-header absolute inset-x-0 top-0 z-50" data-menu-root>
+<header id="top" class="site-header absolute inset-x-0 top-0 z-50" data-menu-root data-reveal="fade">
   <div class="nav-row relative z-2 flex items-start justify-between padding-x-16 padding-top-24 lg:padding-32">
-    <a href="#top" class="nav-logo relative z-1 block" aria-label="Uniflow — home" data-menu-link>
+    <a href={home ? "#top" : "/"} class="nav-logo relative z-1 block" aria-label="Uniflow — home" data-menu-link>
       <LogoLight class="nav-logo-light" aria-hidden="true" />
     </a>
 
@@ -56,7 +64,7 @@ const chars = (label: string) => [...label].map((c) => (c === " " ? " " : c));
       <!-- CTA cluster: stays fixed while the rest of the navbar scrolls away.
            The desktop menu card is anchored to this box so it always sits behind the buttons. -->
       <div class="nav-cta fixed flex items-center gap-figma-2">
-        <a href="#contact" class="nav-cta-button relative z-1 hidden items-center justify-center text-12 font-semibold uppercase lg:flex" data-menu-cta data-menu-link>
+        <a href={contact} class="nav-cta-button relative z-1 hidden items-center justify-center text-12 font-semibold uppercase lg:flex" data-menu-cta data-menu-link>
           START A PROJECT
         </a>
 
@@ -140,7 +148,7 @@ const chars = (label: string) => [...label].map((c) => (c === " " ? " " : c));
           </div>
 
           <!-- Mobile-only bottom CTA -->
-          <a href="#contact" class="menu-mobile-cta flex items-center justify-center text-12 font-semibold uppercase lg:hidden" data-menu-link data-menu-mobile-cta>
+          <a href={contact} class="menu-mobile-cta flex items-center justify-center text-12 font-semibold uppercase lg:hidden" data-menu-link data-menu-mobile-cta>
             START A PROJECT
           </a>
         </nav>

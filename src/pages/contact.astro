@@ -1,0 +1,550 @@
+---
+/**
+ * Contact page — Figma "Contact" (150:614). Every "Start a project" link lands here.
+ * Built from the Figma frame screenshot (the Figma API limit blocked code/values), so sizes are
+ * measured from the 1440px frame: 48px fields, 16px gutter, 104px row pitch, form column 646px.
+ * Background: the same liquid gradient canvas as the Hero (no grid lines).
+ * Theme: data-theme="dark" | "light" on .form-theme switches every field + dropdown colour.
+ */
+import Layout from "../layouts/Layout.astro";
+import Navbar from "../components/global/Navbar.astro";
+import Footer from "../components/sections/Footer.astro";
+import Select from "../components/ui/Select.astro";
+import Tag from "../components/ui/Tag.astro";
+import IconInstagram from "../assets/svg/menu/icon-instagram.svg";
+import IconLinkedin from "../assets/svg/menu/icon-linkedin.svg";
+
+// Placeholder ranges — replace with the real budget bands.
+const budgets = [
+  { value: "under-5k", label: "Under $5,000" },
+  { value: "5k-10k", label: "$5,000 – $10,000" },
+  { value: "10k-25k", label: "$10,000 – $25,000" },
+  { value: "25k-plus", label: "$25,000+" },
+  { value: "unsure", label: "Not sure yet" },
+];
+const services = [
+  ["Brand Strategy", "Brand Identity", "User Experience Design"],
+  ["Web Development", "eCommerce", "Web & Mobile Applications"],
+];
+const slug = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+---
+
+<Layout title="Contact — Uniflow">
+  <Navbar home={false} />
+  <main>
+    <section class="contact-page form-theme section bg-black text-white" data-theme="dark">
+      <!-- Same liquid gradient as the Hero (scripts/modules/hero-gradient.js) -->
+      <div class="contact-bg" aria-hidden="true">
+        <canvas data-liquid-gradient></canvas>
+      </div>
+      <div class="container-wide relative z-1">
+        <div class="contact-grid">
+          <div class="contact-intro" data-reveal style="--reveal-order: 1">
+            <Tag label="LET’S WORK TOGETHER" tone="light" />
+            <h1 class="contact-title heading-48">Have Something <br />in Mind?</h1>
+            <dl class="contact-details">
+              <dt class="text-12">INQUIRIES</dt>
+              <dd class="para-16 font-normal"><a href="mailto:hello@uniflow.example">hello@uniflow.example</a></dd>
+              <dt class="text-12">PHONE</dt>
+              <dd class="para-16 font-normal"><a href="tel:+910000000000">+91 00000 00000</a></dd>
+            </dl>
+            <ul class="contact-social">
+              <li><a href="#" aria-label="Instagram"><IconInstagram aria-hidden="true" /></a></li>
+              <li><a href="#" aria-label="Behance"><span class="contact-social-be" aria-hidden="true">Bē</span></a></li>
+              <li>
+                <a href="#" aria-label="X (Twitter)">
+                  <svg viewBox="10.7 11.67 13.63 12.65" width="14" height="13" aria-hidden="true"><path fill="currentColor" d="M21.4306 11.6757H23.5193L18.956 17.0335L24.3243 24.3243H20.121L16.8287 19.9025L13.0617 24.3243H10.9717L15.8526 18.5935L10.7027 11.6757H15.0128L17.9887 15.7174L21.4306 11.6757ZM20.6974 23.04H21.8549L14.3839 12.8925H13.1419L20.6974 23.04Z"></path></svg>
+                </a>
+              </li>
+              <li><a href="#" aria-label="LinkedIn"><IconLinkedin aria-hidden="true" /></a></li>
+            </ul>
+          </div>
+
+          <form class="contact-form" data-contact-form novalidate data-reveal style="--reveal-order: 2">
+            <div class="field" data-field>
+              <label class="field-label text-12" for="contact-name">YOUR NAME <span aria-hidden="true">*</span></label>
+              <input class="field-control para-14" id="contact-name" name="name" type="text" autocomplete="name" placeholder="Your name" required aria-describedby="contact-name-error" />
+              <p class="field-error text-12" id="contact-name-error" data-error hidden></p>
+            </div>
+            <div class="field" data-field>
+              <label class="field-label text-12" for="contact-email">EMAIL <span aria-hidden="true">*</span></label>
+              <input class="field-control para-14" id="contact-email" name="email" type="email" autocomplete="email" placeholder="you@company.com" required aria-describedby="contact-email-error" />
+              <p class="field-error text-12" id="contact-email-error" data-error hidden></p>
+            </div>
+            <div class="field" data-field>
+              <label class="field-label text-12" for="contact-contact">CONTACT <span aria-hidden="true">*</span></label>
+              <input class="field-control para-14" id="contact-contact" name="contact" type="text" placeholder="Your name" required aria-describedby="contact-contact-error" />
+              <p class="field-error text-12" id="contact-contact-error" data-error hidden></p>
+            </div>
+            <div class="field" data-field>
+              <label class="field-label text-12" for="contact-phone">PHONE</label>
+              <input class="field-control para-14" id="contact-phone" name="phone" type="tel" autocomplete="tel" placeholder="+91 00000 00000" />
+            </div>
+            <div class="field is-wide" data-field>
+              <label class="field-label text-12" for="contact-budget">BUDGET RANGE <span aria-hidden="true">*</span></label>
+              <Select id="contact-budget" name="budget" label="Budget range" options={budgets} placeholder="Budget range" required />
+              <p class="field-error text-12" id="contact-budget-error" data-error hidden></p>
+            </div>
+            <div class="field is-wide" data-field>
+              <label class="field-label text-12" for="contact-message">TELL US ABOUT YOUR PROJECT <span aria-hidden="true">*</span></label>
+              <textarea class="field-control para-14" id="contact-message" name="message" rows="6" placeholder="A little about your project, goals, and timeline…" required aria-describedby="contact-message-error"></textarea>
+              <p class="field-error text-12" id="contact-message-error" data-error hidden></p>
+            </div>
+            <fieldset class="contact-services is-wide">
+              <legend class="field-label text-12">SERVICES YOU’RE INTERESTED IN</legend>
+              <div class="contact-services-grid">
+                {
+                  services.map((column) => (
+                    <div class="contact-services-col">
+                      {column.map((label) => (
+                        <label class="check para-14 font-normal">
+                          <input type="checkbox" name="services" value={slug(label)} />
+                          <span class="check-box" aria-hidden="true" />
+                          {label}
+                        </label>
+                      ))}
+                    </div>
+                  ))
+                }
+              </div>
+            </fieldset>
+            <div class="contact-actions is-wide">
+              <button class="project-cta contact-submit" type="submit" data-theme="dark">
+                <span class="project-cta-icon" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" width="12" height="12" fill="none"><path d="M1 6h10M6.5 1.5 11 6l-4.5 4.5" stroke="currentColor" stroke-width="1.2"></path></svg>
+                </span>
+                <span class="project-cta-label text-11 font-bold">SEND MESSAGE</span>
+              </button>
+              <p class="contact-required text-10">* REQUIRED FIELDS</p>
+            </div>
+            <p class="contact-status para-14 is-wide" role="status" aria-live="polite" data-status></p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer home={false} />
+</Layout>
+
+<style is:global>
+  @layer components {
+    /* ---- Form theme tokens (dark = this page; light for white sections) ---- */
+    .form-theme,
+    .form-theme[data-theme="dark"] {
+      --field-bg: rgb(13 17 17 / 0.88); /* grey-90 */
+      --field-hover: rgb(24 30 30 / 0.92);
+      --field-popup: var(--color-grey-90);
+      --field-line: rgb(255 255 255 / 0.08);
+      --field-text: var(--color-white);
+      --field-muted: var(--color-grey-30);
+      --field-placeholder: var(--color-grey-50);
+      --field-label: var(--color-grey-10);
+      --field-focus: var(--color-white);
+      --field-error: #ff8b8b;
+    }
+    .form-theme[data-theme="light"] {
+      --field-bg: var(--color-surface);
+      --field-hover: var(--color-grey-10);
+      --field-popup: var(--color-white);
+      --field-line: var(--color-grey-20);
+      --field-text: var(--color-black);
+      --field-muted: var(--color-grey-60);
+      --field-placeholder: var(--color-grey-50);
+      --field-label: var(--color-grey-70);
+      --field-focus: var(--color-black);
+      --field-error: #b3261e;
+    }
+
+    .contact-page {
+      min-height: 100svh;
+      padding-block: 7.5rem 4rem;
+      overflow: clip;
+      isolation: isolate;
+    }
+    /* Hero background, 1:1 (same canvas shader and the same bottom fade mask) */
+    .contact-bg {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    .contact-bg canvas {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      -webkit-mask-image: linear-gradient(0deg, rgb(0 0 0 / 0) 0%, rgb(0 0 0 / 1) 100%);
+      mask-image: linear-gradient(0deg, rgb(0 0 0 / 0) 0%, rgb(0 0 0 / 1) 100%);
+    }
+    /* Black wash behind the form so the fields stay readable (Figma: gradient glows on the left only).
+       Stacked layouts: the wash rises from below the intro; desktop: it covers the right half. */
+    .contact-bg::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(to bottom, rgb(0 2 3 / 0.55) 0, rgb(0 2 3 / 0) 9rem),
+        linear-gradient(to bottom, rgb(0 2 3 / 0) 12rem, rgb(0 2 3 / 0.94) 26rem);
+    }
+    @media (width >= 62rem) {
+      .contact-bg::after {
+        background:
+          linear-gradient(to bottom, rgb(0 2 3 / 0.6) 0, rgb(0 2 3 / 0) 11rem),
+          linear-gradient(to right, rgb(0 2 3 / 0) 30%, rgb(0 2 3 / 0.9) 50%, rgb(0 2 3 / 0.96) 100%);
+      }
+    }
+
+    /* Figma's contact header shows only the logo and the CTA cluster */
+    body:has(.contact-page) [data-nav-info] {
+      visibility: hidden;
+    }
+    .contact-grid {
+      display: grid;
+      gap: 3.5rem;
+    }
+    .contact-title {
+      margin-top: 1rem;
+    }
+    .contact-details {
+      margin: 2.5rem 0 0;
+    }
+    .contact-details dt {
+      margin-bottom: 0.875rem;
+      color: var(--color-grey-20);
+    }
+    .contact-details dd {
+      margin: 0 0 1.75rem;
+    }
+    .contact-details a {
+      color: var(--color-white);
+      text-decoration: none;
+    }
+    .contact-details a:hover {
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+    .contact-social {
+      display: flex;
+      gap: 8px;
+      margin: 2.5rem 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    .contact-social li {
+      margin: 0;
+    }
+    .contact-social a {
+      display: grid;
+      place-items: center;
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: var(--radius-xs);
+      background: var(--color-grey-10);
+      color: var(--color-grey-90);
+      text-decoration: none;
+      transition:
+        background 0.4s var(--ease-esse),
+        transform 0.4s var(--ease-esse);
+    }
+    .contact-social a:hover {
+      background: var(--color-white);
+      transform: translateY(-2px);
+    }
+    .contact-social a:focus-visible {
+      outline: 2px solid var(--color-white);
+      outline-offset: 3px;
+    }
+    .contact-social svg {
+      display: block;
+    }
+    .contact-social-be {
+      font-family: var(--font-secondary);
+      font-size: 0.9375rem;
+      font-weight: var(--font-weight-bold);
+      letter-spacing: -0.04em;
+      line-height: 1;
+    }
+
+    .contact-form {
+      display: grid;
+      gap: 2rem 1rem;
+      align-content: start;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-width: 0;
+    }
+    .field-label {
+      color: var(--field-label);
+    }
+    .field-label span {
+      color: var(--field-muted);
+    }
+    /* Shared control: inputs, textarea and the custom select trigger — 48px, 16px inset */
+    .field-control {
+      width: 100%;
+      min-height: 3rem;
+      padding: 0 1rem;
+      border: 1px solid var(--field-line);
+      border-radius: var(--radius-xs);
+      background: var(--field-bg);
+      color: var(--field-text);
+      font-weight: var(--font-weight-normal);
+      appearance: none;
+      transition:
+        background var(--duration-fast) var(--ease-esse),
+        border-color var(--duration-fast) var(--ease-esse);
+    }
+    textarea.field-control {
+      min-height: 11rem; /* 176 */
+      padding-block: 0.875rem;
+      resize: vertical;
+    }
+    .field-control::placeholder {
+      color: var(--field-placeholder);
+      opacity: 1;
+    }
+    .field-control:hover {
+      background: var(--field-hover);
+    }
+    .field-control:focus-visible,
+    .field-control[aria-expanded="true"] {
+      outline: none;
+      border-color: var(--field-focus);
+    }
+    .field-control:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    /* Keep browser autofill on-brand (Chrome paints its own pale background otherwise) */
+    .field-control:-webkit-autofill {
+      -webkit-text-fill-color: var(--field-text);
+      box-shadow: 0 0 0 100px #0d1111 inset;
+      caret-color: var(--field-text);
+    }
+    .field.is-invalid .field-control {
+      border-color: var(--field-error);
+    }
+    .field-error {
+      margin: -0.25rem 0 0;
+      color: var(--field-error);
+      line-height: 1.3;
+    }
+    .field-error[hidden] {
+      display: none;
+    }
+
+    /* ---- Services checkboxes ---- */
+    .contact-services {
+      min-width: 0;
+      margin: 0.25rem 0 0;
+      padding: 0;
+      border: 0;
+    }
+    .contact-services legend {
+      margin-bottom: 1.25rem;
+      padding: 0;
+    }
+    .contact-services-grid {
+      display: grid;
+      gap: 0.75rem 1rem;
+    }
+    .contact-services-col {
+      display: grid;
+      gap: 0.75rem;
+    }
+    .check {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      width: fit-content;
+      color: var(--field-text);
+      cursor: pointer;
+    }
+    .check input {
+      position: absolute;
+      opacity: 0;
+      width: 14px;
+      height: 14px;
+      margin: 0;
+    }
+    .check-box {
+      position: relative;
+      flex: none;
+      width: 14px;
+      height: 14px;
+      border: 1px solid var(--field-muted);
+      border-radius: 1px;
+      transition:
+        background 0.2s var(--ease-esse),
+        border-color 0.2s var(--ease-esse);
+    }
+    .check-box::after {
+      content: "";
+      position: absolute;
+      inset: 3px;
+      background: var(--color-black);
+      transform: scale(0);
+      transition: transform 0.25s var(--ease-esse);
+    }
+    .form-theme[data-theme="light"] .check-box::after {
+      background: var(--color-white);
+    }
+    .check:hover .check-box {
+      border-color: var(--field-focus);
+    }
+    .check input:checked + .check-box {
+      border-color: var(--field-focus);
+      background: var(--field-focus);
+    }
+    .check input:checked + .check-box::after {
+      transform: scale(1);
+    }
+    .check input:focus-visible + .check-box {
+      outline: 2px solid var(--field-focus);
+      outline-offset: 3px;
+    }
+
+    .contact-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-top: 1.25rem;
+    }
+    .contact-submit {
+      width: 8.875rem; /* 142 */
+      background: transparent;
+      font: inherit;
+      cursor: pointer;
+    }
+    .contact-submit:disabled {
+      opacity: 0.5;
+      cursor: progress;
+    }
+    .contact-required {
+      margin: 0;
+      color: var(--color-grey-40);
+    }
+    .contact-status {
+      min-height: 1.4em;
+      margin: -1rem 0 0;
+      color: var(--field-muted);
+    }
+    .contact-status:empty {
+      display: none;
+    }
+    .contact-status.is-success {
+      color: var(--color-accent);
+    }
+
+    @media (width >= 48rem) {
+      .contact-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .is-wide {
+        grid-column: 1 / -1;
+      }
+      .contact-services-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (width < 48rem) {
+      .contact-title br {
+        display: none;
+      }
+    }
+    /* Desktop: Figma 1440 — tag at 158px, form column 646px on the right */
+    @media (width >= 62rem) {
+      .contact-page {
+        padding-block: calc(152 * var(--px)) calc(64 * var(--px));
+      }
+      .contact-grid {
+        grid-template-columns: minmax(0, calc(540 * var(--px))) minmax(0, calc(646 * var(--px)));
+        justify-content: space-between;
+        gap: 2rem;
+        align-items: start;
+      }
+    }
+  }
+</style>
+
+<script>
+  const form = document.querySelector<HTMLFormElement>("[data-contact-form]");
+  if (form) {
+    const status = form.querySelector<HTMLElement>("[data-status]")!;
+    const submit = form.querySelector<HTMLButtonElement>("[type=submit]")!;
+
+    // Prefill from the footer form (/contact?name=…&email=…)
+    const params = new URLSearchParams(location.search);
+    for (const key of ["name", "email"]) {
+      const field = form.elements.namedItem(key) as HTMLInputElement | null;
+      if (field && params.get(key)) field.value = params.get(key)!;
+    }
+
+    const messageFor = (el: HTMLInputElement | HTMLTextAreaElement) => {
+      if (el.validity.valueMissing) return "This field is required.";
+      if (el.validity.typeMismatch) return "Enter a valid e-mail address.";
+      return "";
+    };
+    function setError(field: HTMLElement, message: string) {
+      const error = field.querySelector<HTMLElement>("[data-error]");
+      field.classList.toggle("is-invalid", !!message);
+      field.querySelectorAll(".field-control").forEach((c) => c.setAttribute("aria-invalid", String(!!message)));
+      if (error) {
+        error.textContent = message;
+        error.hidden = !message;
+      }
+    }
+    function validate(field: HTMLElement) {
+      const select = field.querySelector<HTMLElement>("[data-select]");
+      if (select) {
+        const empty = select.hasAttribute("data-required") && !select.querySelector<HTMLInputElement>("[data-select-input]")!.value;
+        setError(field, empty ? "Select a budget range." : "");
+        return !empty;
+      }
+      const control = field.querySelector<HTMLInputElement | HTMLTextAreaElement>("input, textarea");
+      if (!control) return true;
+      const message = messageFor(control);
+      setError(field, message);
+      return !message;
+    }
+    const fields = [...form.querySelectorAll<HTMLElement>("[data-field]")];
+    fields.forEach((field) => {
+      // Validate when leaving a field; clear the error as soon as it is fixed.
+      field.addEventListener("focusout", (event) => {
+        if (!field.contains(event.relatedTarget as Node)) validate(field);
+      });
+      field.addEventListener("input", () => field.classList.contains("is-invalid") && validate(field));
+      field.addEventListener("change", () => validate(field));
+    });
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      status.textContent = "";
+      status.classList.remove("is-success");
+      const invalid = fields.filter((field) => !validate(field));
+      if (invalid.length) {
+        invalid[0].querySelector<HTMLElement>(".field-control")?.focus();
+        status.textContent = "Please complete the highlighted fields.";
+        return;
+      }
+      // No backend is connected yet: the data is handed to a `uniflow:enquiry` event for the future integration.
+      const data = new FormData(form);
+      const detail = { ...Object.fromEntries(data), services: data.getAll("services"), source: "contact" };
+      submit.disabled = true;
+      form.dispatchEvent(new CustomEvent("uniflow:enquiry", { bubbles: true, detail }));
+      form.reset();
+      form.querySelectorAll("[data-select]").forEach((s) => s.dispatchEvent(new Event("select:reset")));
+      fields.forEach((field) => setError(field, ""));
+      status.textContent = "Thanks — we’ve got your details and will be in touch.";
+      status.classList.add("is-success");
+      submit.disabled = false;
+    });
+  }
+</script>

@@ -7,13 +7,14 @@ import "./logo-marquee.js"; // after smooth-scroll.js: uses window.lenis for scr
 import "./modules/hero-gradient.js";
 import "./modules/about-scene.js"; // lightweight; fetches Three.js itself when About is near
 import "./modules/stats.js";
-import "./modules/services-scroll.js";
 import "./modules/work-preview.js";
 
 const lazy = {
   ".bayer-dither-bg": () => import("./modules/pixel-background.js"), // pulls in Three.js
   "[data-stories]": () => import("./modules/testimonial.js"),
   ".faq-wrapper": () => import("./modules/faq-accordion.js"),
+  ".process_container": () => import("./modules/uniflow-process.js"), // canvas circle-to-gear + card sequence
+  ".services": () => import("./modules/uniflow-services/index.js"), // pulls in Three.js + GSAP ScrollTrigger
 };
 
 for (const [selector, load] of Object.entries(lazy)) {

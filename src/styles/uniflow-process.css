@@ -1,0 +1,122 @@
+/*
+  Process section (Figma 56:396 desktop · 118:456 mobile).
+  Typography is NOT set here: the markup uses FlowScale classes
+    heading-pixel-32 (step titles) · para-14 (copy) · text-13 (step number) · text-12 (header/counter)
+  so sizes come from tools/flowscale.config.mjs. This file only holds layout, colour and the
+  scroll-driven card/canvas mechanics from the approved handoff.
+
+  Breakpoints: >= 992 desktop (4 cards open in sequence) · 768–991 tablet (2 cards visible, slide)
+               <= 767 mobile (compact header) · <= 479 one card at a time.
+*/
+
+.process_container {
+  --blue: var(--color-secondary);
+  --ink: var(--color-brand-02);
+  --muted: var(--color-grey-60);
+  --border: var(--color-grey-30);
+  padding: 0 1rem 2.5rem;
+  background: var(--color-white);
+  color: var(--ink);
+}
+.process_container h2,
+.process_container p {
+  margin: 0;
+}
+
+.process_long_wrap { position: relative; height: 500vh; width: 100%; }
+.pw-sticky {
+  position: sticky; top: 0; width: 100%; height: 100svh; overflow: hidden;
+  padding: 1.75rem 0 1.25rem; display: flex; flex-direction: column; gap: 2rem;
+}
+
+/* ---- Header: bracket · label · intro · counter ---- */
+.process_content_wrap { flex: none; display: flex; flex-direction: column; gap: 0.75rem; height: 5rem; }
+.header-bracket { height: 1rem; border: 1px solid var(--border); border-bottom: 0; flex: none; }
+.header-row { position: relative; height: 3.25rem; display: grid; grid-template-columns: 1fr 1fr; align-items: start; }
+.section-label { display: flex; align-items: center; gap: 0.5rem; color: var(--muted); text-transform: uppercase; }
+.section-label::before { content: ""; display: block; width: 4px; height: 4px; background: var(--muted); flex: none; }
+.section-label h2 { font-weight: inherit; }
+.process-intro { grid-column: 2; padding-left: 7px; text-transform: uppercase; color: var(--muted); line-height: 1; }
+.process-counter { position: absolute; top: 0; right: 0; color: var(--ink); }
+
+/* ---- Cards + canvas ---- */
+.process-wrap { position: relative; flex: 1; min-height: 0; width: 100%; display: flex; align-items: flex-end; }
+.cards_wrap { position: relative; display: flex; gap: 0.75rem; height: 100%; width: 100%; flex: 1; align-items: flex-end; will-change: transform; overflow: clip; }
+.process_card {
+  position: relative; flex: 1; min-width: 0; height: 100%; padding: 1.25rem 1.5rem;
+  display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between;
+  color: var(--color-white); transform-origin: 50% 100%; background: transparent; isolation: isolate;
+}
+.process_card > .item_num,
+.process_card > .process-card-container { z-index: 1; }
+.item_num { opacity: var(--number-visible, 0); transition: opacity 160ms ease; }
+.process-card-container {
+  display: flex; flex-direction: column; gap: 0.75rem; width: 100%; padding-bottom: 0; position: relative;
+  opacity: var(--copy-visible, 0); transition: opacity 160ms ease;
+}
+.process_card h2 { position: relative; width: 245px; max-width: 100%; }
+.process_card p { width: 100%; max-width: 30em; color: var(--color-white); }
+.process_cover {
+  position: absolute; inset: auto 0 0; background: var(--blue); z-index: 0;
+  height: calc(var(--opening, 0) * 100%);
+}
+.progress_animation { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+#pw-canvas { position: absolute; top: 0; left: 0; display: block; pointer-events: none; }
+
+/* Heading scramble overlay (see uniflow-process.js) */
+.process-heading-final { display: block; }
+.process-heading-scramble { position: absolute; inset: 0; display: block; pointer-events: none; overflow: hidden; }
+.process-heading-scramble[hidden] { display: none; }
+.mobile-title-space { display: none; }
+
+/* ---- Desktop (>= 992): 32px side margins ---- */
+@media (width >= 62rem) {
+  .process_container { padding: 0 2rem 3.75rem; }
+  .pw-sticky { padding-top: 2.5rem; }
+  .process_card { padding-bottom: 2.75rem; }
+}
+
+/* ---- Tablet + mobile (< 992): cards slide sideways ---- */
+@media (width < 62rem) {
+  .pw-sticky { padding-top: 1.75rem; }
+  .process-intro { max-width: 18.125rem; padding-right: 2.75rem; }
+  .process_card { flex: none; width: 49%; padding-bottom: 2.75rem; }
+  .cards_wrap { overflow: visible; }
+}
+
+/* ---- Mobile (<= 767): Figma 118:456 — compact header, no intro copy ---- */
+@media (width < 48rem) {
+  .process_long_wrap { height: 300vh; }
+  /* 60px top: clears the site's fixed menu button (top-right) so it never covers the counter */
+  .pw-sticky { padding: 3.75rem 0 1.25rem; gap: 1.5rem; }
+  .process_content_wrap { height: 2.25rem; gap: 1rem; }
+  .header-bracket { height: 8px; }
+  .header-row { height: 12px; display: flex; flex-direction: row; justify-content: space-between; align-items: center; }
+  .process-intro { display: none; }
+  .section-label::before { background: var(--blue); }
+  .process-counter { position: static; color: var(--muted); }
+  .process_card { padding: 1.25rem 1.5rem 2.75rem; }
+  .process_card h2 { width: 100%; }
+  .process_card h2 br { display: none; }
+  .mobile-title-space { display: inline; }
+}
+
+/* ---- Narrow mobile (< 480): one card per screen ---- */
+@media (width < 30rem) {
+  .cards_wrap { gap: 0; }
+  .process_card { flex: 0 0 100%; width: 100%; }
+}
+
+/* ---- Short screens: keep the copy inside the card ---- */
+@media (height <= 660px) and (width >= 48rem) {
+  .pw-sticky { padding-top: 1.25rem; gap: 1.25rem; }
+  .process_content_wrap { height: 4rem; }
+  .header-row { height: 2.25rem; }
+  .process_card { padding-bottom: 1.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .process_long_wrap { height: 180svh; }
+  .process-card-container,
+  .item_num { transition: none; }
+}

@@ -19,17 +19,27 @@ export const viewport = { min: 360, max: 1440 };
     small text fixed.
 */
 export const typography = {
+  // Figma "Typography / Esse" (170:44): Geist Pixel display/primary headings, 42dot Sans secondary/sub, JetBrains Mono numeric.
   heading: {
     family: "--font-primary",
     sizes: [
-      { size: 76, min: 40, weight: 400, leading: "display", tracking: "display", source: "Webflow heading-style-76 / -90 (767px: 40px)" },
-      { size: 56, min: 24, weight: 500, leading: "display", tracking: "xl", source: "Webflow heading-style-56 (767px: 24px)" },
-      { size: 36, min: 16, weight: 500, leading: "heading", tracking: "lg", source: "Webflow heading-style-36 (767px: 14px → 16px floor)" },
-      { size: 32, min: 16, weight: 500, leading: "heading", tracking: "lg", source: "Webflow heading-style-32 (767px: 12px → 16px floor)" },
-      { size: 24, min: 16, weight: 500, leading: "title", tracking: "xl", source: "Webflow heading-style-24 (fallback 62.5% → 16px floor)" },
-      { size: 16, min: 16, weight: 500, leading: "body", tracking: "sm", source: "Webflow heading-style-16 (fixed)" },
-      { size: 14, min: 14, weight: 500, leading: "body", tracking: "sm", source: "Webflow heading-style-14 (fixed)" },
+      { size: 64, min: 44, weight: 400, leading: "heading", tracking: "lg", source: "Figma Display 01 (64 / mobile 44, 110%, -4%)" },
+      { size: 48, min: 40, weight: 400, leading: "heading", tracking: "lg", source: "Figma Heading 01/Primary (48 / 40, 110%, -4%)" },
+      { size: 40, min: 30, weight: 400, leading: "title", tracking: "lg", source: "Figma Heading 02/Primary (40 / 30, 120%, -4%)" },
+      { size: 32, min: 28, weight: 400, leading: "pixel", tracking: "sm", source: "Figma Heading 03/Primary (32 / 28, 115%, -2%)" },
     ],
+  },
+  "heading-secondary": {
+    family: "--font-secondary",
+    sizes: [{ size: 32, min: 24, weight: 500, leading: "heading", tracking: "lg", source: "Figma Heading 01/Secondary (42dot Medium 32 / 24, 110%, -4%)" }],
+  },
+  subheading: {
+    family: "--font-secondary",
+    sizes: [{ size: 16, min: 14, weight: 700, leading: "body", tracking: "sm", source: "Figma Sub Heading 01 (42dot Bold 16 / 14, 140%, -2%)" }],
+  },
+  numeric: {
+    family: "--font-tertiary",
+    sizes: [{ size: 76, min: 56, weight: 700, leading: "numeric", tracking: "lg", source: "Figma Numeric 01 (Mono Bold 76 / 56, 90%, -4%)" }],
   },
   para: {
     family: "--font-secondary",
@@ -44,7 +54,10 @@ export const typography = {
     sizes: [
       // Weight intentionally not set: inherits like the original (body 500 → renders JetBrains Mono 400).
       { size: 14, min: 14, leading: "display", tracking: "mono", source: "Webflow para-14 (fixed)" },
+      { size: 13, min: 13, leading: "display", tracking: "mono", source: "Figma Label 01 (Process step numbers, fixed)" },
       { size: 12, min: 12, leading: "display", tracking: "mono", source: "Webflow para-12 (fixed)" },
+      { size: 11, min: 11, leading: "display", tracking: "mono", source: "Figma Label 03 (bold CTA labels)" },
+      { size: 10, min: 10, leading: "display", tracking: "mono", source: "Figma Label 04 (compact metadata)" },
     ],
   },
 };

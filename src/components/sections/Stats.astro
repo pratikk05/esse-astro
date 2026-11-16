@@ -33,9 +33,9 @@ const stripes = [
         {
           stats.map((stat, i) => (
             <div class:list={["flex flex-col items-start justify-start gap-figma-64 border-l border-border-stat padding-left-24", i === 1 && "lg:col-start-3"]}>
-              <p class="heading-76 tabular-nums" data-stats-count>{stat.value}</p>
+              <p class="numeric-76 tabular-nums" data-stats-count>{stat.value}</p>
               <div class="stat-text flex flex-col gap-figma-12">
-                <h3 class="heading-14 font-bold">{stat.title}</h3>
+                <h3 class="subheading-16">{stat.title}</h3>
                 <p class="para-14 text-grey-20">{stat.text}</p>
               </div>
             </div>
@@ -45,14 +45,14 @@ const stripes = [
 
       <div class="stats-statement relative z-1 flex flex-col gap-figma-24">
         <p class="text-12 text-grey-10">[02]</p>
-        <h2 class="heading-36" data-stats-reveal>
+        <h2 class="heading-secondary-32" data-stats-reveal>
           We help brands move beyond generic websites <span class="text-secondary-light">by creating digital experiences that feel precise, seamless, and built to last.</span>
         </h2>
       </div>
     </div>
   </div>
 
-  <div class="absolute inset-x-0 bottom-0 z-2" data-stats-stripes>
+  <div class="stats-stripes absolute inset-x-0 z-2" data-stats-stripes>
     {
       stripes.map((stripe) => (
         <div class:list={["stats-stripe flex items-center justify-end bg-white text-grey-90 uppercase padding-x-16", stripe.width]} data-stats-stripe>
@@ -81,6 +81,13 @@ const stripes = [
     }
     .stats-stripe {
       padding-block: 0.4063rem; /* 6.5px */
+    }
+    /* Overhang by 1px (clipped by the section) so no sub-pixel row of blue shows under the last stripe */
+    .stats-stripes {
+      bottom: -1px;
+    }
+    .stats-stripe:last-child {
+      padding-bottom: calc(0.4063rem + 1px);
     }
     .stats-stripe + .stats-stripe {
       margin-top: -1px;

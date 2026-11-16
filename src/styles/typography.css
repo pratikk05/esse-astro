@@ -4,67 +4,67 @@
   Fluid range: 360px → 1440px viewport. Class numbers = Figma px (16px root).
 */
 
-/* heading-76: 76px (4.75rem) · min 40px · Webflow heading-style-76 / -90 (767px: 40px) */
-@utility heading-76 {
+/* heading-64: 64px (4rem) · min 44px · Figma Display 01 (64 / mobile 44, 110%, -4%) */
+@utility heading-64 {
   font-family: var(--font-primary);
-  font-size: clamp(2.5rem, calc(1.75rem + 3.3333vw), 4.75rem);
+  font-size: clamp(2.75rem, calc(2.3333rem + 1.8519vw), 4rem);
   font-weight: 400;
-  line-height: var(--leading-display);
-  letter-spacing: var(--tracking-display);
-}
-
-/* heading-56: 56px (3.5rem) · min 24px · Webflow heading-style-56 (767px: 24px) */
-@utility heading-56 {
-  font-family: var(--font-primary);
-  font-size: clamp(1.5rem, calc(0.8333rem + 2.963vw), 3.5rem);
-  font-weight: 500;
-  line-height: var(--leading-display);
-  letter-spacing: var(--tracking-xl);
-}
-
-/* heading-36: 36px (2.25rem) · min 16px · Webflow heading-style-36 (767px: 14px → 16px floor) */
-@utility heading-36 {
-  font-family: var(--font-primary);
-  font-size: clamp(1rem, calc(0.5833rem + 1.8519vw), 2.25rem);
-  font-weight: 500;
   line-height: var(--leading-heading);
   letter-spacing: var(--tracking-lg);
 }
 
-/* heading-32: 32px (2rem) · min 16px · Webflow heading-style-32 (767px: 12px → 16px floor) */
+/* heading-48: 48px (3rem) · min 40px · Figma Heading 01/Primary (48 / 40, 110%, -4%) */
+@utility heading-48 {
+  font-family: var(--font-primary);
+  font-size: clamp(2.5rem, calc(2.3333rem + 0.7407vw), 3rem);
+  font-weight: 400;
+  line-height: var(--leading-heading);
+  letter-spacing: var(--tracking-lg);
+}
+
+/* heading-40: 40px (2.5rem) · min 30px · Figma Heading 02/Primary (40 / 30, 120%, -4%) */
+@utility heading-40 {
+  font-family: var(--font-primary);
+  font-size: clamp(1.875rem, calc(1.6667rem + 0.9259vw), 2.5rem);
+  font-weight: 400;
+  line-height: var(--leading-title);
+  letter-spacing: var(--tracking-lg);
+}
+
+/* heading-32: 32px (2rem) · min 28px · Figma Heading 03/Primary (32 / 28, 115%, -2%) */
 @utility heading-32 {
   font-family: var(--font-primary);
-  font-size: clamp(1rem, calc(0.6667rem + 1.4815vw), 2rem);
+  font-size: clamp(1.75rem, calc(1.6667rem + 0.3704vw), 2rem);
+  font-weight: 400;
+  line-height: var(--leading-pixel);
+  letter-spacing: var(--tracking-sm);
+}
+
+/* heading-secondary-32: 32px (2rem) · min 24px · Figma Heading 01/Secondary (42dot Medium 32 / 24, 110%, -4%) */
+@utility heading-secondary-32 {
+  font-family: var(--font-secondary);
+  font-size: clamp(1.5rem, calc(1.3333rem + 0.7407vw), 2rem);
   font-weight: 500;
   line-height: var(--leading-heading);
   letter-spacing: var(--tracking-lg);
 }
 
-/* heading-24: 24px (1.5rem) · min 16px · Webflow heading-style-24 (fallback 62.5% → 16px floor) */
-@utility heading-24 {
-  font-family: var(--font-primary);
-  font-size: clamp(1rem, calc(0.8333rem + 0.7407vw), 1.5rem);
-  font-weight: 500;
-  line-height: var(--leading-title);
-  letter-spacing: var(--tracking-xl);
-}
-
-/* heading-16: 16px (1rem) · min 16px · Webflow heading-style-16 (fixed) */
-@utility heading-16 {
-  font-family: var(--font-primary);
-  font-size: 1rem;
-  font-weight: 500;
+/* subheading-16: 16px (1rem) · min 14px · Figma Sub Heading 01 (42dot Bold 16 / 14, 140%, -2%) */
+@utility subheading-16 {
+  font-family: var(--font-secondary);
+  font-size: clamp(0.875rem, calc(0.8333rem + 0.1852vw), 1rem);
+  font-weight: 700;
   line-height: var(--leading-body);
   letter-spacing: var(--tracking-sm);
 }
 
-/* heading-14: 14px (0.875rem) · min 14px · Webflow heading-style-14 (fixed) */
-@utility heading-14 {
-  font-family: var(--font-primary);
-  font-size: 0.875rem;
-  font-weight: 500;
-  line-height: var(--leading-body);
-  letter-spacing: var(--tracking-sm);
+/* numeric-76: 76px (4.75rem) · min 56px · Figma Numeric 01 (Mono Bold 76 / 56, 90%, -4%) */
+@utility numeric-76 {
+  font-family: var(--font-tertiary);
+  font-size: clamp(3.5rem, calc(3.0833rem + 1.8519vw), 4.75rem);
+  font-weight: 700;
+  line-height: var(--leading-numeric);
+  letter-spacing: var(--tracking-lg);
 }
 
 /* para-18: 18px (1.125rem) · min 15.75px · Webflow heading-style-18 on <p> (fallback 87.5%) */
@@ -102,6 +102,14 @@
   letter-spacing: var(--tracking-mono);
 }
 
+/* text-13: 13px (0.8125rem) · min 13px · Figma Label 01 (Process step numbers, fixed) */
+@utility text-13 {
+  font-family: var(--font-tertiary);
+  font-size: 0.8125rem;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-mono);
+}
+
 /* text-12: 12px (0.75rem) · min 12px · Webflow para-12 (fixed) */
 @utility text-12 {
   font-family: var(--font-tertiary);
@@ -110,5 +118,21 @@
   letter-spacing: var(--tracking-mono);
 }
 
+/* text-11: 11px (0.6875rem) · min 11px · Figma Label 03 (bold CTA labels) */
+@utility text-11 {
+  font-family: var(--font-tertiary);
+  font-size: 0.6875rem;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-mono);
+}
+
+/* text-10: 10px (0.625rem) · min 10px · Figma Label 04 (compact metadata) */
+@utility text-10 {
+  font-family: var(--font-tertiary);
+  font-size: 0.625rem;
+  line-height: var(--leading-display);
+  letter-spacing: var(--tracking-mono);
+}
+
 /* Always generate every FlowScale class (style guide renders them from data). */
-@source inline("heading-76 heading-56 heading-36 heading-32 heading-24 heading-16 heading-14 para-18 para-16 para-14 text-14 text-12");
+@source inline("heading-64 heading-48 heading-40 heading-32 heading-secondary-32 subheading-16 numeric-76 para-18 para-16 para-14 text-14 text-13 text-12 text-11 text-10");

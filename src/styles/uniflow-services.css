@@ -1,0 +1,120 @@
+@font-face{font-family:Uniflow;src:url('/uniflow/fonts/42dotSansLight-7bcc.woff2') format('truetype');font-weight:100 900;font-display:swap}
+@font-face{font-family:UniflowMono;src:url('/uniflow/fonts/JetBrainsMono-c112.woff2') format('truetype');font-weight:100 800;font-display:swap}
+.services,.mobile-services{--surface:#efefef;--ink:#111317;--muted:#586464;--inactive:#aeb8b8;--blue:#2929fd;--header-offset:32px;font-family:Uniflow,Arial,sans-serif;-webkit-font-smoothing:antialiased;color:var(--ink)}.services h2,.services p,.services figure,.mobile-services h2,.mobile-services p{margin:0}.services button,.mobile-services button{-webkit-tap-highlight-color:transparent}.services button:focus-visible,.mobile-services button:focus-visible{outline:2px solid var(--blue);outline-offset:8px}.eyebrow{font:500 12px/1.4 UniflowMono,monospace;text-transform:uppercase;letter-spacing:-.24px}.services{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px;padding:0 48px 100px;position:relative;overflow:visible}.artwork-track{grid-column:1;grid-row:1;min-width:0;align-self:stretch;padding:0 32px}.artwork-sticky{position:sticky;top:var(--header-offset);padding-top:72px;display:flex;flex-direction:column;gap:24px}.artwork{width:100%;height:auto;aspect-ratio:568/589;border-radius:4px;overflow:hidden;position:relative;background:#e1e3e3}.artwork canvas,.artwork img{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.artwork canvas{opacity:0}.artwork.ready canvas{opacity:1}.caption{display:flex;flex-direction:column;gap:12px;font:500 12px/1.4 UniflowMono,monospace;letter-spacing:-.24px;text-transform:uppercase;color:var(--muted)}.caption>span{color:var(--blue)}.service-list{grid-column:2;grid-row:1;min-width:0;padding-left:64px}.service-row{position:relative;min-height:255px;padding:20px 0 40px;border-bottom:.5px dashed #838a8a;display:flex;align-items:center}.service-row:last-child{border-bottom:0}.service-row h2{width:100%;font:500 56px/1.2 Uniflow,Arial,sans-serif;letter-spacing:-3.36px}.service-row button{display:grid;grid-template-columns:28px minmax(0,1fr);gap:16px;align-items:start;width:100%;padding:0;border:0;background:none;text-align:left;font:inherit;letter-spacing:inherit;color:var(--inactive);cursor:pointer;transition:color .2s}.service-row button>span:first-child{font:500 12px/1 Uniflow,Arial,sans-serif;letter-spacing:-.12px;padding-top:11px;color:#929c9c}.service-row[aria-current="step"] button,.service-row[aria-current="step"] button>span:first-child{color:var(--ink)}.service-row button:hover{color:var(--ink)}
+@media(min-width:1600px){.services{max-width:1700px;margin:auto}.service-row{min-height:300px}}
+@media(max-width:1199px){.services{gap:32px;padding-inline:32px}.artwork-track{padding-inline:16px}.service-list{padding-left:24px}.service-row h2{font-size:44px;letter-spacing:-2.64px}.service-row{min-height:230px}}
+@media(max-height:800px) and (min-width:768px){.artwork-sticky{padding-top:24px}.artwork{max-height:calc(100svh - 200px)}.caption{font-size:11px}}
+@media(max-width:767px){:root{--header-offset:16px}.services{display:flex;flex-direction:column;gap:48px;padding:0 20px 48px}.artwork-track{padding:0}.artwork-sticky{position:relative;top:auto;padding:0;gap:16px}.artwork{aspect-ratio:1;max-height:none}.caption{font-size:11px}.service-list{padding:0}.service-row{display:block;min-height:0;padding:24px 0}.service-row h2{font-size:36px;letter-spacing:-2.16px}.service-row button{grid-template-columns:28px minmax(0,1fr);gap:12px}.service-row button>span:first-child{padding-top:8px}}
+@media(prefers-reduced-motion:reduce){.services *,.mobile-services *{scroll-behavior:auto!important;transition:none!important}.artwork-sticky{position:relative;top:auto}}
+
+/* Pixel artwork: stable square graph-paper stage, including transparent cells. */
+.artwork{aspect-ratio:1;border-radius:0;background:transparent}
+.artwork img{image-rendering:pixelated;object-fit:contain}
+.artwork::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:2;background-image:linear-gradient(to right,rgba(8,10,16,.09) 1px,transparent 1px),linear-gradient(to bottom,rgba(8,10,16,.09) 1px,transparent 1px);background-size:calc(100% / 32) calc(100% / 32);border:1px solid rgba(8,10,16,.09)}
+@media(max-height:800px) and (min-width:768px){.artwork{max-height:none;width:min(100%,calc(100svh - 220px));align-self:center}}
+
+.artwork.ready img{visibility:hidden}
+
+/* Original responsive frame; only the internal pixel cells are fixed. */
+.artwork{width:100%;height:auto;aspect-ratio:1;flex:none;align-self:center}
+.artwork::after{background-size:10px 10px}
+@media(max-height:800px) and (min-width:768px){.artwork{width:min(100%,calc(100svh - 220px))}}
+
+/* Reduce the whitespace between service titles by exactly one quarter. */
+.service-row{--original-row-height:255;padding:15px 0 30px}
+@media(min-width:1600px){.service-row{--original-row-height:300}}
+@media(max-width:1199px){.service-row{--original-row-height:230}}
+@media(max-width:767px){.service-row{--original-row-height:0;padding:18px 0}}
+
+/* Fine dither dots belong to the artwork, independently of the 10px wipe tiles. */
+.artwork img{image-rendering:auto}
+
+/* One pinned camera and one progress owner for artwork and service focus. */
+.services{display:block;height:var(--sequence-height,540svh);padding:0;max-width:none}
+.services-camera{position:sticky;top:0;height:100svh;display:grid;grid-template-rows:minmax(0,1fr);grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px;padding:0 48px;overflow:hidden}
+.artwork-track{grid-row:1;grid-column:1;align-self:center;min-width:0}
+.artwork-sticky{position:relative;top:auto;padding-top:0}
+.list-window{grid-row:1;grid-column:2;min-height:0;height:100%;overflow:clip;min-width:0}
+.service-list{position:relative;grid-area:auto;will-change:transform;transform:translateY(var(--list-y,0px))}
+.service-row button{transition:none;color:var(--inactive)}
+.service-row[aria-current="step"] button,.service-row[aria-current="step"] button>span:first-child{color:var(--ink)}
+.service-row button:hover{color:inherit}
+@media(max-width:1199px){.services-camera{gap:32px;padding-inline:32px}}
+@media(max-width:767px){.services{height:auto}.services-camera{position:relative;height:auto;display:flex;flex-direction:column;padding:20px;gap:36px;overflow:visible}.list-window{overflow:visible;height:auto}.service-list{transform:none!important;will-change:auto}.artwork-track{width:100%;padding:0}.artwork-sticky{position:relative}}
+@media(prefers-reduced-motion:reduce){.services{height:auto}.services-camera{position:relative;height:auto;min-height:100svh;overflow:visible;align-items:start;padding-block:32px}.list-window{overflow:visible;height:auto}.service-list{transform:none!important;will-change:auto}}
+
+/* Neighbour copies give a rotating list, while real service selection ends at five. */
+.service-row[data-carousel-copy]{pointer-events:none}
+.service-row[data-carousel-copy] button,.service-row[data-carousel-copy] button>span:first-child{color:var(--inactive)}
+
+@media(max-width:767px),(prefers-reduced-motion:reduce){.service-row[data-carousel-copy]{display:none}}
+
+/* Unnumbered service titles with soft, background-matched list edges. */
+.service-row button{display:block}
+.service-row button>span:first-child{font:inherit;letter-spacing:inherit;padding-top:0;color:inherit}
+.list-window{-webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 17%,#000 83%,transparent 100%);mask-image:linear-gradient(to bottom,transparent 0%,#000 17%,#000 83%,transparent 100%)}
+@media(max-width:767px),(prefers-reduced-motion:reduce){.list-window{-webkit-mask-image:none;mask-image:none}}
+/* Red Dot exit: final viewport scrolls away, with two separately scrubbed layers. */
+.services-camera{background:var(--surface)}
+.red-dot-exit-trigger{position:absolute;left:0;right:0;height:100svh;pointer-events:none;visibility:hidden}
+.team-section{position:relative;min-height:100svh;height:max(100svh,62.5vw);background:#fff}
+.team-section iframe{display:block;width:100%;height:100%;border:0;background:#fff}
+@media(min-width:768px) and (prefers-reduced-motion:no-preference){
+ .artwork-track{height:100%;align-self:stretch;display:flex;align-items:center;transform-origin:center}
+ .artwork-sticky{width:100%}
+ .hero__main{transform-origin:center}
+}
+
+/* Original type scale and spacing, shown once in a regular ordered list. */
+.service-list{display:block;height:auto;will-change:transform;transform:translateY(var(--list-y,0px))}
+.service-row{flex:none}
+.service-row button,.service-row button>span:first-child{transition:color .4s ease}
+@media(prefers-reduced-motion:reduce){.service-row button,.service-row button>span:first-child{transition:none}}
+
+/* Normal document scrolling for text; only the sculpture stays beside it. */
+@media(min-width:768px) and (prefers-reduced-motion:no-preference){
+ .services{height:auto}
+ .services-camera{position:relative;height:auto;min-height:100svh;grid-template-rows:auto;overflow:clip;align-items:start}
+ .artwork-track{position:sticky;top:0;height:100svh;align-self:start}
+ .list-window{height:auto;overflow:visible;mask-image:none;-webkit-mask-image:none;align-self:start}
+ .service-list{transform:none;will-change:auto}
+}
+
+/* Stop the normal list at service four; select the fifth in its lower position. */
+@media(min-width:768px) and (prefers-reduced-motion:no-preference){
+ .service-list{position:sticky}
+}
+
+/* Services visual changes only. Approved desktop scrolling/exit logic is untouched. */
+@font-face{font-family:GeistPixel;src:url('/uniflow/fonts/GeistPixel-c446.woff2') format('truetype');font-weight:100 900;font-display:swap}
+.services .service-row h2{font:400 48px/1.2 GeistPixel,sans-serif;letter-spacing:-.04em;font-variation-settings:"ELSH" 0}
+.services .service-row button{display:grid;grid-template-columns:28px minmax(0,1fr);gap:16px;align-items:start}
+.services .service-row button>span.service-number:first-child{font:500 12px/1 Uniflow,sans-serif;letter-spacing:-.01em;padding-top:3px;color:#929c9c}
+.services .service-row[aria-current="step"] button>span.service-number:first-child{font-weight:700;color:#111317}
+.services .service-title{min-width:0}.services .service-row{border-color:#aeb8b8}
+.services .caption{font:500 12px/1.4 UniflowMono,monospace;letter-spacing:-.02em;color:#586464}
+.mobile-services{display:none}
+@media(min-width:768px) and (max-width:1199px){.services .service-row h2{font-size:38px}}
+@media(max-width:767px){
+.services{display:none}.mobile-services{display:block;padding:40px 16px;background:#efefef;color:#111317}
+.ms-row{padding:24px 0;border-bottom:1px dashed #aeb8b8}.ms-row:last-child{border-bottom:0}.ms-row:nth-child(2){padding-bottom:40px}
+.ms-button{display:grid;grid-template-columns:24px minmax(0,1fr) 20px;gap:12px;align-items:start;width:100%;border:0;background:none;padding:0;text-align:left;cursor:pointer;color:#aeb8b8}
+.ms-number{font:500 10px/1 Uniflow,sans-serif;letter-spacing:-.01em;padding-top:4px}.ms-row:nth-child(n+4) .ms-number{font-size:11px}
+.ms-title{display:block;min-width:0;font:400 30px/1.2 GeistPixel,sans-serif;letter-spacing:-.04em;text-transform:capitalize;font-variation-settings:"ELSH" 0}
+.ms-copy{display:block;margin-top:16px;font:500 10px/1.5 UniflowMono,monospace;letter-spacing:-.02em;text-transform:uppercase;color:#586464}
+.ms-icon{display:block;width:20px;height:20px}
+.ms-row[data-open]{padding-bottom:12px;border-bottom:0}.ms-row[data-open] .ms-button{gap:16px;color:#000}.ms-row[data-open] .ms-number{font-weight:700}
+.ms-art{position:relative;width:100%;aspect-ratio:1;border:.604px solid rgba(8,10,16,.09);overflow:hidden;margin-top:32px}.ms-art img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain}
+.ms-copy[hidden],.ms-art[hidden]{display:none}
+}
+
+.ms-grid{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(to right,rgba(8,10,16,.09) 1px,transparent 1px),linear-gradient(to bottom,rgba(8,10,16,.09) 1px,transparent 1px);background-size:10px 10px}
+
+@media(max-width:767px){.team-section{height:1150px;min-height:0}.team-section iframe{height:100%;width:100%;border:0}}
+
+/* Exit smoothness: promote the two scrubbed layers and isolate the team iframe's paint. */
+@media (min-width:768px) and (prefers-reduced-motion:no-preference){
+ .services .artwork-track,.services .list-window{will-change:transform,opacity,filter;backface-visibility:hidden}
+}
+.team-section{contain:layout paint}
+.team-section iframe{transform:translateZ(0)}

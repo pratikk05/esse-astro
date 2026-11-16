@@ -26,10 +26,10 @@ function initSlides(root, onChange) {
     else {
       const s = SAMPLES[current - 1];
       article.innerHTML =
-        `<blockquote class="stories-trim heading-32 text-grey-40">${s.quote}</blockquote>` +
+        `<blockquote class="stories-trim heading-secondary-32 text-grey-40">${s.quote}</blockquote>` +
         `<footer class="stories-author flex items-center gap-figma-16"><div class="stories-initials" aria-hidden="true">${s.initials}</div>` +
-        `<div class="stories-author-details flex flex-col"><p class="stories-trim heading-16 font-bold">${s.name}</p>` +
-        `<p class="stories-trim heading-16 text-grey-60">${s.role}</p></div></footer>`;
+        `<div class="stories-author-details flex flex-col"><p class="stories-trim subpara-16">${s.name}</p>` +
+        `<p class="stories-trim para-16 text-grey-60">${s.role}</p></div></footer>`;
     }
     index.innerHTML = `${String(current + 1).padStart(2, "0")} <span class="text-border">/ ${String(TOTAL).padStart(2, "0")}</span>`;
     onChange(current);

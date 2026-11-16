@@ -1,0 +1,305 @@
+---
+/**
+ * Footer — Figma "Footer — Reference layout / Uniflow" (1:3133, desktop) and
+ * "Footer — Mobile / Centered" (11:6270). Tablet (768–991) is not in Figma: it keeps the desktop
+ * left-aligned structure in two columns so it never looks like a stretched phone layout.
+ * Type uses FlowScale classes (text-12 / text-11 / para-14); colours use the style-guide tokens.
+ */
+import IconInstagram from "../../assets/svg/footer-instagram.svg";
+import IconX from "../../assets/svg/footer-x.svg";
+import IconLinkedin from "../../assets/svg/footer-linkedin.svg";
+
+// Placeholder hrefs — same as the menu; replace with the real pages / profiles.
+interface Props {
+  /** false on inner pages: section links point back to the home page. */
+  home?: boolean;
+}
+const { home = true } = Astro.props;
+const base = home ? "" : "/";
+
+const navLinks = [
+  { label: "HOME", href: home ? "#top" : "/" },
+  { label: "ABOUT", href: `${base}#about` },
+  { label: "OUR PROJECT", href: `${base}#work` },
+  { label: "CONTACT", href: "/contact" },
+];
+const legalLinks = [
+  { label: "TERMS & CONDITIONS", href: "#" },
+  { label: "PRIVACY POLICY", href: "#" },
+];
+const socials = [
+  { label: "Instagram", href: "#", Icon: IconInstagram, framed: true },
+  { label: "X (Twitter)", href: "#", Icon: IconX, framed: false },
+  { label: "LinkedIn", href: "#", Icon: IconLinkedin, framed: true },
+];
+---
+
+<footer class="site-footer bg-grey-100 text-grey-20" aria-label="Site footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <!-- Left: newsletter + copyright -->
+      <div class="footer-left">
+        <form class="footer-news" data-footer-form novalidate>
+          <p class="footer-news-title text-12 text-grey-20">STAY UPDATED ON NEW DROPS AND UPDATES!!</p>
+          <div class="footer-fields">
+            <label class="sr-only" for="footer-name">Name</label>
+            <input id="footer-name" class="footer-input para-14" type="text" name="name" placeholder="Name" autocomplete="name" />
+            <label class="sr-only" for="footer-email">E-Mail</label>
+            <input id="footer-email" class="footer-input para-14" type="email" name="email" placeholder="E-Mail" autocomplete="email" />
+            <button class="footer-submit text-11 font-bold" type="submit">START A PROJECT</button>
+          </div>
+        </form>
+        <div class="footer-copy text-12">
+          <p class="text-grey-30">©COPYRIGHT 2026 UNIFLOW</p>
+          <p class="text-grey-50">ALL RIGHT RESERVED</p>
+        </div>
+      </div>
+
+      <!-- Right: contact, nav, legal, social -->
+      <div class="footer-right">
+        <div class="footer-enquiry">
+          <p class="footer-label text-12">BUSINESS ENQUIRY</p>
+          <ul class="footer-contact para-14">
+            <li><span class="text-grey-60">E. </span><a class="footer-link-plain" href="mailto:hello@uniflow.example">hello@uniflow.example</a></li>
+            <li><span class="text-grey-60">P. </span><a class="footer-link-plain" href="tel:+910000000000">+91 00000 00000</a></li>
+          </ul>
+        </div>
+
+        <nav class="footer-nav" aria-label="Footer">
+          <p class="footer-label text-12">NAV LINKS</p>
+          <ul class="footer-nav-list text-12">
+            {navLinks.map(({ label, href }) => <li><a class="footer-link" href={href}>{label}</a></li>)}
+          </ul>
+        </nav>
+
+        <div class="footer-legal">
+          <p class="footer-label text-12">LEGAL</p>
+          <ul class="footer-legal-list text-12">
+            {legalLinks.map(({ label, href }) => <li><a class="footer-link" href={href}>{label}</a></li>)}
+          </ul>
+        </div>
+
+        <ul class="footer-social">
+          {
+            socials.map(({ label, href, Icon, framed }) => (
+              <li>
+                <a class:list={["footer-social-link", { "is-framed": framed }]} href={href} aria-label={label}>
+                  <Icon aria-hidden="true" />
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+
+    <hr class="footer-divider" />
+
+    <!-- Linework wordmark: 20 hairlines masked by the Uniflow logo -->
+    <div class="footer-wordmark" role="img" aria-label="Uniflow"></div>
+  </div>
+</footer>
+
+<style>
+  @layer components {
+    .site-footer {
+      position: relative;
+      overflow: clip;
+    }
+    .footer-inner {
+      width: 100%;
+      max-width: calc(var(--container-max) + 2 * var(--container-padding));
+      margin-inline: auto;
+      padding: 2.5rem 1rem 1.5rem; /* 40 / 16 / 24 — Figma mobile */
+    }
+
+    /* ---------- Mobile (< 768): centered column, Figma 11:6270 ---------- */
+    .footer-top,
+    .footer-left,
+    .footer-right {
+      display: contents;
+    }
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.75rem; /* 28 */
+    }
+    .footer-inner > .footer-top,
+    .footer-inner > * {
+      min-width: 0;
+    }
+
+    .footer-news { order: 1; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+    .footer-enquiry { order: 2; margin-top: 0.75rem; } /* 28 + 12 = 40 → 48 below news */
+    .footer-nav { order: 3; width: 100%; margin-top: 1.25rem; } /* 28 + 20 = 48 */
+    .footer-legal { order: 4; margin-top: 1.25rem; }
+    .footer-social { order: 5; }
+    .footer-divider { order: 6; }
+    .footer-copy { order: 7; }
+    .footer-wordmark { order: 8; }
+
+    .footer-news-title { max-width: 17.3125rem; text-align: center; text-wrap: balance; } /* 277 */
+    .footer-fields { width: 100%; display: flex; flex-direction: column; gap: 6px; }
+    .footer-input {
+      width: 100%;
+      height: 40px;
+      padding: 0 12px;
+      border: 0;
+      border-radius: var(--radius-xs);
+      background: var(--color-grey-80);
+      color: var(--color-white);
+      font-weight: var(--font-weight-medium);
+    }
+    .footer-input::placeholder { color: var(--color-grey-30); opacity: 1; }
+    .footer-input:focus-visible { outline: 1px solid var(--color-focus); outline-offset: 0; }
+    .footer-submit {
+      width: 100%;
+      height: 40px;
+      border: 0;
+      border-radius: var(--radius-xs);
+      background: var(--color-white);
+      color: var(--color-black);
+      cursor: pointer;
+      transition: background var(--duration-fast) var(--ease-esse);
+    }
+    .footer-submit:hover { background: var(--color-grey-10); }
+    .footer-submit:focus-visible { outline: 2px solid var(--color-white); outline-offset: 3px; }
+
+    .site-footer li { margin: 0; }
+    .footer-label { color: var(--color-grey-60); }
+    .footer-enquiry,
+    .footer-nav,
+    .footer-legal { display: flex; flex-direction: column; align-items: center; gap: 1rem; text-align: center; }
+    .footer-contact { display: flex; flex-direction: column; align-items: center; gap: 0.875rem; margin: 0; padding: 0; list-style: none; }
+    .footer-contact li { white-space: nowrap; }
+    .footer-link-plain { color: var(--color-grey-10); text-decoration: none; transition: color var(--duration-fast); }
+    .footer-link-plain:hover { color: var(--color-white); }
+
+    .footer-nav-list { width: 100%; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.75rem 1rem; margin: 0; padding: 0 2rem; list-style: none; }
+    .footer-legal-list { display: flex; flex-direction: column; align-items: center; gap: 0.875rem; margin: 0; padding: 0; list-style: none; }
+    .footer-link { color: var(--color-grey-20); text-decoration: none; white-space: nowrap; transition: color var(--duration-fast); }
+    .footer-link:hover { color: var(--color-white); }
+    .footer-link:focus-visible,
+    .footer-link-plain:focus-visible,
+    .footer-social-link:focus-visible { outline: 1px solid var(--color-focus); outline-offset: 4px; border-radius: 2px; }
+
+    .footer-social { display: flex; gap: 10px; margin: 0; padding: 0; list-style: none; }
+    .footer-social-link {
+      display: grid;
+      place-items: center;
+      width: 37px;
+      height: 37px;
+      border-radius: var(--radius-sm);
+      color: var(--color-grey-10);
+      transition: background var(--duration-fast);
+    }
+    .footer-social-link.is-framed { border: 0.5px solid var(--color-grey-70); }
+    .footer-social-link :global(svg) { display: block; max-width: none; }
+    .footer-social-link:not(.is-framed) :global(svg) { width: 100%; height: 100%; }
+    .footer-social-link:hover { background: var(--color-grey-90); }
+
+    .footer-divider { order: 6; width: 100%; height: 0; margin: 0; border: 0; border-top: 0.5px solid var(--color-grey-70); }
+    .footer-copy { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; text-align: center; white-space: nowrap; }
+    .footer-copy p { margin: 0; }
+
+    .footer-wordmark {
+      width: 100%;
+      aspect-ratio: 1376 / 310;
+      opacity: 0.65;
+      /* 20 hairlines, pitch = 1/19.375 of the height, masked by the logo (Figma: 16px pitch / 0.8px line at 310px).
+         The 0.75px floor keeps the lines visible when the wordmark scales down on phones/tablets. */
+      background-image: linear-gradient(to bottom, var(--color-grey-30) 0 max(0.75px, 5%), transparent max(0.75px, 5%) 100%);
+      background-size: 100% 5.1613%;
+      -webkit-mask: url("/images/footer-wordmark.svg") 0 0 / 100.5814% auto no-repeat;
+      mask: url("/images/footer-wordmark.svg") 0 0 / 100.5814% auto no-repeat;
+      overflow: clip;
+    }
+
+    /* ---------- Tablet (768–991): two columns, left-aligned ---------- */
+    @media (width >= 48rem) {
+      .footer-inner {
+        display: block;
+        padding: 3.5rem var(--container-padding) 2.375rem;
+      }
+      .footer-top {
+        display: grid;
+        grid-template-columns: minmax(0, 20.4375rem) minmax(0, 1fr);
+        column-gap: 2rem;
+        align-items: start;
+      }
+      .footer-left {
+        display: flex;
+        flex-direction: column;
+        gap: 1.875rem; /* form → copyright (Figma 30px) */
+        min-width: 0;
+      }
+      .footer-right {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        grid-template-areas: "enq nav" "legal legal" "social social";
+        column-gap: 1.5rem;
+        row-gap: 0;
+        min-width: 0;
+      }
+      .footer-news { align-items: flex-start; }
+      .footer-news-title { max-width: none; text-align: left; text-wrap: wrap; }
+      .footer-fields { gap: 6px; }
+      .footer-input,
+      .footer-submit { height: 41px; }
+      .footer-submit { height: 40px; }
+
+      .footer-enquiry { grid-area: enq; align-items: flex-start; text-align: left; gap: 1.25rem; margin: 0; }
+      .footer-nav { grid-area: nav; align-items: flex-start; text-align: left; gap: 1.25rem; margin: 0; }
+      .footer-legal { grid-area: legal; align-items: flex-start; text-align: left; gap: 1.25rem; margin: 2.75rem 0 0; }
+      .footer-social { grid-area: social; margin-top: 2.5rem; gap: 6px; }
+      .footer-social-link { width: 36px; height: 36px; }
+      .footer-contact { align-items: flex-start; gap: 0.875rem; }
+      /* Figma: two columns, HOME/ABOUT then OUR PROJECT/CONTACT */
+      .footer-nav-list { display: grid; grid-auto-flow: column; grid-template-rows: repeat(2, auto); grid-template-columns: 5rem auto; justify-content: start; column-gap: 1rem; row-gap: 0.75rem; padding: 0; }
+      .footer-legal-list { align-items: flex-start; gap: 1rem; }
+
+      .footer-divider { display: none; }
+      .footer-copy { align-items: flex-start; text-align: left; gap: 0.875rem; }
+      .footer-wordmark { margin-top: 3.5rem; }
+    }
+
+    /* ---------- Desktop (>= 992): Figma 1:3133 at 1440 ---------- */
+    @media (width >= 62rem) {
+      .footer-inner { padding-top: 4.375rem; padding-bottom: 2.375rem; } /* 70 / 38 */
+      .footer-top {
+        grid-template-columns: minmax(0, calc(327 * var(--px))) minmax(0, 1fr) minmax(0, calc(444 * var(--px)));
+        column-gap: 0;
+      }
+      .footer-left { grid-column: 1; }
+      .footer-right {
+        grid-column: 3;
+        grid-template-columns: calc(270 * var(--px)) minmax(0, 1fr);
+        grid-template-rows: calc(154 * var(--px)) auto auto;
+        column-gap: 0;
+      }
+      .footer-legal { margin-top: 0; }
+      .footer-wordmark { margin-top: calc(81 * var(--px)); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .site-footer * { transition: none !important; }
+    }
+  }
+</style>
+
+<script>
+  // "Start a project" in the footer continues on the contact page, carrying over what was typed.
+  document.querySelectorAll<HTMLFormElement>("[data-footer-form]").forEach((form) => {
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const params = new URLSearchParams();
+      for (const [key, value] of new FormData(form)) if (String(value).trim()) params.set(key, String(value).trim());
+      const query = params.toString();
+      const url = "/contact" + (query ? `?${query}` : "");
+      const navigate = (window as any).uniflowNavigate;
+      if (location.pathname === "/contact" || !navigate) location.href = url;
+      else navigate(url);
+    });
+  });
+</script>

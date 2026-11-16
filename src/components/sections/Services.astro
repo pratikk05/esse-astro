@@ -1,110 +1,20 @@
 ---
-import Tag from "../ui/Tag.astro";
-
-const card = {
-  src: "/images/project-card-1.avif",
-  srcset:
-    "/images/project-card-1-p-500.avif 500w, /images/project-card-1-p-800.avif 800w, /images/project-card-1-p-1080.avif 1080w, /images/project-card-1.avif 1220w",
-};
-const frame = { src: "/images/frame-317.avif", srcset: "/images/frame-317-p-500.avif 500w, /images/frame-317.avif 584w" };
-const conversion =
-  "Modern, conversion-focused websites that combine exceptional user experience with business objectives to drive measurable results.";
-
-// One image + caption per service, swapped by scripts/modules/services-scroll.js
-const visuals = [
-  { image: card, text: conversion },
-  { image: { src: "/images/bg-hero.avif", srcset: undefined }, text: "Strategic brand identities that help businesses establish credibility, differentiate themselves, and create lasting impressions." },
-  { image: card, text: conversion },
-  { image: frame, text: conversion },
-  { image: frame, text: "Data-driven search engine optimization that helps your business rank higher, attract qualified traffic, and generate consistent organic growth." },
-];
-
-const services = Array.from({ length: 5 }, () => ({ number: "[01]", title: ["Webflow", "Development"] }));
+// Uniflow services: pinned sculpture + scrolling list (desktop), accordion (mobile).
+// Behaviour lives in src/scripts/modules/uniflow-services/ (lazy-loaded from main.js).
+import "../../styles/uniflow-services.css";
 ---
 
-<section id="services" class="section bg-surface">
-  <div class="container">
-    <div class="flex h-full flex-col lg:flex-row">
-      <!-- Sticky visual column -->
-      <div class="services-visual sticky top-0 self-stretch max-lg:z-1 max-lg:bg-surface max-lg:padding-y-16 lg:padding-64">
-        <div class="services-visual-stack relative">
-          {
-            visuals.map(({ image, text }) => (
-              <div class="s-image-block absolute inset-0">
-                <div class="s-image-wrapper overflow-hidden rounded-2xl">
-                  <img src={image.src} srcset={image.srcset} sizes="(min-width: 992px) 30vw, 100vw" loading="lazy" alt="" class="image-full size-full object-cover" />
-                </div>
-                <div class="s-conten-wrap padding-top-32">
-                  <h3 class="heading-24">{text}</h3>
-                </div>
-              </div>
-            ))
-          }
-        </div>
-      </div>
-
-      <!-- Scrolling list -->
-      <div class="services-list flex-1 padding-y-96 lg:padding-x-128">
-        <div class="padding-bottom-12">
-          <Tag label="OUR SERVICES" />
-        </div>
-        <div class="s-t-wrapper">
-          {
-            services.map((service, i) => (
-              <div class:list={["service_block margin-top-80", { "is-active": i === 0 }]}>
-                <p class="text-12">{service.number}</p>
-                <h2 class="heading-76">
-                  {service.title[0]} <br />
-                  {service.title[1]}
-                </h2>
-              </div>
-            ))
-          }
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="grid-lines" aria-hidden="true">
-    <div></div><div class="is-on-light"></div><div></div><div></div>
-  </div>
-</section>
-
-<style>
-  @layer components {
-    .services-visual-stack {
-      height: 22rem;
-    }
-    .s-image-wrapper {
-      height: 15rem;
-    }
-    .s-t-wrapper {
-      margin-block: 6rem;
-    }
-    .service_block {
-      opacity: 0.35;
-    }
-    .service_block.is-active {
-      opacity: 1;
-    }
-
-    @media (width >= 62rem) {
-      .services-visual {
-        width: calc(548.8 * var(--px));
-        height: 100%;
-      }
-      .services-visual-stack {
-        height: calc(640 * var(--px));
-      }
-      .s-image-wrapper {
-        height: calc(480 * var(--px));
-      }
-      .services-list {
-        width: calc(548.8 * var(--px));
-      }
-      .s-t-wrapper {
-        margin-block: calc(291.2 * var(--px));
-      }
-    }
-  }
-</style>
+<section id="services" class="services" aria-label="Our services"><div class="services-camera">
+  <div class="artwork-track destinationsHero__images"><div class="artwork-sticky">
+    <figure class="artwork" aria-label="Selected service artwork"><img id="fallback"  alt="Dithered marble archway sculpture"><canvas aria-hidden="true"></canvas></figure>
+    <div class="caption"><p id="description">Thoughtful design and custom development, brought together in a website built for your business.</p></div>
+  </div></div>
+  <div class="list-window hero__main"><div class="service-list">
+    <article class="service-row" id="service-1" data-key="website"><h2><button type="button"><span class="service-number">[01]</span><span class="service-title">Website Design &amp; Development</span></button></h2></article>
+    <article class="service-row" id="service-2" data-key="design"><h2><button type="button"><span class="service-number">[02]</span><span class="service-title">Design-to-<br>Development</span></button></h2></article>
+    <article class="service-row" id="service-3" data-key="immersive"><h2><button type="button"><span class="service-number">[03]</span><span class="service-title">3D &amp; Immersive Experiences</span></button></h2></article>
+    <article class="service-row" id="service-4" data-key="search"><h2><button type="button"><span class="service-number">[04]</span><span class="service-title">SEO &amp; AI Search Readiness</span></button></h2></article>
+    <article class="service-row" id="service-5" data-key="support"><h2><button type="button"><span class="service-number">[05]</span><span class="service-title">Website Optimisation &amp; Ongoing Support</span></button></h2></article>
+  </div></div>
+</div><div class="red-dot-exit-trigger" aria-hidden="true"></div></section>
+<section class="mobile-services" aria-label="Our services"><article class="ms-row"><h2><button class="ms-button" type="button" id="ms-button-0" aria-expanded="false" aria-controls="ms-copy-0 ms-art-0"><span class="ms-number">[01]</span><span class="ms-title">Website Design &amp; Development<span class="ms-copy" id="ms-copy-0" hidden>Thoughtful design and custom development, brought together in a website built for your business.</span></span><img class="ms-icon" alt="" src="/uniflow/img/svg-4-ce2f.svg"></button></h2><div class="ms-art" id="ms-art-0" role="region" aria-labelledby="ms-button-0" hidden><img src="/uniflow/img/png-2-e12d.png" alt="Dithered marble archway sculpture"><span class="ms-grid" aria-hidden="true"></span></div></article><article class="ms-row"><h2><button class="ms-button" type="button" id="ms-button-1" aria-expanded="false" aria-controls="ms-copy-1 ms-art-1"><span class="ms-number">[02]</span><span class="ms-title">Design-to-Development<span class="ms-copy" id="ms-copy-1" hidden>Your design, developed with care. We turn approved layouts into responsive, accurate and maintainable websites.</span></span><img class="ms-icon" alt="" src="/uniflow/img/svg-4-ce2f.svg"></button></h2><div class="ms-art" id="ms-art-1" role="region" aria-labelledby="ms-button-1" hidden><img src="/uniflow/img/png-3-3f50.png" alt="Dithered sculptor’s hand holding a chisel"><span class="ms-grid" aria-hidden="true"></span></div></article><article class="ms-row" data-open><h2><button class="ms-button" type="button" id="ms-button-2" aria-expanded="true" aria-controls="ms-copy-2 ms-art-2"><span class="ms-number">[03]</span><span class="ms-title">3D &amp; Immersive Experiences<span class="ms-copy" id="ms-copy-2">Bring another dimension to your digital presence with interactive 3D, expressive motion and immersive experiences.</span></span><img class="ms-icon" alt="" src="/uniflow/img/svg-5-a9a4.svg"></button></h2><div class="ms-art" id="ms-art-2" role="region" aria-labelledby="ms-button-2"><img src="/uniflow/img/png-4-9c21.png" alt="Dithered Winged Victory sculpture"><span class="ms-grid" aria-hidden="true"></span></div></article><article class="ms-row"><h2><button class="ms-button" type="button" id="ms-button-3" aria-expanded="false" aria-controls="ms-copy-3 ms-art-3"><span class="ms-number">[04]</span><span class="ms-title">SEO &amp; AI Search Readiness<span class="ms-copy" id="ms-copy-3" hidden>Build a stronger foundation for discovery, with clear content, technical SEO and readiness for AI-powered search.</span></span><img class="ms-icon" alt="" src="/uniflow/img/svg-4-ce2f.svg"></button></h2><div class="ms-art" id="ms-art-3" role="region" aria-labelledby="ms-button-3" hidden><img src="/uniflow/img/png-5-f4c3.png" alt="Dithered Corinthian column sculpture"><span class="ms-grid" aria-hidden="true"></span></div></article><article class="ms-row"><h2><button class="ms-button" type="button" id="ms-button-4" aria-expanded="false" aria-controls="ms-copy-4 ms-art-4"><span class="ms-number">[05]</span><span class="ms-title">Website Optimisation &amp; Ongoing Support<span class="ms-copy" id="ms-copy-4" hidden>Keep your website moving forward with ongoing improvements, performance optimisation and dependable support.</span></span><img class="ms-icon" alt="" src="/uniflow/img/svg-4-ce2f.svg"></button></h2><div class="ms-art" id="ms-art-4" role="region" aria-labelledby="ms-button-4" hidden><img src="/uniflow/img/png-6-f61f.png" alt="Dithered Atlas supporting a celestial sphere"><span class="ms-grid" aria-hidden="true"></span></div></article></section>

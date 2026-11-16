@@ -1,0 +1,370 @@
+---
+/**
+ * Preloader — dither overlay that dissolves from a centre seam to reveal the page.
+ * Based on the approved "dither-logo-loader" concept, adapted to the site:
+ *  - waits for fonts + page load (min 0.9s, max 5s) instead of a fixed timer
+ *  - grey-100 overlay, square 5×5 indicator (same square as the section tags), JetBrains Mono label + counter
+ *  - all dots are drawn as batched paths (one fill per layer) so the dissolve holds 60fps
+ * Elements marked data-reveal lift in while the last cells clear; data-reveal="fade" only fades
+ * (used on the header, whose fixed CTA must not get a transformed ancestor).
+ * The same canvas is the page transition: leaving a page closes the dither onto the seam, the next
+ * page opens it again (short, no loader marks). Layout decides the mode inline in <head>:
+ *   data-loader="load"  → preloader (first visit / reload of a page with `preloader`)
+ *   data-loader="enter" → arriving through an internal link
+ *   nothing             → back/forward, or pages without a preloader
+ * html.is-loading is only added by that script, so nothing is hidden when JavaScript is off.
+ */
+---
+
+<div id="preloader" class="preloader" aria-hidden="true">
+  <canvas class="preloader-canvas"></canvas>
+</div>
+
+<style is:global>
+  .preloader {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: none;
+    background: var(--color-grey-100);
+    cursor: progress;
+  }
+  html.is-loading .preloader {
+    display: block;
+    /* Safety net: if the script never runs, the overlay still clears itself. */
+    animation: preloader-failsafe 0.6s ease 8s forwards;
+  }
+  .preloader.is-running {
+    background: transparent;
+    animation: none !important;
+  }
+  .preloader-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+  @keyframes preloader-failsafe {
+    to { opacity: 0; visibility: hidden; }
+  }
+
+  /* Hero content: hidden under the overlay, then lifts into focus. */
+  html.is-loading [data-reveal] {
+    opacity: 0;
+  }
+  html.is-loading [data-reveal]:not([data-reveal="fade"]) {
+    transform: translate3d(0, 22px, 0);
+    filter: blur(2.5px);
+  }
+  html.is-revealing [data-reveal] {
+    transition:
+      opacity 0.9s var(--ease-esse),
+      transform 1.1s var(--ease-esse),
+      filter 1s var(--ease-esse);
+    transition-delay: calc(var(--reveal-order, 0) * 70ms);
+    will-change: opacity, transform, filter;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html.is-loading [data-reveal] {
+      opacity: 1 !important;
+      transform: none !important;
+      filter: none !important;
+    }
+  }
+</style>
+
+<script>
+  const root = document.documentElement;
+  const wrap = document.getElementById("preloader");
+  const canvas = wrap?.querySelector("canvas");
+
+  if (wrap && canvas) {
+    const mode = root.dataset.loader; // "load" (preloader) | "enter" (page transition) | undefined
+    const ctx = canvas.getContext("2d", { alpha: true })!;
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const INK = "#000203"; // --color-grey-100
+    const TAU = Math.PI * 2;
+
+    // 8×8 Bayer matrix: the ordered-dither texture of the dissolve.
+    const bayer8 = [
+      [0, 48, 12, 60, 3, 51, 15, 63], [32, 16, 44, 28, 35, 19, 47, 31],
+      [8, 56, 4, 52, 11, 59, 7, 55], [40, 24, 36, 20, 43, 27, 39, 23],
+      [2, 50, 14, 62, 1, 49, 13, 61], [34, 18, 46, 30, 33, 17, 45, 29],
+      [10, 58, 6, 54, 9, 57, 5, 53], [42, 26, 38, 22, 41, 25, 37, 21],
+    ];
+    const hash2 = (x: number, y: number) => {
+      const n = Math.sin(x * 127.1 + y * 311.7 + 19.19) * 43758.5453123;
+      return n - Math.floor(n);
+    };
+    const smooth01 = (t: number) => t * t * (3 - 2 * t);
+    const clamp01 = (t: number) => Math.max(0, Math.min(1, t));
+    const valueNoise = (u: number, v: number, sx: number, sy: number) => {
+      const x = u * sx, y = v * sy, x0 = Math.floor(x), y0 = Math.floor(y);
+      const fx = smooth01(x - x0), fy = smooth01(y - y0);
+      const a = hash2(x0, y0), b = hash2(x0 + 1, y0), c = hash2(x0, y0 + 1), d = hash2(x0 + 1, y0 + 1);
+      const top = a + (b - a) * fx;
+      return top + (c + (d - c) * fx - top) * fy;
+    };
+
+    let W = 0, H = 0, dpr = 1, step = 9, cols = 0, rows = 0;
+    let thresholds = new Float32Array(0);
+
+    function resize() {
+      W = innerWidth;
+      H = innerHeight;
+      dpr = Math.min(devicePixelRatio || 1, 1.5);
+      canvas!.width = Math.round(W * dpr);
+      canvas!.height = Math.round(H * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      step = W < 700 ? 7 : 9;
+      cols = Math.ceil(W / step);
+      rows = Math.ceil(H / step);
+      thresholds = new Float32Array(cols * rows);
+      for (let gy = 0; gy < rows; gy++) {
+        for (let gx = 0; gx < cols; gx++) {
+          const u = (gx + 0.5) / cols, v = (gy + 0.5) / rows;
+          // The centre seam opens first; noise + ordered dither break the edge into organic patches.
+          const t =
+            0.006 +
+            Math.abs(v - 0.5) * 2 * 0.65 +
+            (valueNoise(u, v, 4.2, 3.2) - 0.5) * 0.15 +
+            (valueNoise(u, v, 15, 11) - 0.5) * 0.085 +
+            (hash2(gx + 41, gy + 83) - 0.5) * 0.045 +
+            (bayer8[gy % 8][gx % 8] / 63 - 0.5) * 0.045 +
+            Math.sin(u * 8.2 + v * 2.6) * 0.038 +
+            Math.sin(u * 16.5 - v * 5.2) * 0.018;
+          thresholds[gy * cols + gx] = Math.max(0.015, Math.min(0.985, t));
+        }
+      }
+    }
+
+    /** Living halftone current: transparent holes that let the hero gradient show through. */
+    function drawCurrent(now: number, strength: number) {
+      const t = now * 0.001, mobile = W < 700;
+      const spacing = mobile ? 8.5 : 10.5;
+      const baseY = H * 0.44, band = H * (mobile ? 0.105 : 0.125);
+      const nCols = Math.ceil(W / spacing) + 2, nRows = Math.ceil((band * 2) / spacing) + 2;
+      // Three opacity buckets → three fills instead of one fill per dot.
+      const paths = [new Path2D(), new Path2D(), new Path2D()];
+      for (let gy = 0; gy < nRows; gy++) {
+        const y = baseY - band + gy * spacing, v = (gy * spacing) / (band * 2);
+        for (let gx = -1; gx < nCols; gx++) {
+          const x = gx * spacing, u = x / Math.max(1, W);
+          const n1 = valueNoise(u, v, 5.5, 3.5);
+          const centre = baseY + Math.sin(u * 7.5 + t * 0.68) * band * 0.29 + Math.sin(u * 15.2 - t * 0.42 + n1 * 2.2) * band * 0.13;
+          const envelope = Math.max(0, 1 - Math.abs(y - centre) / (band * (0.44 + n1 * 0.72)));
+          if (envelope <= 0.12 || hash2(gx + 21, gy + 53) >= envelope * 0.78) continue;
+          const pulse = 0.86 + 0.14 * (0.5 + 0.5 * Math.sin(t * 1.25 + gx * 0.06 + gy * 0.12));
+          const r = ((mobile ? 0.72 : 0.86) + envelope * (mobile ? 0.8 : 1.05) + valueNoise(u, v, 17, 10) * 0.28) * pulse * strength;
+          const px = x + Math.sin(t + gy * 0.21) * 0.8, py = y + Math.sin(t * 0.7 + gx * 0.045) * 1.4;
+          const path = paths[envelope > 0.66 ? 2 : envelope > 0.38 ? 1 : 0];
+          path.moveTo(px + r, py);
+          path.arc(px, py, r, 0, TAU);
+        }
+      }
+      ctx.globalCompositeOperation = "destination-out";
+      [0.56, 0.7, 0.84].forEach((alpha, i) => {
+        ctx.globalAlpha = alpha;
+        ctx.fill(paths[i]);
+      });
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = "source-over";
+    }
+
+    const perimeter = [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [4, 1], [4, 2], [4, 3], [4, 4], [3, 4], [2, 4], [1, 4], [0, 4], [0, 3], [0, 2], [0, 1]];
+
+    /** 5×5 square-dot indicator + mono label and counter (site label style). */
+    function drawIndicator(now: number, percent: number, strength: number) {
+      const mobile = W < 700, pitch = mobile ? 8 : 9, dot = 3, size = 4 * pitch;
+      const bottom = Math.max(78, Math.min(H * 0.13, 128));
+      const cx = W / 2, originX = Math.round(cx - size / 2), originY = Math.round(H - bottom - size - 28);
+      ctx.fillStyle = `rgba(227,232,232,${0.26 * strength})`; // grey-10
+      for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) ctx.fillRect(originX + c * pitch - dot / 2, originY + r * pitch - dot / 2, dot, dot);
+      // Three bright squares travel the perimeter; the head eases between nodes instead of snapping.
+      const pos = (now / 120) % perimeter.length, head = Math.floor(pos), frac = pos - head;
+      [1, 0.72, 0.46].forEach((alpha, trail) => {
+        const [c, r] = perimeter[(head - trail + perimeter.length) % perimeter.length];
+        const a = trail === 0 ? alpha * (0.55 + 0.45 * smooth01(frac)) : alpha;
+        ctx.fillStyle = `rgba(255,255,255,${a * strength})`;
+        ctx.fillRect(originX + c * pitch - dot / 2 - 0.5, originY + r * pitch - dot / 2 - 0.5, dot + 1, dot + 1);
+      });
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.font = "600 10px Jetbrainsmono, ui-monospace, monospace"; // Figma Label 04
+      if ("letterSpacing" in ctx) (ctx as any).letterSpacing = "-0.1px";
+      ctx.fillStyle = `rgba(200,210,210,${0.9 * strength})`; // grey-20
+      ctx.fillText("LOADING", cx, originY + size + 14);
+      ctx.fillStyle = `rgba(109,119,119,${strength})`; // grey-50
+      ctx.fillText(`[ ${String(Math.round(percent)).padStart(3, "0")} ]`, cx, originY + size + 30);
+    }
+
+    function draw(p: number, now: number, percent: number, marks = true) {
+      ctx.globalCompositeOperation = "source-over";
+      ctx.globalAlpha = 1;
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = INK;
+      ctx.fillRect(0, 0, W, H);
+      // The loader marks ease out as the seam starts to open.
+      const strength = marks ? 1 - smooth01(clamp01(p / 0.35)) : 0;
+      if (!marks) {
+        // page transition: plain ink, no loader marks
+      } else if (strength > 0.01) {
+        drawCurrent(now, 0.35 + 0.65 * strength);
+        drawIndicator(now, percent, strength);
+      } else {
+        drawCurrent(now, 0.35);
+      }
+      if (p <= 0) return;
+      // Dither cells open as growing apertures — one batched path, one fill.
+      const holes = new Path2D();
+      for (let gy = 0; gy < rows; gy++) {
+        const y = gy * step + step * 0.5;
+        for (let gx = 0; gx < cols; gx++) {
+          const th = thresholds[gy * cols + gx];
+          if (p <= th) continue;
+          const r = Math.max(0.045, step * 1.02 * Math.pow(smooth01((p - th) / (1 - th)), 0.72));
+          const x = gx * step + step * 0.5;
+          holes.moveTo(x + r, y);
+          holes.arc(x, y, r, 0, TAU);
+        }
+      }
+      ctx.globalCompositeOperation = "destination-out";
+      ctx.fill(holes);
+      ctx.globalCompositeOperation = "source-over";
+    }
+
+    const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    const lenis = () => (window as any).lenis;
+    let raf = 0;
+    const show = () => {
+      wrap.style.display = "block";
+      wrap.classList.add("is-running"); // the canvas paints the ink; holes show the page
+    };
+    const hide = () => {
+      cancelAnimationFrame(raf);
+      wrap.style.display = "";
+      wrap.classList.remove("is-running");
+    };
+    addEventListener("resize", () => wrap.style.display === "block" && resize());
+
+    /**
+     * Reveal: dither opens from the centre seam.
+     * marks = preloader (halftone current, indicator, counter, waits for the page to load);
+     * without marks it is the short page-transition entrance.
+     */
+    function reveal(marks: boolean) {
+      const MIN_HOLD = reduce ? 100 : marks ? 900 : 60;
+      const MAX_HOLD = marks ? 5000 : 1200;
+      const DISSOLVE = reduce ? 250 : marks ? 2300 : 1250;
+      let loaded = marks ? 0 : 1; // 0 → 1: fonts (0.5) + window load (1)
+      let shown = 0, start = 0, dissolveAt = 0, done = false, revealed = false, last = 0;
+      if (marks) {
+        document.fonts?.ready.then(() => (loaded = Math.max(loaded, 0.5)));
+        const onLoad = () => (loaded = 1);
+        if (document.readyState === "complete") onLoad();
+        else addEventListener("load", onLoad, { once: true });
+      }
+      // Preloader always opens on the hero; some browsers restore scroll after first paint.
+      const toTop = () => {
+        if (!marks || done) return;
+        if (scrollY) scrollTo(0, 0);
+        lenis()?.scrollTo(0, { immediate: true, force: true });
+      };
+      toTop();
+      addEventListener("load", toTop, { once: true });
+      addEventListener("pageshow", toTop, { once: true });
+
+      function liftContent() {
+        if (revealed) return;
+        revealed = true;
+        root.classList.add("is-revealing");
+        root.classList.remove("is-loading");
+      }
+      function finish() {
+        if (done) return;
+        done = true;
+        liftContent();
+        hide();
+        delete root.dataset.loader;
+        wrap.removeEventListener("click", finish);
+        lenis()?.start();
+        setTimeout(() => root.classList.remove("is-revealing"), 1800);
+        document.dispatchEvent(new CustomEvent("uniflow:loaded"));
+      }
+      function frame(now: number) {
+        if (done) return;
+        if (!start) start = last = now;
+        const dt = Math.min(64, now - last);
+        last = now;
+        if (marks && scrollY) toTop();
+        lenis()?.stop(); // keep the page still under the overlay
+        const elapsed = now - start;
+        if (!dissolveAt) {
+          // Counter chases the real load state, capped until the dissolve begins.
+          const target = Math.min(99, Math.max(loaded * 100, (elapsed / MAX_HOLD) * 100));
+          shown += (target - shown) * (1 - Math.exp(-dt / 220));
+          if ((loaded >= 1 && elapsed >= MIN_HOLD && (!marks || shown > 96)) || elapsed >= MAX_HOLD) dissolveAt = now;
+        } else {
+          shown += (100 - shown) * (1 - Math.exp(-dt / 90));
+        }
+        const raw = dissolveAt ? clamp01((now - dissolveAt) / DISSOLVE) : 0;
+        if (raw >= (marks ? 0.5 : 0.3)) liftContent();
+        draw(easeInOut(raw), now, shown, marks);
+        if (raw < 1) raf = requestAnimationFrame(frame);
+        else finish();
+      }
+      resize();
+      draw(0, performance.now(), 0, marks);
+      show();
+      if (marks) wrap.addEventListener("click", finish); // click to skip
+      raf = requestAnimationFrame(frame);
+    }
+
+    /** Cover: the same dither closes back onto the seam, then the browser navigates. */
+    function leave(url: string) {
+      try {
+        sessionStorage.setItem("uniflow:transition", "1");
+      } catch {}
+      if (reduce) return void (location.href = url);
+      const DURATION = 780;
+      let start = 0;
+      lenis()?.stop();
+      resize();
+      draw(1, performance.now(), 0, false);
+      show();
+      wrap.style.cursor = "default";
+      const frame = (now: number) => {
+        if (!start) start = now;
+        const raw = clamp01((now - start) / DURATION);
+        draw(1 - easeInOut(raw), now, 0, false);
+        if (raw < 1) return void (raf = requestAnimationFrame(frame));
+        wrap.classList.remove("is-running"); // solid ink while the next page loads
+        location.href = url;
+      };
+      raf = requestAnimationFrame(frame);
+    }
+    (window as any).uniflowNavigate = leave;
+
+    // Internal links to another page play the cover first.
+    document.addEventListener("click", (event) => {
+      if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const link = (event.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
+      if (!link || link.target || link.hasAttribute("download")) return;
+      const url = new URL(link.href, location.href);
+      if (url.origin !== location.origin || url.pathname === location.pathname) return;
+      event.preventDefault();
+      leave(url.href);
+    });
+
+    // Back/forward cache: the page comes back still covered by the leave animation — open it again.
+    addEventListener("pageshow", (event) => {
+      if (!event.persisted) return;
+      try {
+        sessionStorage.removeItem("uniflow:transition");
+      } catch {}
+      reveal(false);
+    });
+
+    if (mode === "load") reveal(true);
+    else if (mode === "enter") reveal(false);
+  }
+</script>

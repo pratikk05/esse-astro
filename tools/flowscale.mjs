@@ -56,11 +56,11 @@ for (const [prefix, group] of Object.entries(typography)) {
     const cls = `${prefix}-${t.size}`;
     const value = fluid(t.min, t.size);
     typo += `\n/* ${cls}: ${t.size}px (${rem(t.size)}) · min ${t.min}px · ${t.source} */\n@utility ${cls} {\n`;
-    typo += `  font-family: var(${group.family});\n  font-size: ${value};\n`;
+    typo += `  font-family: var(${t.family ?? group.family});\n  font-size: ${value};\n`;
     if (t.weight) typo += `  font-weight: ${t.weight};\n`;
     typo += `  line-height: var(--leading-${t.leading});\n  letter-spacing: var(--tracking-${t.tracking});\n}\n`;
     safelist.push(cls);
-    manifest.typography.push({ className: cls, family: group.family, size: t.size, rem: rem(t.size), min: t.min, max: t.size, weight: t.weight ?? "inherit", leading: t.leading, tracking: t.tracking, value, source: t.source });
+    manifest.typography.push({ className: cls, family: t.family ?? group.family, size: t.size, rem: rem(t.size), min: t.min, max: t.size, weight: t.weight ?? "inherit", leading: t.leading, tracking: t.tracking, value, source: t.source });
   }
 }
 

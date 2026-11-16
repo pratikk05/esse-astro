@@ -13,9 +13,10 @@
   --breakpoint-2xl: 90rem;  /* 1440px — Figma reference width */
 
   /* ---------- Fonts ---------- */
-  --font-primary: "42 Dotsans", Arial, sans-serif;     /* heading-* */
+  --font-primary: "Geist Pixel", "42 Dotsans", Arial, sans-serif; /* heading-76…24: Figma display headings (Geist Pixel) */
   --font-secondary: "42 Dotsans", Arial, sans-serif;   /* para-*  (the design uses one sans for headings and body) */
   --font-tertiary: Jetbrainsmono, Verdana, sans-serif; /* text-*  labels, tags, numbers */
+  --font-pixel: var(--font-primary); /* heading-pixel-*  Figma "Heading 03/Primary" (Process step titles) */
 
   /* ---------- Font weights ---------- */
   --font-weight-light: 300;
@@ -30,6 +31,8 @@
   --leading-title: 1.2;    /* heading-24 */
   --leading-body: 1.4;     /* heading-16/14, para-* */
   --leading-base: 1.5;     /* body default */
+  --leading-pixel: 1.15;
+  --leading-numeric: 0.9;  /* numeric-76 */   /* heading-pixel-* (Figma Heading 03) */
 
   /* ---------- Letter spacing ---------- */
   --tracking-display: -0.07em;  /* heading-76 */
@@ -55,12 +58,15 @@
 
   --color-grey-10: #e3e8e8;          /* Figma greys/grey-10 (nav text on dark) */
   --color-grey-20: #c8d2d2;
+  --color-grey-30: #aeb8b8;          /* Figma greys/grey-30 (footer field text, linework) */
   --color-grey-40: #929c9c;
   --color-grey-50: #6d7777;
   --color-grey-60: #586464;
   --color-grey-70: #3c4646;
   --color-grey-80: #2d3737;          /* Figma greys/grey-80 (menu links) */
   --color-grey-90: #0d1111;
+  --color-grey-100: #000203;         /* Figma greys/grey-100 (footer background) */
+  --color-brand-02: #000e29;         /* Figma brand-colors/brand-color-02 (Process counter) */
 
   --color-border: #aeb8b8;
   --color-border-stat: #4a5dff;

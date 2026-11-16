@@ -5,95 +5,95 @@
   },
   "typography": [
     {
-      "className": "heading-76",
+      "className": "heading-64",
       "family": "--font-primary",
-      "size": 76,
-      "rem": "4.75rem",
-      "min": 40,
-      "max": 76,
+      "size": 64,
+      "rem": "4rem",
+      "min": 44,
+      "max": 64,
       "weight": 400,
-      "leading": "display",
-      "tracking": "display",
-      "value": "clamp(2.5rem, calc(1.75rem + 3.3333vw), 4.75rem)",
-      "source": "Webflow heading-style-76 / -90 (767px: 40px)"
-    },
-    {
-      "className": "heading-56",
-      "family": "--font-primary",
-      "size": 56,
-      "rem": "3.5rem",
-      "min": 24,
-      "max": 56,
-      "weight": 500,
-      "leading": "display",
-      "tracking": "xl",
-      "value": "clamp(1.5rem, calc(0.8333rem + 2.963vw), 3.5rem)",
-      "source": "Webflow heading-style-56 (767px: 24px)"
-    },
-    {
-      "className": "heading-36",
-      "family": "--font-primary",
-      "size": 36,
-      "rem": "2.25rem",
-      "min": 16,
-      "max": 36,
-      "weight": 500,
       "leading": "heading",
       "tracking": "lg",
-      "value": "clamp(1rem, calc(0.5833rem + 1.8519vw), 2.25rem)",
-      "source": "Webflow heading-style-36 (767px: 14px → 16px floor)"
+      "value": "clamp(2.75rem, calc(2.3333rem + 1.8519vw), 4rem)",
+      "source": "Figma Display 01 (64 / mobile 44, 110%, -4%)"
+    },
+    {
+      "className": "heading-48",
+      "family": "--font-primary",
+      "size": 48,
+      "rem": "3rem",
+      "min": 40,
+      "max": 48,
+      "weight": 400,
+      "leading": "heading",
+      "tracking": "lg",
+      "value": "clamp(2.5rem, calc(2.3333rem + 0.7407vw), 3rem)",
+      "source": "Figma Heading 01/Primary (48 / 40, 110%, -4%)"
+    },
+    {
+      "className": "heading-40",
+      "family": "--font-primary",
+      "size": 40,
+      "rem": "2.5rem",
+      "min": 30,
+      "max": 40,
+      "weight": 400,
+      "leading": "title",
+      "tracking": "lg",
+      "value": "clamp(1.875rem, calc(1.6667rem + 0.9259vw), 2.5rem)",
+      "source": "Figma Heading 02/Primary (40 / 30, 120%, -4%)"
     },
     {
       "className": "heading-32",
       "family": "--font-primary",
       "size": 32,
       "rem": "2rem",
-      "min": 16,
+      "min": 28,
+      "max": 32,
+      "weight": 400,
+      "leading": "pixel",
+      "tracking": "sm",
+      "value": "clamp(1.75rem, calc(1.6667rem + 0.3704vw), 2rem)",
+      "source": "Figma Heading 03/Primary (32 / 28, 115%, -2%)"
+    },
+    {
+      "className": "heading-secondary-32",
+      "family": "--font-secondary",
+      "size": 32,
+      "rem": "2rem",
+      "min": 24,
       "max": 32,
       "weight": 500,
       "leading": "heading",
       "tracking": "lg",
-      "value": "clamp(1rem, calc(0.6667rem + 1.4815vw), 2rem)",
-      "source": "Webflow heading-style-32 (767px: 12px → 16px floor)"
+      "value": "clamp(1.5rem, calc(1.3333rem + 0.7407vw), 2rem)",
+      "source": "Figma Heading 01/Secondary (42dot Medium 32 / 24, 110%, -4%)"
     },
     {
-      "className": "heading-24",
-      "family": "--font-primary",
-      "size": 24,
-      "rem": "1.5rem",
-      "min": 16,
-      "max": 24,
-      "weight": 500,
-      "leading": "title",
-      "tracking": "xl",
-      "value": "clamp(1rem, calc(0.8333rem + 0.7407vw), 1.5rem)",
-      "source": "Webflow heading-style-24 (fallback 62.5% → 16px floor)"
-    },
-    {
-      "className": "heading-16",
-      "family": "--font-primary",
+      "className": "subheading-16",
+      "family": "--font-secondary",
       "size": 16,
       "rem": "1rem",
-      "min": 16,
+      "min": 14,
       "max": 16,
-      "weight": 500,
+      "weight": 700,
       "leading": "body",
       "tracking": "sm",
-      "value": "1rem",
-      "source": "Webflow heading-style-16 (fixed)"
+      "value": "clamp(0.875rem, calc(0.8333rem + 0.1852vw), 1rem)",
+      "source": "Figma Sub Heading 01 (42dot Bold 16 / 14, 140%, -2%)"
     },
     {
-      "className": "heading-14",
-      "family": "--font-primary",
-      "size": 14,
-      "rem": "0.875rem",
-      "min": 14,
-      "max": 14,
-      "weight": 500,
-      "leading": "body",
-      "tracking": "sm",
-      "value": "0.875rem",
-      "source": "Webflow heading-style-14 (fixed)"
+      "className": "numeric-76",
+      "family": "--font-tertiary",
+      "size": 76,
+      "rem": "4.75rem",
+      "min": 56,
+      "max": 76,
+      "weight": 700,
+      "leading": "numeric",
+      "tracking": "lg",
+      "value": "clamp(3.5rem, calc(3.0833rem + 1.8519vw), 4.75rem)",
+      "source": "Figma Numeric 01 (Mono Bold 76 / 56, 90%, -4%)"
     },
     {
       "className": "para-18",
@@ -148,6 +148,19 @@
       "source": "Webflow para-14 (fixed)"
     },
     {
+      "className": "text-13",
+      "family": "--font-tertiary",
+      "size": 13,
+      "rem": "0.8125rem",
+      "min": 13,
+      "max": 13,
+      "weight": "inherit",
+      "leading": "display",
+      "tracking": "mono",
+      "value": "0.8125rem",
+      "source": "Figma Label 01 (Process step numbers, fixed)"
+    },
+    {
       "className": "text-12",
       "family": "--font-tertiary",
       "size": 12,
@@ -159,6 +172,32 @@
       "tracking": "mono",
       "value": "0.75rem",
       "source": "Webflow para-12 (fixed)"
+    },
+    {
+      "className": "text-11",
+      "family": "--font-tertiary",
+      "size": 11,
+      "rem": "0.6875rem",
+      "min": 11,
+      "max": 11,
+      "weight": "inherit",
+      "leading": "display",
+      "tracking": "mono",
+      "value": "0.6875rem",
+      "source": "Figma Label 03 (bold CTA labels)"
+    },
+    {
+      "className": "text-10",
+      "family": "--font-tertiary",
+      "size": 10,
+      "rem": "0.625rem",
+      "min": 10,
+      "max": 10,
+      "weight": "inherit",
+      "leading": "display",
+      "tracking": "mono",
+      "value": "0.625rem",
+      "source": "Figma Label 04 (compact metadata)"
     }
   ],
   "spacing": [
@@ -954,6 +993,12 @@
       "note": "electric blue (pixel section, CTA hover)"
     },
     {
+      "name": "secondary-light",
+      "token": "--color-secondary-light",
+      "value": "#6a85ff",
+      "note": "unrevealed words on electric blue (Stats statement)"
+    },
+    {
       "name": "accent",
       "token": "--color-accent",
       "value": "#1bdbce",
@@ -1002,6 +1047,12 @@
       "note": ""
     },
     {
+      "name": "grey-30",
+      "token": "--color-grey-30",
+      "value": "#aeb8b8",
+      "note": "Figma greys/grey-30 (footer field text, linework)"
+    },
+    {
       "name": "grey-40",
       "token": "--color-grey-40",
       "value": "#929c9c",
@@ -1036,6 +1087,18 @@
       "token": "--color-grey-90",
       "value": "#0d1111",
       "note": ""
+    },
+    {
+      "name": "grey-100",
+      "token": "--color-grey-100",
+      "value": "#000203",
+      "note": "Figma greys/grey-100 (footer background)"
+    },
+    {
+      "name": "brand-02",
+      "token": "--color-brand-02",
+      "value": "#000e29",
+      "note": "Figma brand-colors/brand-color-02 (Process counter)"
     },
     {
       "name": "border",
@@ -1109,7 +1172,9 @@
     "heading": "1.1",
     "title": "1.2",
     "body": "1.4",
-    "base": "1.5"
+    "base": "1.5",
+    "pixel": "1.15",
+    "numeric": "0.9"
   },
   "tracking": {
     "display": "-0.07em",
@@ -1120,9 +1185,10 @@
     "mono": "-0.01em"
   },
   "fonts": {
-    "primary": "\"42 Dotsans\", Arial, sans-serif",
+    "primary": "\"Geist Pixel\", \"42 Dotsans\", Arial, sans-serif",
     "secondary": "\"42 Dotsans\", Arial, sans-serif",
     "tertiary": "Jetbrainsmono, Verdana, sans-serif",
+    "pixel": "var(--font-primary)",
     "weight-light": "300",
     "weight-normal": "400",
     "weight-medium": "500",

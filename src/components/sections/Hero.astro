@@ -6,6 +6,7 @@ import GlobeIcon from "../../assets/svg/globe.svg";
   <!-- Bottom status bar -->
   <div
     class="absolute inset-x-0 bottom-0 z-2 border-t border-line-on-dark padding-top-21 padding-bottom-40"
+    data-reveal="fade" style="--reveal-order: 4"
   >
     <div class="container-wide">
       <div
@@ -28,11 +29,22 @@ import GlobeIcon from "../../assets/svg/globe.svg";
 
   <!-- Headline -->
   <div class="container">
-    <div class="relative z-1 flex h-lvh flex-col padding-top-128">
-      <h1 class="hero-title heading-76">
-        We make websites impossible to ignore.
+    <div class="relative z-1 hero-content flex h-lvh flex-col padding-top-128 max-md:pt-[9.5rem]">
+      <h1 class="hero-title heading-64" data-reveal style="--reveal-order: 1">
+        We Make <br />Websites That Hold <br />Your Attention
       </h1>
-      <p class="hero-intro para-16 margin-top-32"> We design and build high-performance websites for ambitious brands, startups and companies that refuse to lo </p>
+      <div class="hero-intro-block">
+        <p class="hero-intro para-14 font-normal" data-reveal style="--reveal-order: 2">
+          We design and build high-performance websites for ambitious brands,
+          startups and companies that refuse to look ordinary.
+        </p>
+        <a href="/contact" class="project-cta margin-top-32" data-theme="dark" data-reveal style="--reveal-order: 3">
+          <span class="project-cta-icon" aria-hidden="true">
+            <svg viewBox="0 0 12 12" width="12" height="12" fill="none"><path d="M1 6h10M6.5 1.5 11 6l-4.5 4.5" stroke="currentColor" stroke-width="1.2" /></svg>
+          </span>
+          <span class="project-cta-label text-11 font-bold">START A PROJECT</span>
+        </a>
+      </div>
     </div>
   </div>
 
@@ -52,11 +64,14 @@ import GlobeIcon from "../../assets/svg/globe.svg";
   @layer components {
     /* Text-box widths in em keep the Figma line breaks at every font size. */
     .hero-title {
-      width: 8.9263em; /* 678.4px at 76px */
+      width: 9.5em; /* keeps the Figma 3-line break at 64px */
       max-width: 100%;
     }
+    .hero-intro-block {
+      margin-top: 2rem;
+    }
     .hero-intro {
-      width: 18em; /* 288px at 16px */
+      width: 22.5em; /* 315px at 14px */
       max-width: 100%;
     }
     .hero-globe {
@@ -64,8 +79,14 @@ import GlobeIcon from "../../assets/svg/globe.svg";
       height: 1.3106rem;
     }
 
+    @media (width < 48rem) {
+      .hero-title br {
+        display: none;
+      }
+    }
+
     @media (width >= 62rem) {
-      .hero-intro {
+      .hero-intro-block {
         margin-left: calc(260.6 * var(--px));
       }
     }
