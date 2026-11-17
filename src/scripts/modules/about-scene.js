@@ -1,6 +1,7 @@
-// "Who we are" scroll scene (About.astro).
-//  • Sticky stage: dithered 3D helmet (Three.js) turns, tilts and settles — driven by scroll only
-//  • Opening copy leaves → statement words darken in → image tiles rise and fall
+// "Let's talk" scroll scene (About.astro, #about).
+//  • Sticky stage: dithered CRT TV (Three.js) turns to face you and changes channel with the story
+//  • A two-beat conversation (the problem → how we help) swaps in the card with a masked word reveal
+//  • Opening copy leaves → beats reveal → project glimpses rise and drift away
 //  • Last 1.1 viewports: the stage dissolves through a pixel mask, revealing <Stats /> underneath
 // Reduced motion / no WebGL: no smoothing, and the stage simply fades out instead of dissolving.
 import gsap from "gsap";
@@ -8,7 +9,7 @@ import gsap from "gsap";
 const STORY_END = 0.73; // story progress reached when the dissolve starts
 const DISSOLVE_VH = 1.1; // viewports of scroll the dissolve takes
 
-const { clamp, interpolate } = gsap.utils;
+const { clamp } = gsap.utils;
 const lerp = (a, b, t) => a + (b - a) * t;
 const smooth = (a, b, v) => {
   const t = clamp(0, 1, (v - a) / (b - a));
@@ -24,15 +25,65 @@ function initAboutScene(sceneEl) {
   const title = $("[data-about-title]");
   const note = $("[data-about-note]");
   const statement = $("[data-about-statement]");
-  const words = [...statement.querySelectorAll(".about-word")];
-  const gallery = $("[data-about-gallery]");
+  const paras = [...statement.querySelectorAll("[data-about-para]")];
+  const paraWords = paras.map((para) => [...para.querySelectorAll(".about-word > span")]);
+  const caption = $("[data-about-caption]");
+
+  // Beat swap: outgoing words fall away (fast, upward), incoming rise in (expo, staggered by word)
+  let currentBeat = -1;
+  // Health cards: numbers count between the "typical audit" and "after rebuild" values; the colour,
+  // meters, labels and review swap via CSS (.is-good).
+  function setInsights(good) {
+    const insightNums = [...sceneEl.querySelectorAll("[data-insight-num]")];
+    tiles.forEach((tile) => tile.classList.toggle("is-good", good));
+    insightNums.forEach((el) => {
+      const from = Number(el.textContent), to = Number(good ? el.dataset.good : el.dataset.bad);
+      const dec = Number(el.dataset.dec) || 0;
+      const state = { v: from };
+      const ring = el.closest(".insight-score");
+      gsap.to(state, {
+        v: to,
+        duration: reduced ? 0 : 1.3,
+        ease: "power3.out",
+        overwrite: true,
+        delay: reduced ? 0 : 0.2,
+        onUpdate: () => {
+          el.textContent = state.v.toFixed(dec);
+          ring?.style.setProperty("--ring", state.v.toFixed(1));
+        },
+      });
+    });
+  }
+
+  function showBeat(next) {
+    const prev = currentBeat;
+    currentBeat = next;
+    if ((next === 1) !== (prev === 1)) setInsights(next === 1);
+    if (reduced) {
+      paras.forEach((para, i) => (para.style.visibility = i === next ? "" : "hidden"));
+      return;
+    }
+    if (prev >= 0) {
+      gsap.killTweensOf(paraWords[prev]);
+      // y: 0 — GSAP would otherwise keep the CSS start offset (translateY(110%)) as a px `y`
+      gsap.to(paraWords[prev], { y: 0, yPercent: -110, duration: 0.45, ease: "power3.in", stagger: 0.006, overwrite: true });
+    }
+    if (next >= 0) {
+      paras.forEach((para, i) => (para.style.visibility = i === next || i === prev ? "" : "hidden"));
+      gsap.killTweensOf(paraWords[next]);
+      gsap.fromTo(
+        paraWords[next],
+        { y: 0, yPercent: 110, rotate: 3 },
+        { y: 0, yPercent: 0, rotate: 0, duration: 1.05, ease: "expo.out", stagger: 0.022, delay: prev >= 0 ? 0.32 : 0.05, overwrite: true },
+      );
+    }
+  }
   const tiles = [...sceneEl.querySelectorAll("[data-about-tile]")];
   const hint = $("[data-about-hint]");
   const next = sceneEl.nextElementSibling; // <Stats />
 
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const token = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  const wordColor = interpolate(token("--color-border"), token("--color-grey-90"));
 
   // ---- Scroll geometry (relative to the scene, wherever it sits on the page) ----
   let sceneTop = 0;
@@ -69,7 +120,14 @@ function initAboutScene(sceneEl) {
   function resize() {
     measure();
     gl?.resize(innerWidth, stage.offsetHeight);
+    // Tell the TV where the statement card ends (layout box, ignoring its scroll transform), so it
+    // fits into the space below it at any viewport size instead of running under the card.
+    const cardBottom = (statement.offsetTop + statement.offsetHeight) / Math.max(1, stage.offsetHeight);
+    gl?.setLayout?.(cardBottom);
+    // The project glimpses use the same free band (CSS: .about-tile top)
+    stage.style.setProperty("--card-bottom", `${(cardBottom * 100).toFixed(2)}%`);
   }
+  new ResizeObserver(() => resize()).observe(statement);
   resize();
   addEventListener("resize", resize);
   new ResizeObserver(measure).observe(document.body); // content above may change height
@@ -78,11 +136,26 @@ function initAboutScene(sceneEl) {
   let active = false;
   new IntersectionObserver(([entry]) => (active = entry.isIntersecting), { rootMargin: "100px" }).observe(sceneEl);
 
+  // Mouse tilt: the TV leans toward the cursor (desktop / fine pointers only, not reduced motion).
+  // Smoothed here; the canvas redraws only while the tilt is still settling.
+  const pointer = { x: 0, y: 0 };
+  let px = 0;
+  let py = 0;
+  if (!reduced && matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    addEventListener("pointermove", (e) => {
+      pointer.x = e.clientX / innerWidth - 0.5;
+      pointer.y = e.clientY / innerHeight - 0.5;
+    }, { passive: true });
+    document.documentElement.addEventListener("pointerleave", () => (pointer.x = pointer.y = 0));
+  }
+
   let progress = 0;
   let last = 0;
   let lastP = -1;
   let lastT = -1;
   let lastGlP = -1;
+  let lastChannel = -1;
+  let tvOn = false;
   let lastGlT = -1;
   const entrySpace = () => clamp(88.2, 147, vh * 0.1372);
 
@@ -105,11 +178,28 @@ function initAboutScene(sceneEl) {
       updateDom(p, t);
     }
 
-    // Render only when the scroll state moved (the helmet has no idle motion)
-    if (gl && (p !== lastGlP || t !== lastGlT || gl.dirty?.())) {
+    // Ease the tilt toward the pointer
+    const k = 1 - Math.exp(-dt * 5);
+    const nx = px + (pointer.x - px) * k, ny = py + (pointer.y - py) * k;
+    const tilting = Math.abs(nx - px) > 1e-4 || Math.abs(ny - py) > 1e-4;
+    px = nx;
+    py = ny;
+
+    // Render only when scroll or tilt moved (the TV has no idle motion)
+    // CRT power: switch on as the TV settles into view, off again when scrolled back above the scene
+    if (gl) {
+      const shouldBeOn = p > 0.06;
+      if (shouldBeOn !== tvOn) {
+        tvOn = shouldBeOn;
+        gl.power?.(tvOn);
+      }
+    }
+    const live = gl?.tick?.(now); // the TV screen animates (power-on, grain, roll bar, flicker)
+    if (gl && (p !== lastGlP || t !== lastGlT || tilting || live || gl.dirty?.())) {
       lastGlP = p;
       lastGlT = t;
-      gl.render({ p, t: dissolve ? t : 0, enter: smooth(0.12, 0.34, p) });
+      // TV settles into place (0.04 → 0.16) just before the card has fully arrived (0.10 → 0.18)
+      gl.render({ p, t: dissolve ? t : 0, enter: smooth(0.04, 0.16, p), px, py });
     }
   }
 
@@ -128,22 +218,35 @@ function initAboutScene(sceneEl) {
     note.style.opacity = String(1 - smooth(0.02, 0.13, p));
     hint.style.opacity = String(1 - smooth(0.015, 0.12, p));
 
-    // Statement rises in, words darken one by one, then it drifts up and out
-    const enter = smooth(0.12, 0.34, p);
-    const leave = smooth(0.59, 0.83, p);
-    statement.style.transform = `translateY(${lerp(88, 0, enter) - leave * vh * 0.45}px)`;
-    statement.style.opacity = String(enter * (1 - smooth(0.63, 0.78, p)));
-    if (!reduced) words.forEach((word, i) => (word.style.color = wordColor(smooth(0.16 + i * 0.008, 0.26 + i * 0.008, p))));
+    // Statement card rises in, then drifts up and out before the dissolve
+    const enter = smooth(0.1, 0.18, p);
+    const leave = smooth(0.66, 0.76, p);
+    statement.style.transform = `translateY(${lerp(88, 0, enter) - leave * vh * 0.35}px)`;
+    statement.style.opacity = String(enter * (1 - smooth(0.67, 0.74, p)));
 
-    // Tiles rise in a wave, bob, then fall away
+    // The conversation, two beats. Which beat is "live" is decided by scroll; the reveal itself is a
+    // timed GSAP animation (words rise out of their masks, staggered; the outgoing beat slides out
+    // first), so it always plays at full quality no matter how fast the visitor scrolls.
+    const beat = enter < 0.35 ? -1 : p < 0.42 ? 0 : 1;
+    if (beat !== currentBeat) showBeat(beat);
+    caption.style.opacity = String(enter * (1 - smooth(0.67, 0.74, p)));
+    // The TV follows the conversation: no signal → brand-blue word wall
+    const channel = p < 0.42 ? 0 : 1;
+    if (gl && channel !== lastChannel) {
+      lastChannel = channel;
+      gl.setChannel(channel);
+    }
+
+    // Project glimpses: rise in with statement 2 (staggered), float with parallax by depth, drift away
     tiles.forEach((tile, i) => {
-      const up = smooth(0.31 + i * 0.014, 0.48 + i * 0.014, p);
-      const down = smooth(0.64 + i * 0.009, 0.84 + i * 0.009, p);
-      const y = (1 - up) * 180 - down * vh * 0.26 + Math.sin(p * 4 + i * 0.7) * 9;
-      tile.style.transform = `translateY(${y}px) rotate(${(1 - up) * (i - 3.5) * 3}deg)`;
+      const depth = Number(tile.dataset.depth) || 1;
+      const up = smooth(0.17 + i * 0.03, 0.27 + i * 0.03, p); // rise in with "The problem" (poor audit)
+      const down = smooth(0.68 + i * 0.012, 0.82 + i * 0.012, p);
+      // rise in from below, float gently in place (never upward into the copy), sink away at the end
+      const y = (1 - up) * vh * 0.22 * depth + Math.sin(p * 9 + i * 1.3) * 6 * depth + down * vh * 0.12 * depth;
+      tile.style.transform = `translate3d(0, ${y.toFixed(1)}px, 0) scale(${lerp(0.92, 1, up).toFixed(3)})`;
       tile.style.opacity = String(up * (1 - down));
     });
-    gallery.style.transform = `translateX(${-smooth(0.48, 0.8, p) * innerWidth * 0.04}px)`;
   }
 
   requestAnimationFrame(frame);

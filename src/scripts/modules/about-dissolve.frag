@@ -2,7 +2,7 @@
 // (cta-dissolve.js): the About stage is cut into the 12px boxes of its line grid; as u_bottomProgress
 // goes 0 → 1 a wavy front rises from the bottom, and inside each box a blue square appears (Bayer
 // order), grows and merges with its neighbours until the screen is solid Stats blue.
-// Alpha 1 = the About stage (helmet + grid), alpha 0 = see-through to <Stats /> underneath.
+// Alpha 1 = the About stage (TV + grid), alpha 0 = see-through to <Stats /> underneath.
 precision highp float;
 
 in vec2 v_uv;
@@ -49,7 +49,7 @@ void main() {
     blue = max(d.x, d.y) <= size * 0.5;
   }
 
-  // The helmet is drawn in final (sRGB) colours; transparent texels are the stage, so paint its
+  // The TV is drawn in final (sRGB) colours; transparent texels are the stage, so paint its
   // 12px line grid there (same as .about-grid / .section-pixel) to keep the surface seamless.
   vec4 src = texture(u_input, v_uv);
   float line = step(mod(css.x, 12.0), 1.0) + step(mod(css.y, 12.0), 1.0);

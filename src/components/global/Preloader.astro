@@ -53,14 +53,22 @@
   @view-transition {
     navigation: auto;
   }
+  /* No white flash: the old page stays fully opaque underneath (no fade, no scale that would expose
+     the white document background) and the new page — whose first frame is the solid ink overlay —
+     fades in over it with normal blending (Chrome's default crossfade uses plus-lighter, which
+     brightens both layers toward white mid-transition). */
+  ::view-transition-image-pair(root) {
+    isolation: auto;
+  }
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    mix-blend-mode: normal;
+  }
   ::view-transition-old(root) {
-    animation: page-out 0.42s cubic-bezier(0.65, 0, 0.35, 1) both;
+    animation: none;
   }
   ::view-transition-new(root) {
-    animation: page-in 0.42s cubic-bezier(0.65, 0, 0.35, 1) both;
-  }
-  @keyframes page-out {
-    to { opacity: 0; transform: scale(0.985); filter: blur(6px); }
+    animation: page-in 0.38s cubic-bezier(0.65, 0, 0.35, 1) both;
   }
   @keyframes page-in {
     from { opacity: 0; }

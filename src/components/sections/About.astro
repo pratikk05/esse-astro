@@ -1,56 +1,116 @@
 ---
 /*
-  "Who we are" — sticky scroll scene with a dithered 3D helmet (Three.js, scripts/modules/about-sculpture.js)
+  "Let's talk" (id #about) — a conversation with the visitor in a sticky scroll scene with a dithered CRT TV (Three.js, scripts/modules/about-sculpture.js)
   on the site's 12px line grid; the statement sits in a white card (Figma "About … / Desktop 1441").
   Behaviour: scripts/modules/about-scene.js. Must sit directly before <Stats />:
   the last viewport of this scene dissolves into Stats through a pixel mask.
 */
-const statement =
-  "We build thoughtful Webflow websites that combine clarity, performance, and precision—crafted around your brand, never a template.";
-const words = statement.split(" ");
-import Tag from "../ui/Tag.astro";
+// A conversation with the visitor in two beats (swap on scroll, like pineapple.design): their problem,
+// then how we help. The CRT TV changes channel with them (no signal → brand-blue word wall).
+// Copy written with the copywriting skill (coreyhaines31/marketingskills): problem → answer, in the
+// customer's language, one idea per beat, no invented claims.
+const beats = [
+  {
+    label: "The problem",
+    text: "Your website is the first serious impression people get of your business. When it looks like everyone else's, they leave before they find out what makes you different.",
+  },
+  {
+    label: "How we help",
+    text: "We're a close-knit studio that plans, designs and builds your website with you, from the first idea to the final interaction. Every detail exists to show what makes you different and make the next step obvious.",
+  },
+].map((b) => ({ ...b, words: b.text.split(" ") }));
 
-// 8 tiles from 5 images (the prototype repeats the first three)
-const tiles = [1, 2, 3, 4, 5, 1, 2, 3].map((n) => `/images/about-tile-${n}-w240.webp`);
+// Website health cards: they rise in with beat 1 showing a typical poor audit (red), then flip to the
+// "after" state on beat 2 (numbers count, meters fill, review swaps). Illustrative figures, not client
+// results — replace with real audit data when available.
+// x/y (mx/my on phones): position inside the free band BELOW the statement (0 = just under it,
+// 1 = bottom), so they never cover the copy at any viewport height. d = parallax depth.
+const insights = [
+  { kind: "score", label: "PageSpeed score", bad: 38, good: 96, unit: "/100", x: 2, y: 0.08, w: 1, d: 1.2, mx: 3, my: 0.04 },
+  { kind: "metric", label: "Load time (LCP)", bad: 6.8, good: 1.2, unit: "s", dec: 1, worse: "Slow", better: "Fast", meterBad: 0.85, meterGood: 0.18, x: 80, y: 0.0, w: 0.9, d: 0.8 },
+  { kind: "metric", label: "Bounce rate", bad: 72, good: 31, unit: "%", worse: "High", better: "Healthy", meterBad: 0.72, meterGood: 0.31, x: 14, y: 0.58, w: 0.85, d: 0.9 },
+  { kind: "review", label: "Customer review", badStars: 2, goodStars: 5, badQuote: "Looked like every other site. I left.", goodQuote: "Felt premium from the first click. We booked a call.", x: 65, y: 0.6, w: 1.05, d: 1.3, mx: 53, my: 0.72 },
+  { kind: "status", label: "Mobile usability", worse: "Fails · 12 issues", better: "Passes · 0 issues", x: 84, y: 0.5, w: 0.8, d: 0.7 },
+];
 ---
 
-<section id="about" class="about-scene section" aria-label="Who we are" data-about-scene>
+<section id="about" class="about-scene section" aria-label="Let's talk about your website" data-about-scene>
   <div class="about-stage overflow-hidden bg-background" data-about-stage>
     <div class="about-grid" aria-hidden="true" data-about-grid></div>
 
     <div class="about-strip container-wide text-12 font-semibold uppercase text-grey-70" data-about-strip>
       <span>[02]</span>
-      <span>Who we are</span>
+      <span>Let's talk</span>
       <span>©2K26</span>
     </div>
 
     <div class="about-opening container-wide">
-      <h2 class="heading-48 text-grey-90" data-about-title>Different minds.<br />One flow.</h2>
+      <h2 class="heading-48 text-grey-90" data-about-title>Let's talk about<br />your website.</h2>
       <p class="text-12 leading-base uppercase text-text-muted margin-top-24" data-about-note>
-        Independent thinkers.<br />Working as one.<br />Building with clarity.
+        Honest questions.<br />Straight answers.<br />No jargon.
       </p>
     </div>
 
     <canvas class="about-canvas" aria-hidden="true" data-about-canvas></canvas>
+    <!-- Caption under the TV, like the reference posters -->
+    <p class="about-tv-caption text-12 uppercase" data-about-caption>
+      <span>You × Uniflow</span>
+      <span class="text-grey-50">A conversation about your website</span>
+    </p>
 
     <div class="about-statement" data-about-statement>
-      <Tag label="WHO WE ARE" class="about-statement-tag" />
-      <h2 class="heading-secondary-32 text-center">
-        {words.map((word) => <><span class="about-word inline-block">{word}</span>{" "}</>)}
-      </h2>
+      <div class="about-paras">
+        {
+          beats.map((beat, i) => (
+            <div class="about-para" data-about-para={i}>
+              <p class="about-para-label text-12 uppercase"><span class="about-word"><span>[0{i + 1}] {beat.label}</span></span></p>
+              <p class="heading-secondary-32 text-center">
+                {beat.words.map((word) => <><span class="about-word"><span>{word}</span></span>{" "}</>)}
+              </p>
+            </div>
+          ))
+        }
+      </div>
     </div>
 
     <div class="about-gallery" aria-hidden="true" data-about-gallery>
       {
-        tiles.map((src) => (
-          <div class="about-tile overflow-hidden rounded-sm border border-border bg-surface" data-about-tile>
-            <img src={src} alt="" loading="lazy" draggable="false" class="block size-full object-cover" />
-          </div>
+        insights.map((c, i) => (
+          <figure class:list={["about-tile insight", `is-kind-${c.kind}`, !c.mx && "is-desktop-only"]} style={`--x:${c.x}%;--y:${c.y};--w:${c.w};--mx:${c.mx ?? 0}%;--my:${c.my ?? 0}`} data-about-tile data-depth={c.d}>
+            <div class="insight-card">
+              <p class="insight-head text-12 uppercase">
+                <span>[0{i + 1}] {c.label}</span>
+                <span class="insight-tag"><b class="insight-when-bad">Typical audit</b><b class="insight-when-good">After rebuild</b></span>
+              </p>
+              {c.kind === "score" && (
+                <div class="insight-score">
+                  <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="27" class="ring-track" /><circle cx="32" cy="32" r="27" class="ring-fill" pathLength="100" /></svg>
+                  <span class="insight-num" data-insight-num data-bad={c.bad} data-good={c.good} data-dec="0">{c.bad}</span>
+                </div>
+              )}
+              {c.kind === "metric" && (
+                <>
+                  <p class="insight-value"><span data-insight-num data-bad={c.bad} data-good={c.good} data-dec={c.dec ?? 0}>{c.bad}</span>{c.unit}</p>
+                  <div class="insight-meter" style={`--bad:${c.meterBad};--good:${c.meterGood}`}><i></i></div>
+                  <p class="insight-note text-12 uppercase"><b class="insight-when-bad">{c.worse}</b><b class="insight-when-good">{c.better}</b></p>
+                </>
+              )}
+              {c.kind === "status" && (
+                <p class="insight-status"><i></i><b class="insight-when-bad">{c.worse}</b><b class="insight-when-good">{c.better}</b></p>
+              )}
+              {c.kind === "review" && (
+                <div class="insight-review">
+                  <p class="insight-stars"><b class="insight-when-bad">{"★".repeat(c.badStars)}<s>{"★".repeat(5 - c.badStars)}</s></b><b class="insight-when-good">{"★".repeat(c.goodStars)}</b></p>
+                  <p class="insight-quote"><b class="insight-when-bad">“{c.badQuote}”</b><b class="insight-when-good">“{c.goodQuote}”</b></p>
+                </div>
+              )}
+            </div>
+          </figure>
         ))
       }
     </div>
 
-    <p class="about-hint container-wide text-12 uppercase text-text-muted" data-about-hint>Scroll to meet Uniflow</p>
+    <p class="about-hint container-wide text-12 uppercase text-text-muted" data-about-hint>Scroll to start the conversation</p>
   </div>
 </section>
 
@@ -58,7 +118,7 @@ const tiles = [1, 2, 3, 4, 5, 1, 2, 3].map((n) => `/images/about-tile-${n}-w240.
   @layer components {
     /* Scroll length: story + 1.1 viewports for the pixel dissolve into Stats */
     .about-scene {
-      height: 385svh;
+      height: 480svh; /* two conversation beats + website health cards */
       background-color: var(--color-secondary);
     }
     .about-stage {
@@ -153,38 +213,286 @@ const tiles = [1, 2, 3, 4, 5, 1, 2, 3].map((n) => `/images/about-tile-${n}-w240.
       flex-direction: column;
       align-items: center;
       gap: 1rem;
-      padding: 1.5rem 1.25rem;
-      background: var(--color-white);
+      padding: 0.5rem 1.25rem;
       opacity: 0;
     }
-    .about-word {
-      color: var(--color-border);
-      will-change: color;
+    /* Both statements share one grid cell, so the card keeps the taller one's height while they swap */
+    .about-paras {
+      display: grid;
     }
-
-    .about-gallery {
-      position: absolute;
-      z-index: 2;
-      left: -30%;
-      top: 83%;
-      width: 160%;
+    .about-para {
+      grid-area: 1 / 1;
+      margin: 0;
+    }
+    .about-para {
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
       align-items: center;
-      gap: 10vw;
+      gap: 0.875rem;
+    }
+    .about-para-label .about-word {
+      color: inherit;
+    }
+    .about-para-label {
+      margin: 0;
+      color: var(--color-secondary);
+      letter-spacing: -0.01em;
+    }
+    .about-para p:last-child {
+      margin: 0;
+    }
+    /* Line reveal: each word rises out of its own mask (about-scene.js plays it per beat) */
+    .about-word {
+      display: inline-block;
+      overflow: clip;
+      overflow-clip-margin: 0.1em;
+      vertical-align: top;
+      padding-bottom: 0.06em;
+      margin-bottom: -0.06em;
+      color: var(--color-grey-90);
+    }
+    .about-word > span {
+      display: inline-block;
+      transform: translateY(110%);
       will-change: transform;
     }
-    .about-tile {
-      flex: none;
-      width: 2.875rem; /* 46px */
-      aspect-ratio: 1;
+    .about-tv-caption {
+      position: absolute;
+      z-index: 2;
+      left: 50%;
+      bottom: 4%;
+      translate: -50% 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      color: var(--color-grey-90);
+      text-align: center;
       opacity: 0;
-      transform: translateY(11.25rem);
-    }
-    .about-tile:nth-child(3n + 2) {
-      width: 2.5rem; /* 40px */
+      pointer-events: none;
     }
 
+    /* Website health cards: absolutely placed (positions from the frontmatter), driven by
+       about-scene.js — rise in with the second statement, parallax by depth, then drift away. */
+    .about-gallery {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .about-tile {
+      position: absolute;
+      left: var(--x);
+      /* inside the band from the card's bottom (+2%) to ~78% of the stage, so the card stays clear */
+      top: calc(var(--card-bottom, 45%) + 2% + (76% - var(--card-bottom, 45%)) * var(--y));
+      width: calc(clamp(10rem, 15vw, 15rem) * var(--w));
+      margin: 0;
+      opacity: 0;
+      will-change: transform, opacity;
+    }
+    /* Website health cards: red "typical audit" → green "after rebuild" (.is-good, set by about-scene.js) */
+    .insight {
+      --bad: #e5484d;
+      --good: #12a150;
+      --state: var(--bad);
+    }
+    .insight.is-good {
+      --state: var(--good);
+    }
+    .insight-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      padding: 0.875rem 1rem 1rem;
+      border: 0.5px solid var(--color-border);
+      border-radius: var(--radius-sm, 4px);
+      background: var(--color-white);
+      box-shadow: 0 18px 40px -20px rgb(0 2 3 / 0.3);
+      transition: border-color 0.6s var(--ease-esse);
+    }
+    .insight.is-good .insight-card {
+      border-color: color-mix(in srgb, var(--good) 45%, var(--color-border));
+    }
+    /* tag above the label, both on one line each */
+    .insight-head {
+      margin: 0;
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 0.25rem;
+      white-space: nowrap;
+      color: var(--color-grey-70);
+      font-size: 0.625rem;
+      letter-spacing: -0.01em;
+    }
+    .insight-tag b {
+      font-weight: 500;
+      color: var(--state);
+      transition: color 0.6s;
+    }
+    /* swap pairs: bad text by default, good text with .is-good (crossfade in place) */
+    .insight-when-bad,
+    .insight-when-good {
+      transition: opacity 0.5s var(--ease-esse), translate 0.6s var(--ease-esse);
+    }
+    .insight-tag,
+    .insight-note,
+    .insight-status,
+    .insight-stars,
+    .insight-quote {
+      display: grid;
+    }
+    .insight-tag > b,
+    .insight-note > b,
+    .insight-status > b,
+    .insight-stars > b,
+    .insight-quote > b {
+      grid-area: 1 / 1;
+    }
+    .insight-status > i {
+      grid-area: auto;
+    }
+    .insight-when-good {
+      opacity: 0;
+      translate: 0 0.4em;
+    }
+    .insight.is-good .insight-when-bad {
+      opacity: 0;
+      translate: 0 -0.4em;
+    }
+    .insight.is-good .insight-when-good {
+      opacity: 1;
+      translate: 0 0;
+    }
+
+    .insight-score {
+      position: relative;
+      width: 4.25rem;
+      aspect-ratio: 1;
+      align-self: flex-start;
+    }
+    .insight-score svg {
+      width: 100%;
+      height: 100%;
+      rotate: -90deg;
+    }
+    .ring-track,
+    .ring-fill {
+      fill: none;
+      stroke-width: 5;
+    }
+    .ring-track {
+      stroke: color-mix(in srgb, var(--state) 15%, transparent);
+    }
+    .ring-fill {
+      stroke: var(--state);
+      stroke-linecap: round;
+      stroke-dasharray: 100;
+      stroke-dashoffset: calc(100 - var(--ring, 38));
+      transition: stroke 0.6s;
+    }
+    .insight-num {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font: 600 1.25rem/1 var(--font-secondary, inherit);
+      color: var(--state);
+      transition: color 0.6s;
+    }
+    .insight-value {
+      margin: 0;
+      font: 500 2rem/1 var(--font-secondary, inherit);
+      letter-spacing: -0.04em;
+      color: var(--state);
+      transition: color 0.6s;
+    }
+    .insight-meter {
+      height: 4px;
+      border-radius: 2px;
+      background: var(--color-surface-light, #f2f3f3);
+      overflow: hidden;
+    }
+    .insight-meter i {
+      display: block;
+      height: 100%;
+      width: calc(var(--bad) * 100%);
+      background: var(--state);
+      transition: width 1.1s var(--ease-esse), background-color 0.6s;
+    }
+    .insight.is-good .insight-meter i {
+      width: calc(var(--good) * 100%);
+    }
+    .insight-note,
+    .insight-note b {
+      margin: 0;
+      font-size: 0.625rem;
+      font-weight: 500;
+      color: var(--state);
+    }
+    .insight-status {
+      margin: 0;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      column-gap: 0.5rem;
+      font: 500 0.9375rem/1.2 var(--font-secondary, inherit);
+      color: var(--color-grey-90);
+    }
+    .insight-status > i {
+      grid-row: 1;
+      width: 0.625rem;
+      height: 0.625rem;
+      border-radius: 50%;
+      background: var(--state);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--state) 18%, transparent);
+      transition: background-color 0.6s, box-shadow 0.6s;
+    }
+    .insight-status > b {
+      grid-column: 2;
+      grid-row: 1;
+      font-weight: 500;
+    }
+    .insight-stars {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      color: #f5a524;
+    }
+    .insight-stars s {
+      text-decoration: none;
+      color: var(--color-border);
+    }
+    .insight-stars b {
+      font-weight: 400;
+    }
+    .insight-quote {
+      margin: 0;
+      font: 400 0.9375rem/1.35 var(--font-secondary, inherit);
+      color: var(--color-grey-90);
+    }
+    .insight-quote b {
+      font-weight: 400;
+    }
+    @media (width < 48rem) {
+      .about-tile {
+        left: var(--mx);
+        top: calc(var(--card-bottom, 45%) + 2% + (76% - var(--card-bottom, 45%)) * var(--my));
+        width: 44vw;
+      }
+      .about-tile.is-desktop-only {
+        display: none;
+      }
+      .insight-card {
+        padding: 0.625rem 0.75rem 0.75rem;
+        gap: 0.5rem;
+      }
+      .insight-value {
+        font-size: 1.5rem;
+      }
+      .insight-quote {
+        font-size: 0.8125rem;
+      }
+    }
     .about-hint {
       position: absolute;
       z-index: 2;
@@ -203,24 +511,11 @@ const tiles = [1, 2, 3, 4, 5, 1, 2, 3].map((n) => `/images/about-tile-${n}-w240.
         top: 20%;
         width: 76%;
         max-width: 61.25rem; /* 980px card, Figma */
-        padding: 1.75rem 2.5rem;
+        padding: 0.5rem 2.5rem;
         translate: -50% 0; /* `translate`, not `transform`: the scroll script owns transform */
       }
       .about-strip {
         top: 6.5rem; /* 104px */
-      }
-      .about-gallery {
-        left: 0;
-        top: 82%;
-        width: 100%;
-        gap: 4vw;
-        padding-inline: 2.2%;
-      }
-      .about-tile {
-        width: clamp(2.875rem, 5.7vw, 5.25rem); /* 46 → 84px */
-      }
-      .about-tile:nth-child(3n + 2) {
-        width: clamp(2.625rem, 4.7vw, 4.25rem); /* 42 → 68px */
       }
       .about-hint {
         bottom: 8%;
@@ -236,8 +531,8 @@ const tiles = [1, 2, 3, 4, 5, 1, 2, 3].map((n) => `/images/about-tile-${n}-w240.
       .about-scene {
         height: 275svh;
       }
-      .about-word {
-        color: var(--color-grey-90);
+      .about-word > span {
+        transform: none;
       }
     }
   }
