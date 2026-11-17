@@ -1,5 +1,5 @@
 // "Who we are" scroll scene (About.astro).
-//  • Sticky stage: metallic loop sculpture (Three.js) turns and shrinks with scroll
+//  • Sticky stage: dithered 3D helmet (Three.js) turns, tilts and settles — driven by scroll only
 //  • Opening copy leaves → statement words darken in → image tiles rise and fall
 //  • Last 1.1 viewports: the stage dissolves through a pixel mask, revealing <Stats /> underneath
 // Reduced motion / no WebGL: no smoothing, and the stage simply fades out instead of dissolving.
@@ -74,15 +74,6 @@ function initAboutScene(sceneEl) {
   addEventListener("resize", resize);
   new ResizeObserver(measure).observe(document.body); // content above may change height
 
-  // Pointer parallax on the sculpture
-  const pointer = { x: 0, y: 0 };
-  let px = 0;
-  let py = 0;
-  addEventListener("pointermove", (e) => {
-    pointer.x = e.clientX / innerWidth - 0.5;
-    pointer.y = e.clientY / innerHeight - 0.5;
-  }, { passive: true });
-
   // Only animate while the scene (or the start of Stats) is on screen
   let active = false;
   new IntersectionObserver(([entry]) => (active = entry.isIntersecting), { rootMargin: "100px" }).observe(sceneEl);
@@ -91,6 +82,8 @@ function initAboutScene(sceneEl) {
   let last = 0;
   let lastP = -1;
   let lastT = -1;
+  let lastGlP = -1;
+  let lastGlT = -1;
   const entrySpace = () => clamp(88.2, 147, vh * 0.1372);
 
   function frame(now) {
@@ -112,10 +105,11 @@ function initAboutScene(sceneEl) {
       updateDom(p, t);
     }
 
-    if (gl) {
-      px = lerp(px, pointer.x, dt * 2);
-      py = lerp(py, pointer.y, dt * 2);
-      gl.render({ p, t: dissolve ? t : 0, enter: smooth(0.12, 0.34, p), time: reduced ? 0 : now * 0.00012, px, py });
+    // Render only when the scroll state moved (the helmet has no idle motion)
+    if (gl && (p !== lastGlP || t !== lastGlT || gl.dirty?.())) {
+      lastGlP = p;
+      lastGlT = t;
+      gl.render({ p, t: dissolve ? t : 0, enter: smooth(0.12, 0.34, p) });
     }
   }
 

@@ -57,8 +57,6 @@
 /* Red Dot exit: final viewport scrolls away, with two separately scrubbed layers. */
 .services-camera{background:var(--surface)}
 .red-dot-exit-trigger{position:absolute;left:0;right:0;height:100svh;pointer-events:none;visibility:hidden}
-.team-section{position:relative;min-height:100svh;height:max(100svh,62.5vw);background:#fff}
-.team-section iframe{display:block;width:100%;height:100%;border:0;background:#fff}
 @media(min-width:768px) and (prefers-reduced-motion:no-preference){
  .artwork-track{height:100%;align-self:stretch;display:flex;align-items:center;transform-origin:center}
  .artwork-sticky{width:100%}
@@ -106,15 +104,22 @@
 .ms-row[data-open]{padding-bottom:12px;border-bottom:0}.ms-row[data-open] .ms-button{gap:16px;color:#000}.ms-row[data-open] .ms-number{font-weight:700}
 .ms-art{position:relative;width:100%;aspect-ratio:1;border:.604px solid rgba(8,10,16,.09);overflow:hidden;margin-top:32px}.ms-art img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain}
 .ms-copy[hidden],.ms-art[hidden]{display:none}
+/* Smooth state change: padding, colour and gap ease instead of snapping; the divider fades
+   (border-color) rather than disappearing. Heights are animated in uniflow-services/index.js. */
+.ms-row{transition:padding .55s cubic-bezier(.65,0,.35,1),border-color .4s}
+.ms-row[data-open]{border-bottom:1px dashed transparent}
+.ms-button{transition:color .45s,gap .45s}.ms-number{transition:font-weight .3s}
+.ms-copy,.ms-art{overflow:hidden;will-change:height}.ms-art img{will-change:transform,clip-path}
 }
 
 .ms-grid{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(to right,rgba(8,10,16,.09) 1px,transparent 1px),linear-gradient(to bottom,rgba(8,10,16,.09) 1px,transparent 1px);background-size:10px 10px}
 
-@media(max-width:767px){.team-section{height:1150px;min-height:0}.team-section iframe{height:100%;width:100%;border:0}}
 
-/* Exit smoothness: promote the two scrubbed layers and isolate the team iframe's paint. */
+/* Exit smoothness: promote the two scrubbed layers. */
 @media (min-width:768px) and (prefers-reduced-motion:no-preference){
  .services .artwork-track,.services .list-window{will-change:transform,opacity,filter;backface-visibility:hidden}
 }
-.team-section{contain:layout paint}
-.team-section iframe{transform:translateZ(0)}
+
+/* Hover must never look like the active step (two rows appeared selected when the cursor rested on a row at the end of the scroll) */
+.services .service-row:not([aria-current="step"]) button:hover,
+.services .service-row:not([aria-current="step"]) button:hover>span:first-child{color:#7d8888}

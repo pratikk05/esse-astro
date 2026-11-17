@@ -34,7 +34,7 @@ const stripes = [
           stats.map((stat, i) => (
             <div class:list={["flex flex-col items-start justify-start gap-figma-64 border-l border-border-stat padding-left-24", i === 1 && "lg:col-start-3"]}>
               <p class="numeric-76 tabular-nums" data-stats-count>{stat.value}</p>
-              <div class="stat-text flex flex-col gap-figma-12">
+              <div data-fade={i} class="stat-text flex flex-col gap-figma-12">
                 <h3 class="subheading-16">{stat.title}</h3>
                 <p class="para-14 text-grey-20">{stat.text}</p>
               </div>

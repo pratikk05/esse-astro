@@ -1,80 +1,58 @@
-// Pixel-mask dissolve (About → Stats). Draws the rendered sculpture scene (u_input)
-// through a noisy 4×4 block pattern that eats the surface away as u_bottomProgress goes 0 → 1.
+// Pixel-mask dissolve (About → Stats), "box filling" — the same move as the CTA reveal
+// (cta-dissolve.js): the About stage is cut into the 12px boxes of its line grid; as u_bottomProgress
+// goes 0 → 1 a wavy front rises from the bottom, and inside each box a blue square appears (Bayer
+// order), grows and merges with its neighbours until the screen is solid Stats blue.
+// Alpha 1 = the About stage (helmet + grid), alpha 0 = see-through to <Stats /> underneath.
 precision highp float;
 
 in vec2 v_uv;
 uniform sampler2D u_input;
-uniform float u_topProgress;
 uniform float u_bottomProgress;
-uniform vec2 u_resolution;
-uniform float u_pixel_size;
+uniform vec2 u_resolution; // CSS px
+uniform float u_pixel_size; // grid box size, CSS px (12 — matches the stage grid)
 out vec4 FragColor;
 
-float rand(vec2 n) {
-  return fract(sin(dot(n, vec2(12.98923445328, 4.137643425614414))) * 43758.54432453);
+float rand(float n) {
+  return fract(sin(n * 127.1) * 43758.5453);
+}
+// Smooth 1D value noise for the wavy front (same shape as the CTA reveal)
+float wave(float x) {
+  float i = floor(x), f = fract(x);
+  float u = f * f * (3.0 - 2.0 * f);
+  return mix(rand(i), rand(i + 1.0), u);
 }
 
-float noise(vec2 p) {
-  vec2 ip = floor(p);
-  vec2 u = fract(p);
-  u = u * u * (3.0 - 2.0 * u);
-  float res = mix(
-    mix(rand(ip), rand(ip + vec2(1.0, 0.0)), u.x),
-    mix(rand(ip + vec2(0.0, 1.0)), rand(ip + vec2(1.0, 1.0)), u.x), u.y);
-  return res * res;
-}
-
-float checkEqual(float a, float b) {
-  return 1.0 - ceil(abs(a - b) / 20.0);
-}
-
-// 16 sub-blocks per cell switch on in a fixed order as opacity rises.
-float blockPattern(vec2 rect, float opacity, float inverted) {
-  float x = mod(round(mod(rect.x, 1.0) * 4.0 + 1.5), 4.0);
-  float y = mod(round(mod(rect.y, 1.0) * 4.0 + 0.5), 4.0);
-
-  float progress = 1.0 / 16.0;
-  float invertedOffset = 16.0 * inverted;
-  float threshold = 1.0 - opacity;
-
-  // (x, y) of each block, in reveal order
-  vec2 order[16] = vec2[16](
-    vec2(0, 0), vec2(0, 2), vec2(2, 1), vec2(3, 3), vec2(1, 3), vec2(0, 1), vec2(2, 0), vec2(0, 3),
-    vec2(1, 2), vec2(3, 2), vec2(3, 0), vec2(2, 3), vec2(2, 2), vec2(1, 0), vec2(1, 1), vec2(3, 1)
-  );
-
-  float result = 0.0;
-  for (int i = 0; i < 16; i++) {
-    float on = step(threshold, progress * abs(invertedOffset - float(i)));
-    result += on * checkEqual(order[i].x, x) * checkEqual(order[i].y, y);
-  }
-  return min(1.0, result) * ceil(opacity);
-}
-
-vec3 linearToSRGB(vec3 c) {
-  return mix(12.92 * c, 1.055 * pow(max(c, vec3(0.0)), vec3(1.0 / 2.4)) - 0.055, step(vec3(0.0031308), c));
+float bayer(vec2 cell) {
+  int i = int(mod(cell.x, 4.0)) + int(mod(cell.y, 4.0)) * 4;
+  float m[16] = float[16](0., 8., 2., 10., 12., 4., 14., 6., 3., 11., 1., 9., 15., 7., 13., 5.);
+  return (m[i] + 0.5) / 16.0;
 }
 
 void main() {
-  float gap = 0.2;
-  float strength = 0.15;
-  vec2 uv = v_uv;
-
-  float columns = u_resolution.x / u_pixel_size;
+  vec2 css = vec2(v_uv.x, 1.0 - v_uv.y) * u_resolution; // top-left origin, like the CSS grid
+  vec2 cell = floor(css / u_pixel_size);
+  vec2 local = fract(css / u_pixel_size);
   float rows = u_resolution.y / u_pixel_size;
 
-  vec2 roundedUV = vec2(
-    (round(uv.x * columns * 4.0 - 0.5) + 0.5) / columns / 4.0,
-    (round(uv.y * rows * 4.0 - 0.5) + 0.5) / rows / 4.0
-  );
-  float n = 0.5 * noise(roundedUV * 8.0);
-  roundedUV.y = roundedUV.y * (1.0 - strength * 2.0) + strength + strength * n;
+  // Rising front: 0 at the bottom edge, 1 at the top
+  float fromBottom = 1.0 - (cell.y + 0.5) / rows;
+  float bump = wave(cell.x * 0.045) * 0.28 + wave(cell.x * 0.13 + 9.0) * 0.1;
+  float front = u_bottomProgress * 2.0 - 0.3;
+  float density = clamp((front - fromBottom - bump + 0.15) * 3.0, 0.0, 1.0);
 
-  float inverse = step(0.5, uv.y - u_bottomProgress);
-  float edge = roundedUV.y * (1.0 - gap);
-  float opacity = smoothstep(edge - gap, edge, u_topProgress - gap)
-                - smoothstep(edge - gap, edge, u_bottomProgress - gap);
+  // Blue square inside this box: appears in Bayer order, grows from 3px to the full box
+  bool blue = false;
+  if (density > bayer(cell)) {
+    float grow = clamp((density - 0.5) / 0.45, 0.0, 1.0);
+    float size = grow >= 1.0 ? 1.01 : (3.0 + (u_pixel_size - 3.0) * grow * grow) / u_pixel_size;
+    vec2 d = abs(local - 0.5);
+    blue = max(d.x, d.y) <= size * 0.5;
+  }
 
-  float alpha = blockPattern(vec2(uv.x * columns, uv.y * rows), opacity, inverse);
-  FragColor = vec4(linearToSRGB(texture(u_input, uv).rgb), alpha);
+  // The helmet is drawn in final (sRGB) colours; transparent texels are the stage, so paint its
+  // 12px line grid there (same as .about-grid / .section-pixel) to keep the surface seamless.
+  vec4 src = texture(u_input, v_uv);
+  float line = step(mod(css.x, 12.0), 1.0) + step(mod(css.y, 12.0), 1.0);
+  vec3 stage = mix(vec3(1.0), vec3(0.9686, 0.9725, 0.9725), min(line, 1.0));
+  FragColor = vec4(mix(stage, src.rgb, src.a), blue ? 0.0 : 1.0);
 }

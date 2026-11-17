@@ -41,6 +41,8 @@ const chars = (label: string) => [...label].map((c) => (c === " " ? " " : c));
 ---
 
 <header id="top" class="site-header absolute inset-x-0 top-0 z-50" data-menu-root data-reveal="fade">
+  <!-- Blurs the page behind the open menu (html.is-menu-open) -->
+  <div class="menu-backdrop" aria-hidden="true"></div>
   <div class="nav-row relative z-2 flex items-start justify-between padding-x-16 padding-top-24 lg:padding-32">
     <a href={home ? "#top" : "/"} class="nav-logo relative z-1 block" aria-label="Uniflow — home" data-menu-link>
       <LogoLight class="nav-logo-light" aria-hidden="true" />
@@ -163,6 +165,23 @@ const chars = (label: string) => [...label].map((c) => (c === " " ? " " : c));
 
 <style>
   @layer components {
+    .menu-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background: rgb(0 2 3 / 0.25);
+      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 0.5s var(--ease-esse), visibility 0s 0.5s;
+    }
+    :global(html.is-menu-open) .menu-backdrop {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.5s var(--ease-esse);
+    }
     /* ---------- Bar ---------- */
     .nav-logo {
       width: 105.85px; /* mobile logo */

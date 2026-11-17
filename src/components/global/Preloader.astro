@@ -10,8 +10,13 @@
  * The same canvas is the page transition: leaving a page closes the dither onto the seam, the next
  * page opens it again (short, no loader marks). Layout decides the mode inline in <head>:
  *   data-loader="load"  → preloader (first visit / reload of a page with `preloader`)
- *   data-loader="enter" → arriving through an internal link
- *   nothing             → back/forward, or pages without a preloader
+ *   data-loader="enter" → arriving through an internal link, or Back/Forward
+ *   nothing             → pages without a preloader opened directly
+ * Back/Forward: the browser leaves the old page without running its cover, so
+ *  - a cross-document View Transition (@view-transition below) crossfades the old page into this
+ *    page's first frame, which is the solid ink overlay — then the box reveal opens it;
+ *  - pages going into the back/forward cache are covered on `pagehide`, so they come back covered
+ *    and open with the same reveal instead of flashing.
  * html.is-loading is only added by that script, so nothing is hidden when JavaScript is off.
  */
 ---
@@ -43,6 +48,29 @@
     width: 100%;
     height: 100%;
   }
+  /* Cross-document View Transitions (Chrome/Edge 126+, Safari 18.2+; ignored elsewhere): every
+     navigation, including Back/Forward, crossfades the old page into the new page's ink overlay. */
+  @view-transition {
+    navigation: auto;
+  }
+  ::view-transition-old(root) {
+    animation: page-out 0.42s cubic-bezier(0.65, 0, 0.35, 1) both;
+  }
+  ::view-transition-new(root) {
+    animation: page-in 0.42s cubic-bezier(0.65, 0, 0.35, 1) both;
+  }
+  @keyframes page-out {
+    to { opacity: 0; transform: scale(0.985); filter: blur(6px); }
+  }
+  @keyframes page-in {
+    from { opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+      animation: none;
+    }
+  }
   @keyframes preloader-failsafe {
     to { opacity: 0; visibility: hidden; }
   }
@@ -63,6 +91,11 @@
     transition-delay: calc(var(--reveal-order, 0) * 70ms);
     will-change: opacity, transform, filter;
   }
+  /* Fade-only (the navbar): transform/filter here would make the header a containing block and the
+     fixed START A PROJECT + menu buttons would scroll away during the intro. */
+  html.is-revealing [data-reveal="fade"] {
+    will-change: opacity;
+  }
   @media (prefers-reduced-motion: reduce) {
     html.is-loading [data-reveal] {
       opacity: 1 !important;
@@ -82,7 +115,6 @@
     const ctx = canvas.getContext("2d", { alpha: true })!;
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const INK = "#000203"; // --color-grey-100
-    const TAU = Math.PI * 2;
 
     // 8×8 Bayer matrix: the ordered-dither texture of the dissolve.
     const bayer8 = [
@@ -115,7 +147,7 @@
       canvas!.width = Math.round(W * dpr);
       canvas!.height = Math.round(H * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      step = W < 700 ? 7 : 9;
+      step = W < 700 ? 10 : 12; // one cell = one box of the site's 12px line grid
       cols = Math.ceil(W / step);
       rows = Math.ceil(H / step);
       thresholds = new Float32Array(cols * rows);
@@ -157,8 +189,7 @@
           const r = ((mobile ? 0.72 : 0.86) + envelope * (mobile ? 0.8 : 1.05) + valueNoise(u, v, 17, 10) * 0.28) * pulse * strength;
           const px = x + Math.sin(t + gy * 0.21) * 0.8, py = y + Math.sin(t * 0.7 + gx * 0.045) * 1.4;
           const path = paths[envelope > 0.66 ? 2 : envelope > 0.38 ? 1 : 0];
-          path.moveTo(px + r, py);
-          path.arc(px, py, r, 0, TAU);
+          path.rect(px - r, py - r, r * 2, r * 2); // square dots, matching the site's box grid
         }
       }
       ctx.globalCompositeOperation = "destination-out";
@@ -214,17 +245,17 @@
         drawCurrent(now, 0.35);
       }
       if (p <= 0) return;
-      // Dither cells open as growing apertures — one batched path, one fill.
+      // Dither cells open as growing square boxes (like the CTA / About→Stats reveals) — one path, one fill.
       const holes = new Path2D();
       for (let gy = 0; gy < rows; gy++) {
         const y = gy * step + step * 0.5;
         for (let gx = 0; gx < cols; gx++) {
           const th = thresholds[gy * cols + gx];
           if (p <= th) continue;
-          const r = Math.max(0.045, step * 1.02 * Math.pow(smooth01((p - th) / (1 - th)), 0.72));
+          // Half-size grows from a small dot to just past the box edge, so neighbours merge seamlessly.
+          const h = Math.max(0.5, step * 0.51 * Math.pow(smooth01((p - th) / (1 - th)), 0.72));
           const x = gx * step + step * 0.5;
-          holes.moveTo(x + r, y);
-          holes.arc(x, y, r, 0, TAU);
+          holes.rect(x - h, y - h, h * 2, h * 2);
         }
       }
       ctx.globalCompositeOperation = "destination-out";
@@ -350,12 +381,34 @@
       const link = (event.target as Element | null)?.closest?.("a[href]") as HTMLAnchorElement | null;
       if (!link || link.target || link.hasAttribute("download")) return;
       const url = new URL(link.href, location.href);
-      if (url.origin !== location.origin || url.pathname === location.pathname) return;
+      if (url.origin !== location.origin) return;
+      if (url.pathname === location.pathname && url.search === location.search) {
+        if (url.hash) return; // in-page anchors: menu.js / the browser handle these
+        // Link to the page we're already on (e.g. START A PROJECT on /contact): a plain browser reload
+        // flashes white — stay put instead: close the menu if open and glide back to the top.
+        event.preventDefault();
+        if (root.classList.contains("is-menu-open")) (document.querySelector("[data-menu-toggle]") as HTMLElement | null)?.click();
+        const l = lenis();
+        if (l) l.scrollTo(0, { duration: 1.2 });
+        else scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+        return;
+      }
       event.preventDefault();
       leave(url.href);
     });
 
-    // Back/forward cache: the page comes back still covered by the leave animation — open it again.
+    // Going into the back/forward cache (e.g. the visitor pressed Back): freeze the page under a
+    // full ink cover, so it is restored covered and opens with the reveal instead of flashing.
+    addEventListener("pagehide", (event) => {
+      if (!event.persisted) return;
+      cancelAnimationFrame(raf);
+      resize();
+      draw(0, performance.now(), 0, false);
+      show();
+      wrap.classList.remove("is-running"); // solid ink background too, in case the canvas is discarded
+    });
+
+    // Back/forward cache: the page comes back still covered — open it again.
     addEventListener("pageshow", (event) => {
       if (!event.persisted) return;
       try {

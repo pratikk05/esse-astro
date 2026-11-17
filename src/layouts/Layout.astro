@@ -30,14 +30,45 @@ const { title = "Uniflow", scripts = true, preloader = false } = Astro.props;
     <script is:inline>
       !function(o,c){var n=c.documentElement,t=" w-mod-";n.className+=t+"js",("ontouchstart"in o||o.DocumentTouch&&c instanceof DocumentTouch)&&(n.className+=t+"touch")}(window,document);
     </script>
+    <!-- Touch devices: the fixed <body> is the page scroller (see the "Page scroll" block in global.css).
+         Map the window scroll API onto it so every module (Ukiyo, Preloader, custom scroll scenes) keeps
+         working unchanged: window.scrollY / pageYOffset read body.scrollTop, window.scrollTo/scrollBy
+         scroll the body, and body scroll events are re-fired on window. -->
+    <script is:inline>
+      (function () {
+        if (!matchMedia("(hover: none) and (pointer: coarse)").matches) return;
+        window.__bodyScroller = true;
+        var d = document;
+        var top = function () { return d.body ? d.body.scrollTop : 0; };
+        ["scrollY", "pageYOffset"].forEach(function (k) {
+          Object.defineProperty(window, k, { configurable: true, get: top });
+        });
+        var to = function (a, b) {
+          if (!d.body) return;
+          if (a && typeof a === "object") d.body.scrollTo(a);
+          else d.body.scrollTo(a || 0, b || 0);
+        };
+        window.scrollTo = window.scroll = to;
+        window.scrollBy = function (a, b) {
+          if (!d.body) return;
+          if (a && typeof a === "object") d.body.scrollBy(a);
+          else d.body.scrollBy(a || 0, b || 0);
+        };
+        var hook = function () {
+          d.body.addEventListener("scroll", function () { window.dispatchEvent(new Event("scroll")); }, { passive: true });
+        };
+        if (d.body) hook(); else d.addEventListener("DOMContentLoaded", hook);
+      })();
+    </script>
     <!-- Loader mode, decided before first paint (see components/global/Preloader.astro). -->
     <script is:inline define:vars={{ preloader }}>
       (function () {
         var root = document.documentElement, arrived = false, type = "navigate";
         try { arrived = sessionStorage.getItem("uniflow:transition") === "1"; sessionStorage.removeItem("uniflow:transition"); } catch (e) {}
         try { type = performance.getEntriesByType("navigation")[0].type; } catch (e) {}
-        if (arrived && type !== "back_forward") {
-          // Came through an internal link: short dither entrance, keep any #anchor.
+        if (arrived || type === "back_forward") {
+          // Came through an internal link, or Back/Forward (non-cached): short dither entrance, keep
+          // any #anchor and the restored scroll position.
           root.dataset.loader = "enter";
           root.classList.add("is-loading");
         } else if (preloader && type !== "back_forward") {

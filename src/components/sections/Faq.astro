@@ -11,13 +11,13 @@ const faqs = Array.from({ length: 4 }, () => ({
 }));
 ---
 
-<section class="section">
+<section class="faq-section section bg-background">
   <div class="container">
     <div class="flex items-start justify-center padding-y-111">
       <div class="flex w-full max-w-[50.125rem] flex-col items-center justify-start">
-        <Tag label="OUR SERVICES" />
-        <h2 class="heading-48 padding-top-12 text-center">Frequently Asked Questions</h2>
-        <p class="faq-intro para-14 margin-top-32 text-center text-grey-70">
+        <div data-fade><Tag label="OUR SERVICES" /></div>
+        <h2 class="heading-48 padding-top-12 text-center" data-split>Frequently Asked Questions</h2>
+        <p data-fade="1" class="faq-intro para-14 margin-top-32 text-center text-grey-70">
           Got questions? We’ve got answers. Here’s everything you need to know about working with us.
         </p>
 
@@ -48,6 +48,10 @@ const faqs = Array.from({ length: 4 }, () => ({
 
 <style>
   @layer components {
+    /* Above the CTA scene, which slides under this section's bottom half (Cta.astro) */
+    .faq-section {
+      z-index: 2;
+    }
     .faq-intro {
       width: 27.5em; /* 385px at 14px */
       max-width: 100%;

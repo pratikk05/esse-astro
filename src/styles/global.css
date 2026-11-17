@@ -19,3 +19,33 @@
 @import "./spacing.css";    /* generated: pnpm flowscale */
 
 @import "lenis/dist/lenis.css";
+
+/* ---------- Page scroll (same setup as YS Homes) ----------
+   Touch devices: html is locked and a fixed <body> is the scroller, so the mobile browser's
+   address/tool bars never collapse or expand and the viewport height never jumps.
+   Desktop / mouse keeps normal window scrolling (a fixed body would put the scrollbar over
+   full-width fixed elements). Layout.astro's inline script maps window scroll APIs onto the
+   body on touch devices and smooth-scroll.js points Lenis + ScrollTrigger at it —
+   keep the media query in sync with SCROLL_LOCK_QUERY there. */
+html,
+body {
+  overscroll-behavior-y: none;
+}
+@media (hover: none) and (pointer: coarse) {
+  html,
+  html.lenis {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  body,
+  html.lenis body {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    -webkit-overflow-scrolling: touch;
+  }
+}

@@ -1,3 +1,4 @@
+import gsap from "gsap";
 import {createSectionReveal} from './section-reveal.js';
 import {createDitherArtwork} from './dither-artwork.js';
 import * as THREE from '../../vendor/three-r17x.js';
@@ -167,10 +168,60 @@ export async function initializeServices(root){
 const root=document.querySelector('.services');
 const mobileMode=matchMedia('(max-width:767px)');
 let servicesController=null,modeGeneration=0;
+// Mobile accordion: GSAP height/margin/opacity animation for open + close, then the opened row
+// scrolls to just under the fixed nav buttons so its copy and artwork can be read in full.
 function initializeMobileServices(){
  const rows=[...document.querySelectorAll('.ms-row')];let active=2;
- function select(index){active=index;rows.forEach((row,i)=>{const open=i===index;row.toggleAttribute('data-open',open);row.querySelector('button').setAttribute('aria-expanded',String(open));row.querySelector('.ms-copy').hidden=!open;row.querySelector('.ms-art').hidden=!open;row.querySelector('.ms-icon').src=open?"/uniflow/img/svg-5-a9a4.svg":"/uniflow/img/svg-4-ce2f.svg";});}
- const handlers=rows.map((row,i)=>{const fn=()=>select(active===i?-1:i);row.querySelector('button').addEventListener('click',fn);return fn});select(2);
+ const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const ICON_OPEN="/uniflow/img/svg-5-a9a4.svg",ICON_CLOSED="/uniflow/img/svg-4-ce2f.svg";
+ const MARGIN={copy:16,art:32};
+ const parts=row=>({copy:row.querySelector('.ms-copy'),art:row.querySelector('.ms-art'),img:row.querySelector('.ms-art img'),icon:row.querySelector('.ms-icon'),button:row.querySelector('button')});
+ const scroller=()=>window.__bodyScroller?document.body:document.scrollingElement;
+ function setIcon(icon,open){
+  if(reduce){icon.src=open?ICON_OPEN:ICON_CLOSED;return;}
+  gsap.timeline().to(icon,{rotate:open?90:-90,scale:.6,duration:.18,ease:'power2.in',onComplete:()=>{icon.src=open?ICON_OPEN:ICON_CLOSED;}})
+   .fromTo(icon,{rotate:open?-90:90},{rotate:0,scale:1,duration:.35,ease:'back.out(2)'});
+ }
+ function close(row){
+  const {copy,art,icon,button}=parts(row);
+  row.removeAttribute('data-open');button.setAttribute('aria-expanded','false');setIcon(icon,false);
+  gsap.killTweensOf([copy,art]);
+  if(reduce){copy.hidden=art.hidden=true;return 0;}
+  const h=copy.offsetHeight+MARGIN.copy+art.offsetHeight+MARGIN.art;
+  gsap.to(copy,{height:0,marginTop:0,opacity:0,duration:.55,ease:'power3.inOut',onComplete:()=>{copy.hidden=true;gsap.set(copy,{clearProps:'height,marginTop,opacity'});}});
+  gsap.to(art,{height:0,marginTop:0,opacity:0,duration:.65,ease:'power3.inOut',onComplete:()=>{art.hidden=true;gsap.set(art,{clearProps:'height,marginTop,opacity'});}});
+  return h;
+ }
+ function open(row){
+  const {copy,art,img,icon,button}=parts(row);
+  row.setAttribute('data-open','');button.setAttribute('aria-expanded','true');setIcon(icon,true);
+  gsap.killTweensOf([copy,art,img]);
+  copy.hidden=art.hidden=false;
+  if(reduce)return;
+  gsap.fromTo(copy,{height:0,marginTop:0,opacity:0,y:-6},{height:'auto',marginTop:MARGIN.copy,opacity:1,y:0,duration:.6,ease:'power3.out',clearProps:'height,marginTop,opacity,transform'});
+  gsap.fromTo(art,{height:0,marginTop:0,opacity:0},{height:'auto',marginTop:MARGIN.art,opacity:1,duration:.75,ease:'power3.inOut',delay:.05,clearProps:'height,marginTop,opacity'});
+  gsap.fromTo(img,{scale:1.12,clipPath:'inset(18% 0% 18% 0%)'},{scale:1,clipPath:'inset(0% 0% 0% 0%)',duration:1.1,ease:'expo.out',delay:.15,clearProps:'transform,clipPath'});
+ }
+ // Scroll so the opened row's title sits just below the fixed nav buttons. Accounts for the row
+ // above that is collapsing at the same time (its height disappears from the final layout).
+ function scrollToRow(row,collapsingAbove){
+  const navGap=88;
+  const el=scroller();
+  const target=el.scrollTop+row.getBoundingClientRect().top-collapsingAbove-navGap;
+  if(window.lenis)window.lenis.scrollTo(target,{duration:reduce?0:1.1,easing:t=>1-Math.pow(1-t,4)});
+  else el.scrollTo({top:target,behavior:reduce?'auto':'smooth'});
+ }
+ function select(index){
+  const prev=active;active=index;
+  let collapsingAbove=0;
+  rows.forEach((row,i)=>{if(i!==index&&row.hasAttribute('data-open')){const h=close(row);if(i<index)collapsingAbove+=h;}});
+  if(index<0)return;
+  open(rows[index]);
+  if(prev!==index)scrollToRow(rows[index],collapsingAbove);
+ }
+ // Initial state without animation
+ rows.forEach((row,i)=>{const {copy,art,icon,button}=parts(row);const o=i===active;row.toggleAttribute('data-open',o);button.setAttribute('aria-expanded',String(o));copy.hidden=art.hidden=!o;icon.src=o?ICON_OPEN:ICON_CLOSED;});
+ const handlers=rows.map((row,i)=>{const fn=()=>select(active===i?-1:i);row.querySelector('button').addEventListener('click',fn);return fn});
  return {get state(){return {active,mobile:true}},destroy(){rows.forEach((row,i)=>row.querySelector('button').removeEventListener('click',handlers[i]));}};
 }
 async function initializeResponsive(){

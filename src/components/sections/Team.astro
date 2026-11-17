@@ -1,19 +1,238 @@
 ---
-// Team section: embedded page at public/uniflow/team.html (original member reveals).
+/*
+  Team — native section (was an iframe of public/uniflow/team.html; the embedded page doubled layout,
+  paint and scroll work). Desktop keeps the Figma 1440×900 artboard, scaled to the section width by the
+  script below; mobile stacks it. Hover / focus / tap a dot to reveal the member's name + badges, with
+  the original spring animation and "orbit" sound (public/uniflow/audio/team-orbit.wav, loaded on first use).
+  Background: the site's fixed line grid (.section-pixel) with a white fade at the bottom.
+*/
+const members = [{ name: "John Doe" }, { name: "John Doe" }];
 ---
 
-<section class="team-section" aria-label="Our team"><iframe src="/uniflow/team.html" title="Meet the Uniflow team" loading="eager"></iframe></section>
+<section id="team" class="team-section section-pixel" aria-label="Our team">
+  <div class="tm-canvas" data-team-canvas>
+    <header class="tm-heading">
+      <p class="tm-eyebrow">OUR TEAM</p>
+      <h2 class="tm-title">Meet the<br />people behind<br />the work</h2>
+    </header>
+    <div class="tm-photo">
+      <img class="tm-portrait" src="/uniflow/img/team-1-6236.png" alt="Two Uniflow team members, one seated and one standing" loading="lazy" decoding="async" />
+      {
+        members.map((m, i) => (
+<div class:list={["tm-person", i === 1 && "tm-second"]}>
+          <button type="button" class="tm-dot" aria-label={`Show team member ${i + 1}, ${m.name}`} aria-expanded="false" aria-controls={`member-${i}`} title="Hover to reveal · Click once to enable sound · M to mute">
+            <img src="/uniflow/img/team-1-3ac0.svg" alt="" />
+          </button>
+          <div class="tm-reveal" id={`member-${i}`} aria-hidden="true">
+            <span class="tm-name"><span class="tm-letters" aria-label={m.name}>{[...m.name].map((c) => <span class="tm-letter" aria-hidden="true">{c === " " ? "\u00a0" : c}</span>)}</span></span>
+            <span class="tm-badge tm-one"><img src="/uniflow/img/team-2-2df6.svg" alt="" /></span>
+            <span class="tm-badge tm-two"><img src="/uniflow/img/team-3-05e6.svg" alt="" /></span>
+          </div>
+        </div>
+        ))
+      }
+    </div>
+    <div class="tm-copy">
+      <p>At Uniflow, we believe exceptional digital experiences are never the result of a single discipline.</p>
+      <p>Our team brings together strategy, design, and development to create websites that not only look beautiful but perform with purpose. Every project is shaped by the people behind it.</p>
+    </div>
+  </div>
+  <div class="white-fade is-bottom" aria-hidden="true"></div>
+</section>
+
+<style is:global>
+  @font-face{font-family:TeamSans;src:url("/uniflow/fonts/42dotSansLight-7bcc.woff2");font-weight:100 900;font-display:swap}
+  @font-face{font-family:TeamMono;src:url("/uniflow/fonts/JetBrainsMono-c112.woff2");font-weight:100 800;font-display:swap}
+  /* Section frame: height follows the scaled 1440×900 artboard on desktop (min one screen). */
+  .team-section{position:relative;min-height:100svh;height:max(100svh,62.5vw);overflow:hidden}
+  .team-section .tm-canvas{font-family:TeamSans,Arial,sans-serif;color:#000203;transform:scale(var(--team-scale,1))}
+  .team-section .white-fade{z-index:2;pointer-events:none}
+  @media(max-width:767px){.team-section{height:auto;min-height:0}}
+.team-section .tm-canvas{position:relative;width:1440px;height:900px;transform-origin:top left;background:transparent}
+.team-section .tm-heading{position:absolute;left:32.55px;top:307.69px;width:411px;padding:40px;background:#fff}
+.team-section .tm-eyebrow{display:flex;gap:12px;align-items:center;font:600 12px/1 TeamMono,monospace;letter-spacing:-.12px;color:#586464;margin:0 0 16px}
+.team-section .tm-eyebrow:before{content:'';width:4px;height:4px;background:#586464}
+.team-section .tm-title{font-size:56px;font-weight:500;line-height:1.2;letter-spacing:-3.36px;margin:0;text-transform:capitalize}
+.team-section .tm-copy{position:absolute;left:994.608px;top:348.66px;width:414px;height:197.01px;background:#fff;color:#3c4646;font-size:14px;line-height:1.4;font-weight:500;letter-spacing:-.28px}
+.team-section .tm-copy p{position:absolute;left:6.89%;right:8.87%;margin:0}
+.team-section .tm-copy p:first-child{top:14.62%}
+.team-section .tm-copy p:last-child{top:46.09%}
+.team-section .tm-photo{position:absolute;left:500px;top:151.41px;width:440px;height:597px;overflow:hidden;border-radius:2px}
+.team-section .tm-portrait{position:absolute;height:100%;width:108.34%;max-width:none;left:-3.8%;top:.01%;pointer-events:none}
+.team-section .tm-person{position:absolute;left:130.56px;top:183.58px;width:8px;height:8px;z-index:1}
+.team-section .tm-person.tm-second{left:314.26px;top:96.94px}
+.team-section .tm-dot{position:absolute;left:-12px;top:-12px;width:32px;height:32px;padding:12px;border:0;background:none;cursor:pointer;display:grid;place-items:center}
+.team-section .tm-dot img{width:8px;height:8px;display:block}
+.team-section .tm-dot:focus-visible{outline:1px solid #2929fd;border-radius:50%;outline-offset:2px}
+.team-section .tm-reveal{position:absolute;inset:0;pointer-events:none}
+.team-section .tm-name{position:absolute;left:-61.74px;top:-27.49px;width:90.086px;height:39.6px;background:#2929fd;color:#fff;border-radius:8px;padding:10px;display:flex;justify-content:center;align-items:center;white-space:nowrap;font:400 14px/1.4 TeamSans;letter-spacing:-.28px}
+.team-section .tm-badge{position:absolute;background:#d9e5ff;border-radius:4.023px;display:flex;align-items:center;justify-content:center;padding:4.023px 6.705px}
+.team-section .tm-badge.tm-one{left:39.3px;top:12.3px;transform:rotate(24deg);width:23.335px;height:18.046px}
+.team-section .tm-badge.tm-two{left:-60.5px;top:16.5px;transform:rotate(-34.54deg);width:25.951px;height:20.587px}
+.team-section .tm-badge.tm-one img{width:10.9254px;height:11px}
+.team-section .tm-badge.tm-two img{width:12.541px;height:12.541px}
+.team-section .tm-name,.team-section .tm-badge{opacity:0;transition:opacity 180ms ease,translate 280ms cubic-bezier(.2,.8,.2,1),scale 280ms cubic-bezier(.2,.8,.2,1);translate:0 7px;scale:.85}
+.team-section .tm-person.is-active .tm-name,.team-section .tm-person.is-active .tm-badge{opacity:1;translate:0 0;scale:1}
+.team-section .tm-person.is-active .tm-badge.tm-one{transition-delay:35ms}
+.team-section .tm-person.is-active .tm-badge.tm-two{transition-delay:65ms}
+@media(prefers-reduced-motion:reduce){
+.team-section .tm-name,.team-section .tm-badge{transition:none}
+}
+.team-section .tm-name,.team-section .tm-badge,.team-section .tm-person.is-active .tm-name,.team-section .tm-person.is-active .tm-badge{transition:none;translate:none;scale:none;opacity:0;will-change:transform,opacity;transform-origin:center}
+.team-section .tm-name{transform:translate(16px,8px) scale(.08,.16);border-radius:8px}
+.team-section .tm-badge.tm-one{transform:translate(-47px,-17px) rotate(-40deg) scale(.05)}
+.team-section .tm-badge.tm-two{transform:translate(47px,-22px) rotate(35deg) scale(.05)}
+.team-section .tm-dot img{transition:transform .3s cubic-bezier(.2,.8,.2,1),opacity .2s}
+.team-section .tm-person.is-active .tm-dot img{transform:scale(.55);opacity:.4}
+.team-section .tm-person.is-active .tm-reveal{pointer-events:auto}
+.team-section .tm-name{height:29.6px;overflow:hidden}
+.team-section .tm-badge.tm-one{left:38.9px;top:14.79px}
+.team-section .tm-badge.tm-two{left:-60.5px;top:19.06px}
+.team-section .tm-person.tm-second{left:298.26px;top:82.94px}
+.team-section .tm-second .tm-name{left:-36.37px;top:-27.32px;transform:translate(-8.67px,12.52px) rotate(9.03deg) scale(.08,.16)}
+.team-section .tm-second .tm-badge.tm-one{left:26.46px;top:34.24px}
+.team-section .tm-second .tm-badge.tm-two{left:-62.93px;top:8.79px}
+.team-section .tm-person.is-active .tm-dot img{transform:none;opacity:1}
+.team-section .tm-dot{z-index:3}
+.team-section .tm-letters{display:inline-flex;white-space:nowrap;line-height:1.4}
+.team-section .tm-letter{display:inline-block;will-change:transform,opacity}
+@font-face{font-family:TeamPixel;src:url('/uniflow/fonts/GeistPixel-c446.woff2') format('truetype');font-weight:100 900;font-display:swap}
+.team-section .tm-heading{width:440px}
+.team-section .tm-title{font-family:TeamPixel,sans-serif;font-size:48px;font-weight:400;line-height:1.1;letter-spacing:-1.92px;font-variation-settings:"ELSH" 0}
+.team-section .tm-eyebrow{gap:8px}
+.team-section .tm-eyebrow:before{background:#2929fd;flex:none}
+@media(max-width:767px){
+.team-section .tm-canvas{width:100%;height:auto;min-height:0;padding:102px 16px 100px;display:flex;flex-direction:column;align-items:stretch;gap:48px;position:relative;transform:none!important;background-size:12px 12px}
+.team-section .tm-canvas:before,.team-section .tm-canvas:after{content:"";position:absolute;left:0;right:0;height:123px;pointer-events:none;z-index:0}
+.team-section .tm-canvas:before{top:0;background:linear-gradient(#fff,transparent)}
+.team-section .tm-canvas:after{bottom:0;background:linear-gradient(transparent,#fff)}
+.team-section .tm-heading{position:relative;left:auto;top:auto;width:100%;padding:0;display:flex;flex-direction:column;align-items:center;gap:16px;background:transparent;z-index:1}
+.team-section .tm-eyebrow{margin:0;gap:8px;font-size:12px;line-height:1}
+.team-section .tm-title{font-size:44px;line-height:1.1;letter-spacing:-1.76px;text-align:center;font-weight:400;width:100%;text-box-trim:trim-both;text-box-edge:cap alphabetic}
+.team-section .tm-photo{position:relative;left:auto;top:auto;width:100%;height:auto;aspect-ratio:343/448;flex:none;z-index:1}
+.team-section .tm-portrait{left:0;top:0;width:100%;height:100%;object-fit:cover}
+.team-section .tm-copy{position:relative;left:auto;top:auto;width:100%;height:auto;padding:16px 20px;display:flex;flex-direction:column;gap:22px;text-align:center;background:#fff;font-size:14px;line-height:1.4;letter-spacing:-.28px;z-index:1}
+.team-section .tm-copy p,.team-section .tm-copy p:first-child,.team-section .tm-copy p:last-child{position:static;left:auto;right:auto;top:auto;margin:0}
+.team-section .tm-person{left:24.7609%;top:31.7054%}
+.team-section .tm-person.tm-second{left:71.6676%;top:16.8616%}
+.team-section .tm-name{left:-51.89px;top:-28.34px}
+.team-section .tm-badge.tm-one{left:37px;top:-10px}
+.team-section .tm-badge.tm-two{left:-45px;top:18px}
+}
+</style>
 
 <script>
-  // Mobile team content reports its natural height; desktop dimensions stay unchanged.
+  // Desktop: scale the 1440×900 artboard to the section width.
   const section = document.querySelector<HTMLElement>(".team-section");
-  const frame = section?.querySelector("iframe");
-  addEventListener("message", (event) => {
-    if (!section || event.source !== frame?.contentWindow || event.data?.type !== "uniflow-team-mobile-height" || innerWidth > 767) return;
-    const height = Number(event.data.height);
-    if (Number.isFinite(height) && height > 0 && height < 10000) section.style.height = height + "px";
-  });
-  matchMedia("(max-width:767px)").addEventListener("change", () => {
-    if (innerWidth > 767) section?.style.removeProperty("height");
-  });
+  const canvas = section?.querySelector<HTMLElement>("[data-team-canvas]");
+  if (section && canvas) {
+    const fit = () => section.style.setProperty("--team-scale", innerWidth <= 767 ? "1" : String(section.clientWidth / 1440));
+    new ResizeObserver(fit).observe(section);
+    fit();
+
+    const people = [...section.querySelectorAll<HTMLElement>(".tm-person")];
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+
+    // ---- Orbit sound: Web Audio, unlocked on the first gesture, file fetched on first pop ----
+    let audio: AudioContext | null = null;
+    let buffer: Promise<AudioBuffer> | null = null;
+    let lastPop = 0;
+    let muted = false;
+    const unlock = () => {
+      try {
+        audio ??= new AudioContext();
+        if (audio.state === "suspended") audio.resume().catch(() => {});
+      } catch {}
+    };
+    async function pop() {
+      if (!audio || muted) return;
+      try {
+        if (audio.state === "suspended") await audio.resume();
+        if (audio.state !== "running") return;
+        buffer ??= fetch("/uniflow/audio/team-orbit.wav").then((r) => r.arrayBuffer()).then((b) => audio!.decodeAudioData(b));
+        const decoded = await buffer;
+        const now = audio.currentTime;
+        if (now - lastPop < 0.12) return;
+        lastPop = now;
+        const src = audio.createBufferSource();
+        src.buffer = decoded;
+        src.connect(audio.destination);
+        src.start();
+        src.onended = () => src.disconnect();
+      } catch {}
+    }
+    addEventListener("pointerdown", unlock, { capture: true, passive: true });
+    addEventListener("keydown", (e) => {
+      unlock();
+      if (e.key.toLowerCase() === "m" && section.matches(":hover, :focus-within")) muted = !muted;
+      if (e.key === "Escape") people.forEach((p) => show(p, false));
+    });
+
+    // ---- Reveal: name pill + two badges spring out of the dot (damped-spring keyframes) ----
+    const POSES = [
+      [{ x: 16, y: 8, r: -10, angle: 0 }, { x: -47, y: -17, r: -64, angle: 24 }, { x: 47, y: -22, r: 70, angle: -34.54 }],
+      [{ x: -8.67, y: 12.52, r: -10, angle: 19.03 }, { x: -38.13, y: -43.26, r: -64, angle: 50.61 }, { x: 49.95, y: -19.08, r: 70, angle: -36.14 }],
+    ];
+    function animatePiece(el: HTMLElement, i: number, on: boolean) {
+      const v = POSES[el.closest(".tm-second") ? 1 : 0][i];
+      const cur = getComputedStyle(el);
+      el.getAnimations().forEach((a) => a.cancel());
+      const settled = `translate(0px,0px) rotate(${v.angle}deg) scale(1,1)`;
+      const folded = `translate(${v.x}px,${v.y}px) rotate(${v.angle + v.r}deg) scale(.06,.1)`;
+      const frames: Keyframe[] = [{ transform: cur.transform, opacity: cur.opacity }];
+      if (on && !reduced.matches) {
+        for (let j = 1; j <= 48; j++) {
+          const t = j / 48;
+          const res = 1 - Math.exp(-7.8 * t) * (Math.cos(10 * t) + 0.28 * Math.sin(10 * t));
+          const q = 1 - res;
+          frames.push({ offset: t, transform: `translate(${v.x * q}px,${v.y * q}px) rotate(${v.angle + v.r * q}deg) scale(${0.06 + 0.94 * res},${0.1 + 0.9 * res})`, opacity: Math.min(1, t * 8) });
+        }
+        frames[frames.length - 1] = { offset: 1, transform: settled, opacity: 1 };
+      } else frames.push({ transform: on ? settled : folded, opacity: on ? 1 : 0 });
+      const a = el.animate(frames, { duration: reduced.matches ? 1 : on ? 740 : 260, delay: on && !reduced.matches ? i * 65 : 0, easing: on ? "linear" : "cubic-bezier(.4,0,.2,1)", fill: "both" });
+      a.onfinish = () => {
+        el.style.transform = on ? settled : folded;
+        el.style.opacity = on ? "1" : "0";
+        a.cancel();
+      };
+    }
+    function show(p: HTMLElement & { hideTimer?: number }, on: boolean) {
+      if (p.classList.contains("is-active") === on) return;
+      clearTimeout(p.hideTimer);
+      p.classList.toggle("is-active", on);
+      p.querySelector("button")!.setAttribute("aria-expanded", String(on));
+      p.querySelector(".tm-reveal")!.setAttribute("aria-hidden", String(!on));
+      p.querySelectorAll<HTMLElement>(".tm-name, .tm-badge").forEach((el, i) => animatePiece(el, i, on));
+      p.querySelectorAll<HTMLElement>(".tm-letter").forEach((el, i) => {
+        const c = getComputedStyle(el);
+        el.getAnimations().forEach((a) => a.cancel());
+        const end = { transform: on ? "translateY(0) rotate(0deg)" : "translateY(110%) rotate(8deg)", opacity: on ? "1" : "0" };
+        const frames: Keyframe[] = on
+          ? [{ transform: "translateY(110%) rotate(8deg)", opacity: 0 }, { transform: "translateY(-10%) rotate(-2deg)", opacity: 1, offset: 0.75 }, { transform: "translateY(0) rotate(0deg)", opacity: 1 }]
+          : [{ transform: c.transform, opacity: c.opacity }, end];
+        const a = el.animate(frames, { duration: reduced.matches ? 1 : on ? 510 : 180, delay: on && !reduced.matches ? 90 + i * 27 : 0, easing: "cubic-bezier(.16,1,.3,1)", fill: "both" });
+        a.onfinish = () => {
+          el.style.transform = end.transform;
+          el.style.opacity = end.opacity;
+          a.cancel();
+        };
+      });
+      if (on) pop();
+    }
+    people.forEach((p: HTMLElement & { hideTimer?: number }) => {
+      const b = p.querySelector("button")!;
+      p.addEventListener("pointerenter", () => {
+        clearTimeout(p.hideTimer);
+        people.forEach((x) => show(x, x === p));
+      });
+      p.addEventListener("pointerleave", () => (p.hideTimer = window.setTimeout(() => show(p, false), 90)));
+      b.addEventListener("focus", () => show(p, true));
+      b.addEventListener("blur", () => show(p, false));
+      b.addEventListener("click", () => {
+        unlock();
+        pop();
+        if (matchMedia("(hover: none)").matches) show(p, !p.classList.contains("is-active"));
+      });
+    });
+  }
 </script>

@@ -1,12 +1,14 @@
 ---
 /*
-  "Who we are" — sticky scroll scene with the metallic loop sculpture (Three.js).
+  "Who we are" — sticky scroll scene with a dithered 3D helmet (Three.js, scripts/modules/about-sculpture.js)
+  on the site's 12px line grid; the statement sits in a white card (Figma "About … / Desktop 1441").
   Behaviour: scripts/modules/about-scene.js. Must sit directly before <Stats />:
   the last viewport of this scene dissolves into Stats through a pixel mask.
 */
 const statement =
   "We build thoughtful Webflow websites that combine clarity, performance, and precision—crafted around your brand, never a template.";
 const words = statement.split(" ");
+import Tag from "../ui/Tag.astro";
 
 // 8 tiles from 5 images (the prototype repeats the first three)
 const tiles = [1, 2, 3, 4, 5, 1, 2, 3].map((n) => `/images/about-tile-${n}-w240.webp`);
@@ -31,9 +33,12 @@ const tiles = [1, 2, 3, 4, 5, 1, 2, 3].map((n) => `/images/about-tile-${n}-w240.
 
     <canvas class="about-canvas" aria-hidden="true" data-about-canvas></canvas>
 
-    <h2 class="about-statement heading-secondary-32 text-center" data-about-statement>
-      {words.map((word) => <><span class="about-word inline-block">{word}</span>{" "}</>)}
-    </h2>
+    <div class="about-statement" data-about-statement>
+      <Tag label="WHO WE ARE" class="about-statement-tag" />
+      <h2 class="heading-secondary-32 text-center">
+        {words.map((word) => <><span class="about-word inline-block">{word}</span>{" "}</>)}
+      </h2>
+    </div>
 
     <div class="about-gallery" aria-hidden="true" data-about-gallery>
       {
@@ -74,11 +79,10 @@ const tiles = [1, 2, 3, 4, 5, 1, 2, 3].map((n) => `/images/about-tile-${n}-w240.
     .about-grid {
       position: absolute;
       inset: 0;
-      opacity: 0.45;
-      --line: color-mix(in srgb, var(--color-grey-10) 33%, transparent);
-      background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
-      background-size: 2.5rem 2.5rem;
-      mask-image: linear-gradient(transparent 8%, #000 48%, transparent 100%);
+      /* Same 12px line grid as Works / Team (.section-pixel); about-dissolve.frag paints the identical
+         grid during the pixel dissolve, so keep the two in sync. */
+      background-image: linear-gradient(#eef0f080 1px, transparent 1px), linear-gradient(90deg, #eef0f080 1px, transparent 1px);
+      background-size: 12px 12px;
     }
 
     .about-strip {
@@ -142,9 +146,15 @@ const tiles = [1, 2, 3, 4, 5, 1, 2, 3].map((n) => `/images/about-tile-${n}-w240.
     .about-statement {
       position: absolute;
       z-index: 2;
-      top: 6%;
-      left: 6%;
-      width: 88%;
+      top: 14%;
+      left: 4%;
+      width: 92%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      padding: 1.5rem 1.25rem;
+      background: var(--color-white);
       opacity: 0;
     }
     .about-word {
@@ -190,8 +200,10 @@ const tiles = [1, 2, 3, 4, 5, 1, 2, 3].map((n) => `/images/about-tile-${n}-w240.
       }
       .about-statement {
         left: 50%;
+        top: 20%;
         width: 76%;
-        max-width: 56.25rem; /* 900px */
+        max-width: 61.25rem; /* 980px card, Figma */
+        padding: 1.75rem 2.5rem;
         translate: -50% 0; /* `translate`, not `transform`: the scroll script owns transform */
       }
       .about-strip {
