@@ -255,3 +255,41 @@
     filter: blur(calc(var(--overlap-blur, 0px) * 0.45));
   }
 }
+
+/* Letter-roll hover (RollText.astro) — the same motion as the menu links (Navbar .menu-char).
+   Characters slide up and their copies roll in from below, staggered; triggered by the parent link. */
+@layer components {
+  .roll {
+    display: inline-block;
+    vertical-align: top;
+  }
+  .roll-chars {
+    display: inline-flex;
+    overflow: hidden;
+    vertical-align: top;
+  }
+  .roll-char {
+    position: relative;
+    display: inline-block;
+    white-space: pre;
+    transition: transform 0.5s var(--ease-esse);
+    transition-delay: calc(var(--i) * 14ms);
+  }
+  .roll-char::after {
+    content: attr(data-char);
+    position: absolute;
+    top: 100%;
+    left: 0;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    a:hover .roll-char,
+    a:focus-visible .roll-char {
+      transform: translateY(-100%);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .roll-char {
+      transition: none;
+    }
+  }
+}

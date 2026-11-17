@@ -1,0 +1,146 @@
+---
+/**
+ * Cookie banner — site styling (white panel, hairline border, mono labels, square-dot tag).
+ * Slides in after the preloader (or ~1.2s on pages without one). The visitor's choice is saved for a
+ * year in a first-party cookie `uniflow_consent` = "all" | "essential", so it never asks again.
+ *
+ * The site sets no tracking cookies today. Anything optional added later (analytics, embeds) must
+ * wait for consent:  window.uniflowConsent() === "all"   or listen for the `uniflow:consent` event.
+ */
+import Tag from "../ui/Tag.astro";
+---
+
+<div class="cookie-banner" role="dialog" aria-live="polite" aria-label="Cookie preferences" data-cookie-banner hidden>
+  <Tag label="COOKIES" class="cookie-tag" />
+  <p class="cookie-copy para-14">
+    We use essential cookies to remember your preferences and keep the site running smoothly. Optional
+    analytics only run if you accept.
+  </p>
+  <div class="cookie-actions">
+    <button type="button" class="cookie-btn is-primary text-12 font-semibold uppercase" data-cookie-choice="all">Accept all</button>
+    <button type="button" class="cookie-btn is-secondary text-12 font-semibold uppercase" data-cookie-choice="essential">Essential only</button>
+  </div>
+</div>
+
+<style>
+  @layer components {
+    .cookie-banner {
+      position: fixed;
+      z-index: 45; /* above page content, below the navbar + open menu (z-50) */
+      left: 1.5rem;
+      bottom: 1.5rem;
+      width: min(24rem, calc(100% - 3rem));
+      display: flex;
+      flex-direction: column;
+      gap: 0.875rem;
+      padding: 1.25rem 1.25rem 1.125rem;
+      border: 0.5px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-white);
+      color: var(--color-grey-90);
+      box-shadow: 0 24px 60px -28px rgb(0 2 3 / 0.35);
+      opacity: 0;
+      translate: 0 1.25rem;
+      filter: blur(6px);
+      transition:
+        opacity 0.6s var(--ease-esse),
+        translate 0.7s var(--ease-esse),
+        filter 0.6s var(--ease-esse);
+    }
+    .cookie-banner.is-visible {
+      opacity: 1;
+      translate: 0 0;
+      filter: blur(0);
+    }
+    .cookie-banner[hidden] {
+      display: none;
+    }
+    .cookie-copy {
+      margin: 0;
+      color: var(--color-grey-70);
+    }
+    .cookie-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .cookie-btn {
+      flex: 1;
+      height: 2.5rem;
+      padding: 0 0.75rem;
+      border: 0.5px solid var(--color-grey-90);
+      border-radius: var(--radius-xs);
+      font-family: var(--font-tertiary);
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      transition: background-color 0.4s var(--ease-esse), color 0.4s var(--ease-esse), border-color 0.4s var(--ease-esse);
+    }
+    .cookie-btn.is-primary {
+      background: var(--color-grey-90);
+      color: var(--color-white);
+    }
+    .cookie-btn.is-primary:is(:hover, :focus-visible) {
+      background: var(--color-secondary);
+      border-color: var(--color-secondary);
+    }
+    .cookie-btn.is-secondary {
+      background: transparent;
+      color: var(--color-grey-90);
+    }
+    .cookie-btn.is-secondary:is(:hover, :focus-visible) {
+      background: var(--color-grey-90);
+      color: var(--color-white);
+    }
+    .cookie-btn:focus-visible {
+      outline: 2px solid var(--color-secondary);
+      outline-offset: 2px;
+    }
+
+    @media (width < 48rem) {
+      .cookie-banner {
+        left: 0.75rem;
+        right: 0.75rem;
+        bottom: 0.75rem;
+        width: auto;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .cookie-banner {
+        transition: opacity 0.2s;
+        translate: none;
+        filter: none;
+      }
+    }
+  }
+</style>
+
+<script>
+  const NAME = "uniflow_consent";
+  const read = () => document.cookie.match(new RegExp(`(?:^|; )${NAME}=([^;]*)`))?.[1] ?? null;
+  // Public read for anything optional added later (analytics etc.)
+  (window as any).uniflowConsent = read;
+
+  const banner = document.querySelector<HTMLElement>("[data-cookie-banner]");
+  if (banner && !read()) {
+    const show = () => {
+      banner.hidden = false;
+      requestAnimationFrame(() => requestAnimationFrame(() => banner.classList.add("is-visible")));
+    };
+    // After the preloader finishes (home), otherwise shortly after load
+    if (document.documentElement.classList.contains("is-loading")) {
+      document.addEventListener("uniflow:loaded", () => setTimeout(show, 700), { once: true });
+    } else {
+      setTimeout(show, 1200);
+    }
+
+    banner.querySelectorAll<HTMLButtonElement>("[data-cookie-choice]").forEach((btn) =>
+      btn.addEventListener("click", () => {
+        const value = btn.dataset.cookieChoice!;
+        const secure = location.protocol === "https:" ? "; Secure" : "";
+        document.cookie = `${NAME}=${value}; Max-Age=31536000; Path=/; SameSite=Lax${secure}`;
+        document.dispatchEvent(new CustomEvent("uniflow:consent", { detail: value }));
+        banner.classList.remove("is-visible");
+        setTimeout(() => (banner.hidden = true), 700);
+      }),
+    );
+  }
+</script>

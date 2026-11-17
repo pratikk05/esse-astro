@@ -1,4 +1,5 @@
 ---
+import RollText from "../components/ui/RollText.astro";
 /**
  * Contact page — Figma "Contact" (150:614). Every "Start a project" link lands here.
  * Built from the Figma frame screenshot (the Figma API limit blocked code/values), so sizes are
@@ -44,9 +45,9 @@ const slug = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
             <h1 class="contact-title heading-48">Have Something <br />in Mind?</h1>
             <dl class="contact-details">
               <dt class="text-12">INQUIRIES</dt>
-              <dd class="para-16 font-normal"><a href="mailto:hello@uniflow.example">hello@uniflow.example</a></dd>
+              <dd class="para-16 font-normal"><a href="mailto:hello@uniflow.example"><RollText text="hello@uniflow.example" /></a></dd>
               <dt class="text-12">PHONE</dt>
-              <dd class="para-16 font-normal"><a href="tel:+910000000000">+91 00000 00000</a></dd>
+              <dd class="para-16 font-normal"><a href="tel:+910000000000"><RollText text="+91 00000 00000" /></a></dd>
             </dl>
             <ul class="contact-social">
               <li><a href="#" aria-label="Instagram"><IconInstagram aria-hidden="true" /></a></li>
@@ -221,10 +222,7 @@ const slug = (label: string) => label.toLowerCase().replace(/[^a-z0-9]+/g, "-");
       color: var(--color-white);
       text-decoration: none;
     }
-    .contact-details a:hover {
-      text-decoration: underline;
-      text-underline-offset: 4px;
-    }
+    /* hover: letter roll (RollText), same as the menu */
     .contact-social {
       display: flex;
       gap: 8px;

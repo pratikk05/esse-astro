@@ -1,0 +1,15 @@
+---
+/**
+ * RollText — the menu's letter-roll hover, reusable inside any link: each character slides up and its
+ * copy rolls in from below, staggered. Wrap the link text:  <a href="…"><RollText text="CONTACT" /></a>
+ * The hover is triggered by the closest link (a:hover / a:focus-visible). Styles: layout.css (.roll*).
+ * Screen readers get the plain text; the split characters are aria-hidden.
+ */
+interface Props {
+  text: string;
+}
+const { text } = Astro.props;
+const chars = [...text];
+---
+
+<span class="roll"><span class="sr-only">{text}</span><span class="roll-chars" aria-hidden="true">{chars.map((c, i) => <span class="roll-char" data-char={c === " " ? " " : c} style={`--i:${i}`}>{c === " " ? " " : c}</span>)}</span></span>

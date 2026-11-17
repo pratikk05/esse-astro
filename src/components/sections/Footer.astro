@@ -5,6 +5,7 @@
  * left-aligned structure in two columns so it never looks like a stretched phone layout.
  * Type uses FlowScale classes (text-12 / text-11 / para-14); colours use the style-guide tokens.
  */
+import RollText from "../ui/RollText.astro";
 import IconInstagram from "../../assets/svg/footer-instagram.svg";
 import IconX from "../../assets/svg/footer-x.svg";
 import IconLinkedin from "../../assets/svg/footer-linkedin.svg";
@@ -60,22 +61,22 @@ const socials = [
         <div class="footer-enquiry">
           <p class="footer-label text-12">BUSINESS ENQUIRY</p>
           <ul class="footer-contact para-14">
-            <li><span class="text-grey-60">E. </span><a class="footer-link-plain" href="mailto:hello@uniflow.example">hello@uniflow.example</a></li>
-            <li><span class="text-grey-60">P. </span><a class="footer-link-plain" href="tel:+910000000000">+91 00000 00000</a></li>
+            <li><span class="text-grey-60">E. </span><a class="footer-link-plain" href="mailto:hello@uniflow.example"><RollText text="hello@uniflow.example" /></a></li>
+            <li><span class="text-grey-60">P. </span><a class="footer-link-plain" href="tel:+910000000000"><RollText text="+91 00000 00000" /></a></li>
           </ul>
         </div>
 
         <nav class="footer-nav" aria-label="Footer">
           <p class="footer-label text-12">NAV LINKS</p>
           <ul class="footer-nav-list text-12">
-            {navLinks.map(({ label, href }) => <li><a class="footer-link" href={href}>{label}</a></li>)}
+            {navLinks.map(({ label, href }) => <li><a class="footer-link" href={href}><RollText text={label} /></a></li>)}
           </ul>
         </nav>
 
         <div class="footer-legal">
           <p class="footer-label text-12">LEGAL</p>
           <ul class="footer-legal-list text-12">
-            {legalLinks.map(({ label, href }) => <li><a class="footer-link" href={href}>{label}</a></li>)}
+            {legalLinks.map(({ label, href }) => <li><a class="footer-link" href={href}><RollText text={label} /></a></li>)}
           </ul>
         </div>
 
