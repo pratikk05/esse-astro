@@ -114,7 +114,7 @@ function initAboutScene(sceneEl) {
         canvas.hidden = true;
         console.error(error);
       });
-  }, { rootMargin: "150% 0px" });
+  }, { rootMargin: "75% 0px" }); // not during the initial load at the top; still ready before it's reached
   sculptureIO.observe(sceneEl);
 
   function resize() {

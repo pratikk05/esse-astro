@@ -139,10 +139,19 @@ function initPair(under) {
 
 if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
   document.querySelectorAll("[data-overlap-under]").forEach(initPair);
-  // Content above (fonts, lazy sections, iframes) shifts heights — keep pin positions true.
+  // Content above (fonts, lazy sections) shifts heights — keep pin positions true. A refresh re-measures
+  // every trigger, so only run it when the page height really changed, and when the browser is idle
+  // (ScrollTrigger already refreshes itself on load and window resize).
   let t;
+  let lastHeight = document.body.scrollHeight;
+  const idle = window.requestIdleCallback || ((fn) => setTimeout(fn, 1));
   new ResizeObserver(() => {
     clearTimeout(t);
-    t = setTimeout(() => ScrollTrigger.refresh(), 200);
+    t = setTimeout(() => {
+      const h = document.body.scrollHeight;
+      if (Math.abs(h - lastHeight) < 2) return;
+      lastHeight = h;
+      idle(() => ScrollTrigger.refresh(), { timeout: 1500 });
+    }, 300);
   }).observe(document.body);
 }

@@ -60,7 +60,9 @@ function initHeroGradient(canvas) {
   };
 
   function resize() {
-    const dpr = Math.min(devicePixelRatio || 1, 2);
+    // Rendered at 1× CSS resolution: the gradient is soft and the shader's dither is sized per CSS
+    // pixel (u_pixelRatio), so retina screens look the same while drawing 4× fewer pixels per frame.
+    const dpr = 1;
     const w = Math.max(1, Math.floor(canvas.clientWidth * dpr));
     const h = Math.max(1, Math.floor(canvas.clientHeight * dpr));
     if (canvas.width !== w || canvas.height !== h) {

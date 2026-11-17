@@ -123,20 +123,23 @@
     const desktop = innerWidth >= 992;
     cards.forEach((card,i)=>{
       card.setAttribute('data-active',String(i===Math.min(3,Math.floor(p*4))));
-      // Exact continuous height tracks from the supplied HTML: no extra easing.
-      const opening = desktop ? clamp(cardProgress / [.30,.45,.60,.75][i]) : 1;
+      // `reveal` is the original track (0 → 1, each card finishing at .30 / .45 / .60 / .75): it still
+      // drives the one-by-one copy / heading / number reveal exactly as before.
+      // Only the blue bar's HEIGHT starts from a staircase (100 / 67 / 50 / 40%) instead of zero.
+      const reveal = desktop ? clamp(cardProgress / [.30,.45,.60,.75][i]) : 1;
+      const opening = desktop ? mix([1,.67,.5,.4][i], 1, reveal) : 1;
       card.style.setProperty('--opening', String(opening));
       card.querySelector('.process_cover').style.height = `${opening*100}%`;
       const copy=card.querySelector('.process-card-container');
       const paddingBottom=parseFloat(getComputedStyle(card).paddingBottom)||0;
       const safeHeight=copy.offsetHeight+paddingBottom+24;
-      const copyVisible=clamp((opening*card.clientHeight-safeHeight)/24);
+      const copyVisible=clamp((reveal*card.clientHeight-safeHeight)/24);
       copy.style.transition=copyVisible>0?'opacity 160ms ease':'none';
       card.style.setProperty('--copy-visible',String(copyVisible));
       const headingBounds=card.getBoundingClientRect();
       const headingInView=innerWidth>=992||(headingBounds.left<innerWidth*.8&&headingBounds.right>innerWidth*.2);
       revealHeading(card,copyVisible>0&&headingInView);
-      card.style.setProperty('--number-visible',opening>.98?'0.7':'0');
+      card.style.setProperty('--number-visible',reveal>.98?'0.7':'0');
     });
     if(desktop) row.style.transform='none';
     else {

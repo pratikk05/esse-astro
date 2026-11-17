@@ -87,6 +87,12 @@
   html.is-loading [data-reveal] {
     opacity: 0;
   }
+  /* The hero headline stays opaque under the (solid) overlay and only lifts + unblurs into focus:
+     visually the same, but browsers can register it as the page's main content (LCP) right away
+     instead of only after the preloader — a large PageSpeed win. */
+  html.is-loading [data-reveal="lift"] {
+    opacity: 1;
+  }
   html.is-loading [data-reveal]:not([data-reveal="fade"]) {
     transform: translate3d(0, 22px, 0);
     filter: blur(2.5px);
@@ -178,24 +184,47 @@
     }
 
     /** Living halftone current: transparent holes that let the hero gradient show through. */
+    // Per-dot values that never change between frames (noise, hash) are computed once per size and
+    // reused — the dissolve looks identical but costs a fraction of the CPU per frame.
+    let cache: { key: string; nCols: number; nRows: number; n1: Float32Array; n2: Float32Array; h: Float32Array } | null = null;
+    function currentCache(spacing: number, band: number) {
+      const nCols = Math.ceil(W / spacing) + 3, nRows = Math.ceil((band * 2) / spacing) + 2;
+      const key = `${W}x${H}`;
+      if (cache && cache.key === key) return cache;
+      const size = nCols * nRows;
+      const n1 = new Float32Array(size), n2 = new Float32Array(size), h = new Float32Array(size);
+      for (let gy = 0; gy < nRows; gy++) {
+        const v = (gy * spacing) / (band * 2);
+        for (let c = 0; c < nCols; c++) {
+          const gx = c - 1, u = (gx * spacing) / Math.max(1, W), i = gy * nCols + c;
+          n1[i] = valueNoise(u, v, 5.5, 3.5);
+          n2[i] = valueNoise(u, v, 17, 10);
+          h[i] = hash2(gx + 21, gy + 53);
+        }
+      }
+      return (cache = { key, nCols, nRows, n1, n2, h });
+    }
+
     function drawCurrent(now: number, strength: number) {
       const t = now * 0.001, mobile = W < 700;
       const spacing = mobile ? 8.5 : 10.5;
       const baseY = H * 0.44, band = H * (mobile ? 0.105 : 0.125);
-      const nCols = Math.ceil(W / spacing) + 2, nRows = Math.ceil((band * 2) / spacing) + 2;
+      const { nCols, nRows, n1: N1, n2: N2, h: HASH } = currentCache(spacing, band);
       // Three opacity buckets → three fills instead of one fill per dot.
       const paths = [new Path2D(), new Path2D(), new Path2D()];
       for (let gy = 0; gy < nRows; gy++) {
-        const y = baseY - band + gy * spacing, v = (gy * spacing) / (band * 2);
-        for (let gx = -1; gx < nCols; gx++) {
+        const y = baseY - band + gy * spacing;
+        const rowWobble = Math.sin(t + gy * 0.21) * 0.8;
+        for (let c = 0; c < nCols; c++) {
+          const gx = c - 1, i = gy * nCols + c;
           const x = gx * spacing, u = x / Math.max(1, W);
-          const n1 = valueNoise(u, v, 5.5, 3.5);
+          const n1 = N1[i];
           const centre = baseY + Math.sin(u * 7.5 + t * 0.68) * band * 0.29 + Math.sin(u * 15.2 - t * 0.42 + n1 * 2.2) * band * 0.13;
           const envelope = Math.max(0, 1 - Math.abs(y - centre) / (band * (0.44 + n1 * 0.72)));
-          if (envelope <= 0.12 || hash2(gx + 21, gy + 53) >= envelope * 0.78) continue;
+          if (envelope <= 0.12 || HASH[i] >= envelope * 0.78) continue;
           const pulse = 0.86 + 0.14 * (0.5 + 0.5 * Math.sin(t * 1.25 + gx * 0.06 + gy * 0.12));
-          const r = ((mobile ? 0.72 : 0.86) + envelope * (mobile ? 0.8 : 1.05) + valueNoise(u, v, 17, 10) * 0.28) * pulse * strength;
-          const px = x + Math.sin(t + gy * 0.21) * 0.8, py = y + Math.sin(t * 0.7 + gx * 0.045) * 1.4;
+          const r = ((mobile ? 0.72 : 0.86) + envelope * (mobile ? 0.8 : 1.05) + N2[i] * 0.28) * pulse * strength;
+          const px = x + rowWobble, py = y + Math.sin(t * 0.7 + gx * 0.045) * 1.4;
           const path = paths[envelope > 0.66 ? 2 : envelope > 0.38 ? 1 : 0];
           path.rect(px - r, py - r, r * 2, r * 2); // square dots, matching the site's box grid
         }

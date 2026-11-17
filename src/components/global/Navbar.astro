@@ -165,22 +165,40 @@ const chars = (label: string) => [...label].map((c) => (c === " " ? " " : c));
 
 <style>
   @layer components {
+    /* Animate the blur radius and the tint themselves (not opacity): browsers drop a backdrop blur in
+       one step when only opacity fades, so closing used to snap. Now it melts in AND out. */
     .menu-backdrop {
       position: fixed;
       inset: 0;
       z-index: 0;
-      background: rgb(0 2 3 / 0.25);
-      -webkit-backdrop-filter: blur(14px);
-      backdrop-filter: blur(14px);
-      opacity: 0;
+      background-color: rgb(0 2 3 / 0);
+      -webkit-backdrop-filter: blur(0px);
+      backdrop-filter: blur(0px);
       visibility: hidden;
       pointer-events: none;
-      transition: opacity 0.5s var(--ease-esse), visibility 0s 0.5s;
+      /* closing: a touch longer, even ease-in-out, so the blur melts away rather than dropping */
+      transition:
+        background-color 0.7s cubic-bezier(0.45, 0, 0.25, 1),
+        backdrop-filter 0.7s cubic-bezier(0.45, 0, 0.25, 1),
+        -webkit-backdrop-filter 0.7s cubic-bezier(0.45, 0, 0.25, 1),
+        visibility 0s 0.7s;
     }
     :global(html.is-menu-open) .menu-backdrop {
-      opacity: 1;
+      background-color: rgb(0 2 3 / 0.25);
+      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px);
       visibility: visible;
-      transition: opacity 0.5s var(--ease-esse);
+      transition:
+        background-color 0.5s var(--ease-esse),
+        backdrop-filter 0.5s var(--ease-esse),
+        -webkit-backdrop-filter 0.5s var(--ease-esse),
+        visibility 0s;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .menu-backdrop,
+      :global(html.is-menu-open) .menu-backdrop {
+        transition: none;
+      }
     }
     /* ---------- Bar ---------- */
     .nav-logo {
@@ -399,7 +417,11 @@ const chars = (label: string) => [...label].map((c) => (c === " " ? " " : c));
     }
   }
 
-  /* Scroll lock while the menu is open (Lenis is also stopped in menu.js) */
+  /* Scroll lock while the menu is open (Lenis is also stopped in menu.js). The scrollbar's space stays
+     reserved, so the page doesn't shift sideways when the lock comes off as the menu closes. */
+  :global(html) {
+    scrollbar-gutter: stable;
+  }
   :global(html.is-menu-open) {
     overflow: hidden;
   }
