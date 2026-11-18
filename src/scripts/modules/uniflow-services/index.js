@@ -22,7 +22,7 @@ export async function initializeServices(root){
  rows.forEach((row,i)=>{if(row.dataset.key!==services[i].key)throw new Error('Incorrect service target assignment');});
  const reduce=matchMedia('(prefers-reduced-motion: reduce)'),mobile=matchMedia('(max-width:767px)');
  const sectionReveal=createSectionReveal(root,cameraFrame);
- let renderer,scene,camera,quad,models,limits=[],frame=0,active=-1,destroyed=false,viewportHeight=0,start=0,travel=1,columns=0,gridRows=0,loop=0,inView=false,drawCount=0,visualProgress=null,releaseHold=0,anchors=[],listY=0;
+ let renderer,scene,camera,quad,models,limits=[],frame=0,active=-1,destroyed=false,viewportHeight=0,start=0,travel=1,columns=0,gridRows=0,loop=0,inView=false,drawCount=0,visualProgress=null,scrollProgress=null,shownProgress=null,lastScrollAt=0,lastTickAt=0,releaseHold=0,anchors=[],listY=0;
  const listeners=[];
  const listen=(target,name,fn,options)=>{target.addEventListener(name,fn,options);listeners.push(()=>target.removeEventListener(name,fn,options));};
  // Reuse a host's existing Lenis owner. Create only the standalone preview's owner.
@@ -101,10 +101,20 @@ export async function initializeServices(root){
    const [a,b]=limits[segment];
    const wipeStart=a+(b-a)/Math.max(1,gridRows)-.02,wipeEnd=b+.02;
    const t=clamp((progress-wipeStart)/(wipeEnd-wipeStart));
-   select(segment+(t>=.5?1:0));draw(progress);
+   select(segment+(t>=.5?1:0));
+   scrollProgress=progress;lastScrollAt=performance.now();
+   if(!loop)draw(progress);
   }else if(!reduce.matches){visualProgress=active/4;draw(visualProgress);}
   root.dataset.progress=progress.toFixed(5);
   sectionReveal.update();
+ }
+ // Wipe window [start, end] of transition s, in list progress (same bounds as the row highlight above).
+ function wipeWindow(s){const [a,b]=limits[s];return [a+(b-a)/Math.max(1,gridRows)-.02,b+.02];}
+ // No half-wiped artwork at rest: a progress inside a wipe settles to whichever end it is nearer —
+ // the same >=50% rule that picks the highlighted row, so artwork and list always agree.
+ function settle(p){
+  for(let s=0;s<limits.length;s++){const [ws,we]=wipeWindow(s);if(p>ws&&p<we)return (p-ws)/(we-ws)>=.5?we:ws;}
+  return p;
  }
  function onScroll(){schedule();}
  function schedule(){if(!frame&&!destroyed)frame=requestAnimationFrame(update);}
@@ -140,7 +150,16 @@ export async function initializeServices(root){
  const io=new IntersectionObserver(([e])=>{inView=e.isIntersecting;if(inView&&!loop)tick();});io.observe(artwork);
  function tick(){
   loop=0;if(destroyed||!inView||!renderer)return;
-  if(!reduce.matches&&!document.hidden)draw(mobile.matches?active/4:(visualProgress??clamp((window.scrollY-start)/travel)));
+  const now=performance.now(),dt=Math.min(.05,(now-(lastTickAt||now))/1000);lastTickAt=now;
+  if(!reduce.matches&&!document.hidden){
+   if(mobile.matches||scrollProgress===null)draw(mobile.matches?active/4:(visualProgress??clamp((window.scrollY-start)/travel)));
+   else{
+    // Follow the scroll exactly while it moves; ~160ms after it stops, glide to the settled state.
+    const idle=now-lastScrollAt>160,target=idle?settle(scrollProgress):scrollProgress;
+    shownProgress=(!idle||shownProgress===null)?target:shownProgress+(target-shownProgress)*(1-Math.exp(-dt*9));
+    visualProgress=shownProgress;draw(shownProgress);
+   }
+  }
   loop=requestAnimationFrame(tick);
  }
  return {get state(){return {active,columns,gridRows,pixelSize:10,drawCount,visualProgress,anchors,listY,keys:rows.map(r=>r.dataset.key),progress:Number(root.dataset.progress||0),limits,travel,releaseHold,canvas:[canvas.width,canvas.height],renderer:!!renderer};},destroy(){destroyed=true;sectionReveal.destroy();cancelAnimationFrame(loop);io.disconnect();list.style.removeProperty('--list-y');list.style.removeProperty('position');list.style.removeProperty('transform');root.querySelector('.list-window').style.removeProperty('padding-top');root.querySelector('.list-window').style.removeProperty('padding-bottom');root.querySelector('.list-window').style.removeProperty('min-height');list.style.removeProperty('top');root.style.removeProperty('--sequence-height');cancelAnimationFrame(frame);observer.disconnect();listeners.forEach(fn=>fn());quad?.geometry.dispose();quad?.material.dispose();models?.dispose();renderer?.dispose();artwork.classList.remove('ready');rows.forEach(r=>{r.removeAttribute('aria-current');r.querySelector('button').removeAttribute('aria-pressed');});}};

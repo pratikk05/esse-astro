@@ -1,0 +1,258 @@
+---
+/**
+ * Showcase — "Craft in Motion": a tilted 3D ribbon of design shots (CSS 3D, no WebGL) that sweeps
+ * across the screen, turns slowly on its own, speeds up with scroll, and can be dragged.
+ * Self-contained (markup + style + script). To remove: delete <Showcase /> (and its import) in
+ * src/pages/index.astro. To change the shots: edit `shots` below.
+ */
+import Tag from "../ui/Tag.astro";
+import RollText from "../ui/RollText.astro";
+
+// Section shots from the client work (public/images/works/<project>/<n>.webp)
+const projects = ["ys", "pineapple", "izart", "lumikai", "nocturn"];
+const shots = [1, 2, 3, 4].flatMap((n) => projects.map((p) => `/images/works/${p}/${n}.webp`));
+---
+
+<section class="showcase section section-pixel" aria-labelledby="showcase-title" data-showcase>
+  <div class="white-fade" aria-hidden="true"></div>
+
+  <div class="container relative">
+    <header class="sc-head">
+      <div data-fade><Tag label="IN THE STUDIO" /></div>
+      <h2 id="showcase-title" class="sc-title">
+        <span class="sc-line sc-line-1" data-split>Craft in</span>
+        <span class="sc-line sc-line-2" data-split>Motion</span>
+      </h2>
+      <p class="sc-caption text-12 font-semibold text-grey-60" data-fade="1">
+        INTERFACES, DETAILS AND EXPERIMENTS<br />FROM THE WORK WE SHIP.
+      </p>
+    </header>
+  </div>
+
+  <!-- The ribbon: cards on a tilted cylinder; --spin is driven by the script below -->
+  <div class="sc-stage" data-sc-stage aria-hidden="true">
+    <div class="sc-ring" data-sc-ring style={`--n:${shots.length}`}>
+      {
+        shots.map((src, i) => (
+          <figure class="sc-card" style={`--i:${i}`}>
+            <img src={src} alt="" loading="lazy" decoding="async" draggable="false" />
+          </figure>
+        ))
+      }
+    </div>
+  </div>
+
+  <div class="container relative">
+    <footer class="sc-foot">
+      <p class="para-14 text-grey-60" data-fade>
+        The details between the case studies — sections, interactions and ideas we explore on every build.
+      </p>
+      <a class="sc-link text-12 font-semibold" href="#work"><RollText text="SEE SELECTED WORK" /> <span aria-hidden="true">→</span></a>
+    </footer>
+  </div>
+
+  <!-- Script inside the section: nothing may render between sections (next-sibling overlaps). -->
+  <script>
+    // Spin the ribbon: slow idle turn + scroll velocity boost + drag. Runs only while on screen.
+    document.querySelectorAll<HTMLElement>("[data-showcase]").forEach((section) => {
+      const stage = section.querySelector<HTMLElement>("[data-sc-stage]")!;
+      const ring = section.querySelector<HTMLElement>("[data-sc-ring]")!;
+      const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const IDLE = reduce ? 0 : 5; // deg / s
+      let spin = 0, velocity = 0, raf = 0, last = 0, visible = false;
+      let dragging = false, lastX = 0;
+      let lastY = window.scrollY || document.body.scrollTop;
+
+      const scrollY = () => window.scrollY || document.body.scrollTop;
+      function frame(now: number) {
+        raf = 0;
+        const dt = Math.min(0.05, (now - (last || now)) / 1000);
+        last = now;
+        const y = scrollY(), dy = y - lastY;
+        lastY = y;
+        if (!dragging) {
+          velocity = Math.max(-2, Math.min(2, velocity + dy * 0.012)); // scroll nudges the ribbon (capped)
+          velocity *= Math.exp(-dt * 2.5);       // and eases back to the idle turn
+          spin -= (IDLE + velocity * 60) * dt;
+        }
+        ring.style.setProperty("--spin", `${spin.toFixed(2)}deg`);
+        if (visible) raf = requestAnimationFrame(frame);
+      }
+      new IntersectionObserver(([e]) => {
+        visible = e.isIntersecting;
+        if (visible && !raf) { last = 0; lastY = scrollY(); raf = requestAnimationFrame(frame); }
+      }, { rootMargin: "100px" }).observe(section);
+
+      // Drag to turn
+      stage.addEventListener("pointerdown", (e) => {
+        dragging = true; lastX = e.clientX; velocity = 0;
+        stage.setPointerCapture(e.pointerId); stage.classList.add("is-dragging");
+      });
+      stage.addEventListener("pointermove", (e) => {
+        if (!dragging) return;
+        const dx = e.clientX - lastX; lastX = e.clientX;
+        spin += dx * 0.12;
+        velocity = -dx * 0.25; // keep the throw going after release
+      });
+      const end = (e: PointerEvent) => {
+        if (!dragging) return;
+        dragging = false; stage.classList.remove("is-dragging");
+        if (stage.hasPointerCapture(e.pointerId)) stage.releasePointerCapture(e.pointerId);
+      };
+      stage.addEventListener("pointerup", end);
+      stage.addEventListener("pointercancel", end);
+    });
+  </script>
+  <div class="white-fade is-bottom" aria-hidden="true"></div>
+</section>
+
+<style>
+  @layer components {
+    .showcase {
+      overflow: hidden;
+      padding-top: clamp(5rem, 9vw, 8.5rem);
+      padding-bottom: clamp(4rem, 7vw, 6.5rem);
+    }
+
+    /* ---- Headline: two offset lines with the mono caption between ---- */
+    .sc-head {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      justify-items: center;
+      pointer-events: none;
+    }
+    .sc-title {
+      display: grid;
+      margin: 1.5rem 0 0;
+      font-family: var(--font-primary);
+      font-size: clamp(3.5rem, 11vw, 10.5rem);
+      font-weight: 400;
+      line-height: 0.92;
+      letter-spacing: -0.04em;
+      color: var(--color-grey-90);
+      text-transform: uppercase;
+    }
+    .sc-line-1 {
+      justify-self: start;
+      margin-left: -0.6em;
+    }
+    .sc-line-2 {
+      justify-self: end;
+      margin-right: -0.9em;
+      margin-top: 0.42em;
+    }
+    .sc-caption {
+      position: absolute;
+      top: 54%;
+      left: 50%;
+      margin: 0;
+      translate: -10% -50%;
+      text-align: left;
+      line-height: 1.5;
+    }
+
+    /* ---- Ribbon ---- */
+    .sc-stage {
+      --card-w: 17rem;
+      --card-h: 12.75rem;
+      --gap: 1.25rem;
+      position: relative;
+      z-index: 1;
+      height: 30rem;
+      margin-top: -9rem;
+      perspective: 1600px;
+      perspective-origin: 50% 20%;
+      cursor: grab;
+      touch-action: pan-y;
+      user-select: none;
+    }
+    .sc-stage.is-dragging {
+      cursor: grabbing;
+    }
+    .sc-ring {
+      /* radius so n cards (+gaps) wrap the circumference */
+      --radius: calc((var(--card-w) + var(--gap)) * var(--n) / 6.2832);
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: var(--card-w);
+      height: var(--card-h);
+      margin: calc(var(--card-h) / -2) 0 0 calc(var(--card-w) / -2);
+      transform-style: preserve-3d;
+      transform: translateZ(calc(var(--radius) * -1)) rotateX(-9deg) rotateZ(-7deg) rotateY(var(--spin, 0deg));
+    }
+    .sc-card {
+      position: absolute;
+      inset: 0;
+      margin: 0;
+      overflow: hidden;
+      border-radius: var(--radius-sm);
+      background: var(--color-surface);
+      box-shadow: 0 1.5rem 3rem -1.5rem rgb(0 2 3 / 0.35);
+      transform: rotateY(calc(var(--i) * 360deg / var(--n))) translateZ(var(--radius));
+      backface-visibility: hidden;
+      transition: transform 0.6s var(--ease-esse);
+    }
+    .sc-card img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: top;
+      pointer-events: none;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .sc-card:hover {
+        transform: rotateY(calc(var(--i) * 360deg / var(--n))) translateZ(calc(var(--radius) + 2.5rem));
+      }
+    }
+
+    /* ---- Footer row ---- */
+    .sc-foot {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+    .sc-foot p {
+      max-width: 22rem;
+      margin: 0;
+    }
+    .sc-link {
+      display: inline-flex;
+      gap: 0.75rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--color-grey-90);
+      color: var(--color-grey-90);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    @media (width < 48rem) {
+      .sc-stage {
+        --card-w: 10rem;
+        --card-h: 7.5rem;
+        --gap: 0.75rem;
+        height: 20rem;
+        margin-top: -3rem;
+      }
+      .sc-line-1,
+      .sc-line-2 {
+        margin: 0;
+      }
+      .sc-caption {
+        position: static;
+        translate: none;
+        margin-top: 1rem;
+      }
+      .sc-foot {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  }
+</style>

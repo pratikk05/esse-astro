@@ -1,0 +1,401 @@
+---
+/**
+ * 404 — "Lost in the grid". The giant pixel 404 is a playable target: blast its blocks with the
+ * ship before it reaches you. Win → "404 cleared", lose → "game over"; both take the visitor home
+ * (through the site's dither page transition). A Back-to-home button is always there.
+ * Self-contained: delete this file to remove it (Astro builds it to /404.html).
+ */
+import Layout from "../layouts/Layout.astro";
+import Navbar from "../components/global/Navbar.astro";
+import Tag from "../components/ui/Tag.astro";
+---
+
+<Layout title="404 — Lost in the grid · Uniflow">
+  <Navbar home={false} />
+  <main>
+    <section class="nf section section-pixel" data-nf>
+      <div class="container nf-head">
+        <div class="nf-copy">
+          <div data-fade><Tag label="ERROR 404" /></div>
+          <h1 class="heading-48 padding-top-12" data-split>Lost in the grid.</h1>
+          <p class="para-16 text-grey-60 nf-lead" data-fade="1">
+            This page doesn't exist — but the 404 does. Clear it to find your way home.
+          </p>
+          <a href="/" class="project-cta nf-home" data-theme="light" data-fade="2">
+            <span class="project-cta-icon" aria-hidden="true">
+              <svg viewBox="0 0 12 12" width="12" height="12" fill="none"><path d="M11 6H1M5.5 1.5 1 6l4.5 4.5" stroke="currentColor" stroke-width="1.2" /></svg>
+            </span>
+            <span class="project-cta-label text-11 font-bold">BACK TO HOME</span>
+          </a>
+        </div>
+        <dl class="nf-hud text-12 font-semibold" aria-live="polite">
+          <div><dt>SCORE</dt><dd data-hud-score>0000</dd></div>
+          <div><dt>BLOCKS</dt><dd data-hud-blocks>—</dd></div>
+          <div><dt>LIVES</dt><dd data-hud-lives>■ ■ ■</dd></div>
+        </dl>
+      </div>
+
+      <div class="nf-stage" data-nf-stage>
+        <canvas class="nf-canvas" data-nf-canvas aria-label="404 game: shoot the blocks of the 404" role="img"></canvas>
+        <p class="nf-message text-12 font-semibold" data-nf-message>PRESS SPACE OR TAP TO PLAY</p>
+        <p class="nf-keys text-12 text-grey-50">← → / A D MOVE · SPACE / CLICK FIRE · DRAG ON TOUCH</p>
+      </div>
+
+      <!-- Script inside the section: nothing may render between sections. -->
+      <script>
+        const section = document.querySelector<HTMLElement>("[data-nf]")!;
+        const stage = section.querySelector<HTMLElement>("[data-nf-stage]")!;
+        const canvas = section.querySelector<HTMLCanvasElement>("[data-nf-canvas]")!;
+        const msg = section.querySelector<HTMLElement>("[data-nf-message]")!;
+        const hud = {
+          score: section.querySelector<HTMLElement>("[data-hud-score]")!,
+          blocks: section.querySelector<HTMLElement>("[data-hud-blocks]")!,
+          lives: section.querySelector<HTMLElement>("[data-hud-lives]")!,
+        };
+        const ctx = canvas.getContext("2d")!;
+        const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const css = (v: string) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+        const BLUE = css("--color-secondary") || "#2929fd";
+        const INK = css("--color-grey-90") || "#0d1111";
+        const TEAL = css("--color-accent") || "#1bdbce";
+
+        // 5×7 pixel glyphs for the target
+        const GLYPHS: Record<string, string[]> = {
+          "4": ["...#.", "..##.", ".#.#.", "#..#.", "#####", "...#.", "...#."],
+          "0": [".###.", "#...#", "#..##", "#.#.#", "##..#", "#...#", ".###."],
+        };
+
+        type Block = { c: number; r: number; hp: number; alive: boolean };
+        type Shot = { x: number; y: number; v: number };
+        type Bit = { x: number; y: number; vx: number; vy: number; life: number; s: number };
+
+        let W = 0, H = 0, dpr = 1, cell = 16;
+        let blocks: Block[] = [], formation = { x: 0, y: 0, dir: 1, w: 0, h: 0 };
+        let ship = { x: 0, w: 0, h: 0, y: 0 }, shots: Shot[] = [], drops: Shot[] = [], bits: Bit[] = [];
+        let state: "idle" | "play" | "won" | "lost" = "idle";
+        let score = 0, lives = 3, invuln = 0, cooldown = 0, endAt = 0, last = 0;
+        const keys = new Set<string>();
+        let pointerX: number | null = null, firing = false, touch = false;
+
+        function layout() {
+          const r = stage.getBoundingClientRect();
+          dpr = Math.min(devicePixelRatio || 1, 2);
+          W = r.width; H = r.height;
+          canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          // "404" = 3 glyphs × 5 cols + 2 gaps → 17 columns × 7 rows; size it to the stage
+          cell = Math.max(8, Math.floor(Math.min((W * 0.9) / 17, (H * 0.5) / 7)));
+          formation.w = 17 * cell; formation.h = 7 * cell;
+          ship.w = Math.max(28, cell * 2.2); ship.h = Math.max(14, cell * 0.9);
+          ship.y = H - ship.h - Math.max(18, cell * 0.8);
+          if (state === "idle") reset(false);
+        }
+
+        function reset(playing: boolean) {
+          blocks = [];
+          "404".split("").forEach((ch, gi) => GLYPHS[ch].forEach((row, r) => [...row].forEach((v, c) => {
+            if (v === "#") blocks.push({ c: gi * 6 + c, r, hp: r < 2 ? 2 : 1, alive: true });
+          })));
+          formation.x = (W - formation.w) / 2; formation.y = Math.max(12, H * 0.08); formation.dir = 1;
+          ship.x = W / 2; shots = []; drops = []; bits = [];
+          score = 0; lives = 3; invuln = 0; cooldown = 0;
+          state = playing ? "play" : "idle";
+          updateHud();
+        }
+
+        const aliveCount = () => blocks.reduce((n, b) => n + (b.alive ? 1 : 0), 0);
+        function updateHud() {
+          hud.score.textContent = String(score).padStart(4, "0");
+          hud.blocks.textContent = String(aliveCount()).padStart(3, "0");
+          hud.lives.textContent = Array.from({ length: 3 }, (_, i) => (i < lives ? "■" : "□")).join(" ");
+        }
+
+        function start() {
+          if (state === "play") return;
+          if (state === "won" || state === "lost") return; // heading home
+          reset(true);
+          msg.textContent = "";
+          section.classList.add("is-playing");
+        }
+
+        function goHome() {
+          const nav = (window as any).uniflowNavigate;
+          if (typeof nav === "function") nav("/");
+          else location.href = "/";
+        }
+
+        function end(won: boolean) {
+          state = won ? "won" : "lost";
+          endAt = performance.now();
+          section.classList.remove("is-playing");
+          if (!won) burst(ship.x, ship.y + ship.h / 2, 40);
+        }
+
+        function burst(x: number, y: number, n = 10) {
+          for (let i = 0; i < n; i++) {
+            const a = Math.random() * Math.PI * 2, s = 60 + Math.random() * 220;
+            bits.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 40, life: 0.5 + Math.random() * 0.5, s: Math.max(2, cell * 0.22) });
+          }
+        }
+
+        function blockRect(b: Block) {
+          return { x: formation.x + b.c * cell, y: formation.y + b.r * cell, s: cell };
+        }
+
+        function step(dt: number) {
+          if (state === "play") {
+            // ship input
+            const speed = Math.max(260, W * 0.55);
+            if (keys.has("ArrowLeft") || keys.has("a")) ship.x -= speed * dt;
+            if (keys.has("ArrowRight") || keys.has("d")) ship.x += speed * dt;
+            if (pointerX !== null) ship.x += (pointerX - ship.x) * Math.min(1, dt * 14);
+            ship.x = Math.max(ship.w / 2, Math.min(W - ship.w / 2, ship.x));
+            cooldown -= dt;
+            if ((keys.has(" ") || firing || touch) && cooldown <= 0) {
+              shots.push({ x: ship.x, y: ship.y, v: -Math.max(520, H * 1.1) });
+              cooldown = touch ? 0.26 : 0.17;
+            }
+            // formation: sweep side to side, step down at each edge, speeds up as it thins
+            const alive = aliveCount(), total = blocks.length || 1;
+            const fs = (40 + 120 * (1 - alive / total)) * (W / 1200 + 0.4);
+            formation.x += formation.dir * fs * dt;
+            const cols = blocks.filter((b) => b.alive).map((b) => b.c);
+            const minC = Math.min(...cols), maxC = Math.max(...cols);
+            const left = formation.x + minC * cell, right = formation.x + (maxC + 1) * cell;
+            if (right > W - 8 || left < 8) {
+              formation.dir *= -1;
+              formation.x += formation.dir * 6;
+              formation.y += cell * 0.5;
+            }
+            // occasional drops from the lowest block of a random column
+            if (Math.random() < dt * (0.6 + 1.2 * (1 - alive / total))) {
+              const c = cols[Math.floor(Math.random() * cols.length)];
+              const low = blocks.filter((b) => b.alive && b.c === c).sort((a, b) => b.r - a.r)[0];
+              if (low) { const r = blockRect(low); drops.push({ x: r.x + r.s / 2, y: r.y + r.s, v: Math.max(180, H * 0.34) }); }
+            }
+            // shots vs blocks
+            shots.forEach((s) => { s.y += s.v * dt; });
+            for (const s of shots) {
+              for (const b of blocks) {
+                if (!b.alive) continue;
+                const r = blockRect(b);
+                if (s.x >= r.x && s.x <= r.x + r.s && s.y >= r.y && s.y <= r.y + r.s) {
+                  s.y = -9999; b.hp--;
+                  if (b.hp <= 0) { b.alive = false; score += 10; burst(r.x + r.s / 2, r.y + r.s / 2, 8); }
+                  else burst(r.x + r.s / 2, r.y + r.s / 2, 3);
+                  break;
+                }
+              }
+            }
+            shots = shots.filter((s) => s.y > -20);
+            // drops vs ship
+            invuln -= dt;
+            drops.forEach((d) => { d.y += d.v * dt; });
+            for (const d of drops) {
+              if (invuln <= 0 && Math.abs(d.x - ship.x) < ship.w / 2 && d.y >= ship.y && d.y <= ship.y + ship.h) {
+                d.y = H + 99; lives--; invuln = 1.2; burst(ship.x, ship.y, 14);
+                if (lives <= 0) end(false);
+              }
+            }
+            drops = drops.filter((d) => d.y < H + 10);
+            // formation reached the ship line
+            const lowest = Math.max(...blocks.filter((b) => b.alive).map((b) => b.r));
+            if (formation.y + (lowest + 1) * cell >= ship.y - 4 && state === "play") end(false);
+            if (aliveCount() === 0 && state === "play") end(true);
+            updateHud();
+          } else if (state === "idle" && !reduce) {
+            formation.y = Math.max(12, H * 0.08) + Math.sin(performance.now() / 900) * 4; // gentle float
+          }
+          // particles
+          bits.forEach((p) => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 420 * dt; p.life -= dt; });
+          bits = bits.filter((p) => p.life > 0);
+          // end screens → home
+          if (state === "won" || state === "lost") {
+            const t = (performance.now() - endAt) / 1000, left = Math.max(0, 3 - Math.floor(t));
+            msg.textContent = state === "won" ? `404 CLEARED · TAKING YOU HOME IN ${left}` : `GAME OVER · TAKING YOU HOME IN ${left}`;
+            if (t >= 3 && !(section as any).leaving) { (section as any).leaving = true; goHome(); }
+          }
+        }
+
+        function draw() {
+          ctx.clearRect(0, 0, W, H);
+          // blocks: electric blue squares (2-hp rows lighter until hit)
+          for (const b of blocks) {
+            if (!b.alive) continue;
+            const r = blockRect(b), g = Math.max(1, Math.round(cell * 0.1));
+            ctx.fillStyle = b.hp > 1 ? BLUE : "#6a85ff";
+            ctx.fillRect(r.x + g, r.y + g, r.s - g * 2, r.s - g * 2);
+          }
+          // shots & drops
+          ctx.fillStyle = INK;
+          shots.forEach((s) => ctx.fillRect(s.x - 1.5, s.y - cell * 0.5, 3, cell * 0.5));
+          ctx.fillStyle = BLUE;
+          drops.forEach((d) => ctx.fillRect(d.x - 2, d.y - 6, 4, 6));
+          // ship: a small pixel craft (blinks while invulnerable)
+          if (state !== "lost" && (invuln <= 0 || Math.floor(invuln * 10) % 2 === 0)) {
+            const u = ship.w / 7, x0 = ship.x - ship.w / 2, y0 = ship.y;
+            ctx.fillStyle = INK;
+            [[3, 0, 1, 1], [2, 1, 3, 1], [0, 2, 7, 1], [0, 3, 2, 1], [5, 3, 2, 1]].forEach(([c, r, w, h]) =>
+              ctx.fillRect(x0 + c * u, y0 + r * (ship.h / 4), w * u, h * (ship.h / 4)));
+            ctx.fillStyle = TEAL;
+            ctx.fillRect(x0 + 3 * u, y0 + ship.h / 4, u, ship.h / 4);
+          }
+          // particles
+          bits.forEach((p) => { ctx.globalAlpha = Math.max(0, p.life); ctx.fillStyle = BLUE; ctx.fillRect(p.x, p.y, p.s, p.s); });
+          ctx.globalAlpha = 1;
+        }
+
+        function frame(now: number) {
+          const dt = Math.min(0.033, (now - (last || now)) / 1000);
+          last = now;
+          if (!document.hidden) { step(dt); draw(); }
+          requestAnimationFrame(frame);
+        }
+
+        // ---- input ----
+        addEventListener("keydown", (e) => {
+          const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+          if ([" ", "ArrowLeft", "ArrowRight", "a", "d"].includes(k)) {
+            if (k === " " || state === "play") e.preventDefault();
+            keys.add(k);
+            if (k === " ") start();
+          }
+        });
+        addEventListener("keyup", (e) => keys.delete(e.key.length === 1 ? e.key.toLowerCase() : e.key));
+        stage.addEventListener("pointermove", (e) => {
+          const r = stage.getBoundingClientRect();
+          pointerX = e.clientX - r.left;
+        });
+        stage.addEventListener("pointerleave", () => { if (!touch) pointerX = null; });
+        stage.addEventListener("pointerdown", (e) => {
+          const r = stage.getBoundingClientRect();
+          pointerX = e.clientX - r.left;
+          touch = e.pointerType === "touch";
+          if (!touch) firing = true;
+          start();
+        });
+        addEventListener("pointerup", () => { firing = false; touch = false; });
+
+        new ResizeObserver(layout).observe(stage);
+        layout();
+        requestAnimationFrame(frame);
+      </script>
+    </section>
+  </main>
+</Layout>
+
+<style>
+  /* This page is light: darken the (dark-hero) nav here only */
+  :global(.site-header .nav-logo-light path[fill="white"]) {
+    fill: var(--color-grey-90);
+  }
+  :global(.site-header .nav-text) {
+    color: var(--color-grey-70);
+  }
+  :global(.site-header .nav-square) {
+    background-color: var(--color-grey-70);
+  }
+
+  @layer components {
+    .nf {
+      display: flex;
+      flex-direction: column;
+      min-height: 100svh;
+      padding-top: clamp(6.5rem, 14svh, 9rem);
+      padding-bottom: 1.5rem;
+    }
+    .nf-head {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 2rem;
+    }
+    .nf-lead {
+      max-width: 24rem;
+      margin: 1rem 0 0;
+    }
+    .nf-home {
+      margin-top: 1.75rem;
+    }
+    .nf-hud {
+      display: flex;
+      gap: 2rem;
+      margin: 0;
+    }
+    .nf-hud div {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .nf-hud dt {
+      color: var(--color-grey-50);
+    }
+    .nf-hud dd {
+      margin: 0;
+      color: var(--color-grey-90);
+      font-variant-numeric: tabular-nums;
+    }
+    .nf-stage {
+      position: relative;
+      flex: 1;
+      min-height: 22rem;
+      margin: 1.5rem var(--container-padding) 0;
+      border-top: 1px solid var(--color-grey-20);
+      touch-action: none; /* drag steers the ship on touch */
+      cursor: crosshair;
+    }
+    .nf-canvas {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    .nf-message {
+      position: absolute;
+      left: 50%;
+      bottom: 22%;
+      margin: 0;
+      padding: 0.625rem 0.875rem;
+      translate: -50% 0;
+      border-radius: var(--radius-sm);
+      background: var(--color-grey-90);
+      color: var(--color-white);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+    .nf-message:empty {
+      display: none;
+    }
+    .nf-keys {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      margin: 0;
+      pointer-events: none;
+    }
+    .nf.is-playing .nf-keys {
+      opacity: 0.4;
+    }
+    @media (width < 48rem) {
+      .nf-head {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .nf-hud {
+        gap: 1.25rem;
+      }
+      .nf-keys {
+        display: none;
+      }
+      .nf-message {
+        white-space: normal;
+        text-align: center;
+        width: max-content;
+        max-width: 90%;
+      }
+    }
+  }
+</style>

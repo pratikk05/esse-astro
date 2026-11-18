@@ -1,0 +1,273 @@
+---
+/**
+ * Tools — "the tools behind the work": filterable grid of the studio's stack.
+ *   Filters dim tools outside the chosen group; hover (or tap on touch) turns a tile electric blue
+ *   and slides up what we use it for. Logos: Simple Icons (CC0) in public/images/tools, drawn as
+ *   one-colour masks (like the client logo strip) so they recolour on hover.
+ * Self-contained. To remove: delete <Tools /> (and its import) in src/pages/index.astro, this file
+ * and public/images/tools/. To change the stack: edit `tools` below.
+ */
+import Tag from "../ui/Tag.astro";
+
+const groups = [
+  { key: "all", label: "ALL" },
+  { key: "design", label: "DESIGN" },
+  { key: "build", label: "BUILD" },
+  { key: "motion", label: "MOTION & 3D" },
+  { key: "commerce", label: "COMMERCE" },
+  { key: "launch", label: "LAUNCH" },
+];
+
+const tools = [
+  { name: "Figma", icon: "figma", in: ["design"], use: "Every layout, prototype and design system starts here." },
+  { name: "Blender", icon: "blender", in: ["design", "motion"], use: "Modelling and lighting the 3D you see on our sites." },
+  { name: "Webflow", icon: "webflow", in: ["build", "commerce"], use: "Visual builds and CMS sites clients can edit themselves." },
+  { name: "Framer", icon: "framer", in: ["build"], use: "Fast, interactive marketing sites and launch pages." },
+  { name: "Astro", icon: "astro", in: ["build"], use: "Content-first sites that ship almost no JavaScript." },
+  { name: "Next.js", icon: "nextdotjs", in: ["build", "commerce"], use: "Custom web apps and headless ecommerce storefronts." },
+  { name: "React", icon: "react", in: ["build"], use: "Interactive components and app-like interfaces." },
+  { name: "TypeScript", icon: "typescript", in: ["build"], use: "Typed code that stays maintainable as projects grow." },
+  { name: "Tailwind CSS", icon: "tailwindcss", in: ["build"], use: "Design tokens straight into production CSS." },
+  { name: "Sanity", icon: "sanity", in: ["build", "commerce"], use: "Structured content for headless sites and stores." },
+  { name: "GSAP", icon: "greensock", in: ["motion"], use: "Scroll, timeline and micro-interaction animation." },
+  { name: "Three.js", icon: "threedotjs", in: ["motion"], use: "Real-time 3D and WebGL scenes in the browser." },
+  { name: "Rive", icon: "rive", in: ["motion"], use: "Lightweight interactive animations with live states." },
+  { name: "Shopify", icon: "shopify", in: ["commerce"], use: "Stores, checkout and inventory that scale." },
+  { name: "Vercel", icon: "vercel", in: ["launch"], use: "Deploys, previews and fast edge hosting." },
+  { name: "GitHub", icon: "github", in: ["launch"], use: "Version control and reviews on every build." },
+  { name: "Analytics", icon: "googleanalytics", in: ["launch"], use: "Measuring what visitors actually do." },
+  { name: "Search Console", icon: "googlesearchconsole", in: ["launch"], use: "Indexing, search health and SEO tracking." },
+];
+---
+
+<section id="stack" class="tools section section-pixel" aria-labelledby="tools-title" data-tools>
+  <div class="white-fade" aria-hidden="true"></div>
+  <div class="container relative">
+    <div class="padding-y-111">
+      <header class="tools-header">
+        <div>
+          <div data-fade><Tag label="OUR STACK" /></div>
+          <h2 id="tools-title" class="heading-48 padding-top-12" data-split>The tools behind the work</h2>
+        </div>
+        <p data-fade="1" class="tools-intro text-12 leading-base tracking-sm font-semibold text-grey-60">
+          WE PICK THE STACK FOR EACH PROJECT — FROM NO-CODE WEBFLOW TO CUSTOM NEXT.JS COMMERCE.
+        </p>
+      </header>
+
+      <div class="tools-bar" data-fade="2">
+        <div class="tools-filters" role="group" aria-label="Filter tools">
+          {groups.map((g, i) => (
+            <button type="button" class="tools-filter text-12 font-semibold" data-filter={g.key} aria-pressed={i === 0 ? "true" : "false"}>{g.label}</button>
+          ))}
+        </div>
+        <p class="tools-count text-12 font-semibold text-grey-50" aria-live="polite">
+          [<span data-tools-count>{String(tools.length).padStart(2, "0")}</span>] TOOLS
+        </p>
+      </div>
+
+      <ul class="tools-grid" role="list">
+        {
+          tools.map((t) => (
+            <li class="tool" data-groups={t.in.join(" ")} tabindex="0">
+              <span class="tool-icon" style={`--icon:url("/images/tools/${t.icon}.svg")`} role="img" aria-label={`${t.name} logo`}></span>
+              <span class="tool-name text-12 font-semibold">{t.name.toUpperCase()}</span>
+              <span class="tool-use para-14">{t.use}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+  <div class="white-fade is-bottom" aria-hidden="true"></div>
+
+  <!-- Script inside the section: nothing may render between sections (next-sibling overlaps). -->
+  <script>
+    document.querySelectorAll<HTMLElement>("[data-tools]").forEach((root) => {
+      const filters = [...root.querySelectorAll<HTMLButtonElement>("[data-filter]")];
+      const tiles = [...root.querySelectorAll<HTMLElement>(".tool")];
+      const count = root.querySelector("[data-tools-count]");
+      filters.forEach((btn) =>
+        btn.addEventListener("click", () => {
+          const key = btn.dataset.filter!;
+          filters.forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+          let shown = 0;
+          tiles.forEach((tile, i) => {
+            const on = key === "all" || tile.dataset.groups!.split(" ").includes(key);
+            tile.classList.toggle("is-dim", !on);
+            tile.style.setProperty("--d", `${(i % 6) * 30}ms`);
+            if (on) shown++;
+          });
+          if (count) count.textContent = String(shown).padStart(2, "0");
+        }),
+      );
+      // Touch: tap toggles a tile open (hover covers mouse; focus covers keyboard)
+      tiles.forEach((tile) =>
+        tile.addEventListener("click", () => {
+          if (matchMedia("(hover: hover)").matches) return;
+          const open = !tile.classList.contains("is-open");
+          tiles.forEach((t) => t.classList.remove("is-open"));
+          tile.classList.toggle("is-open", open);
+        }),
+      );
+    });
+  </script>
+</section>
+
+<style>
+  @layer components {
+    .tools-header {
+      display: grid;
+      grid-template-columns: 1fr minmax(0, 22.5rem);
+      align-items: end;
+      gap: 2rem;
+    }
+    .tools-intro {
+      margin: 0;
+      text-box: trim-both cap alphabetic;
+    }
+
+    /* ---- Filter bar ---- */
+    .tools-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      margin-top: 3.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--color-grey-20);
+    }
+    .tools-filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .tools-filter {
+      padding: 0.625rem 0.875rem;
+      border: 1px solid var(--color-grey-20);
+      border-radius: var(--radius-sm);
+      background: var(--color-white);
+      color: var(--color-grey-70);
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+    }
+    .tools-filter:hover {
+      border-color: var(--color-grey-90);
+      color: var(--color-grey-90);
+    }
+    .tools-filter[aria-pressed="true"] {
+      border-color: var(--color-grey-90);
+      background: var(--color-grey-90);
+      color: var(--color-white);
+    }
+    .tools-filter:focus-visible,
+    .tool:focus-visible {
+      outline: 2px solid var(--color-secondary);
+      outline-offset: 3px;
+    }
+    .tools-count {
+      margin: 0;
+      white-space: nowrap;
+    }
+
+    /* ---- Tiles ---- */
+    .tools-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin: 1.5rem 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    .tool {
+      position: relative;
+      display: grid;
+      aspect-ratio: 1;
+      overflow: hidden;
+      border-radius: var(--radius-lg);
+      background: var(--color-surface-light);
+      cursor: default;
+      transition:
+        background-color 0.45s var(--ease-esse),
+        opacity 0.5s var(--ease-esse) var(--d, 0ms),
+        scale 0.5s var(--ease-esse) var(--d, 0ms);
+    }
+    .tool-icon {
+      place-self: center;
+      width: 34%;
+      aspect-ratio: 1;
+      background-color: var(--color-grey-70);
+      -webkit-mask: var(--icon) center / contain no-repeat;
+      mask: var(--icon) center / contain no-repeat;
+      transition: background-color 0.45s, translate 0.55s var(--ease-esse), scale 0.55s var(--ease-esse);
+    }
+    .tool-name {
+      position: absolute;
+      left: 0.875rem;
+      top: 0.875rem;
+      color: var(--color-grey-60);
+      transition: color 0.45s;
+    }
+    .tool-use {
+      position: absolute;
+      inset: auto 0.875rem 0.875rem;
+      color: var(--color-white);
+      font-size: 0.8125rem;
+      line-height: 1.35;
+      opacity: 0;
+      translate: 0 0.75rem;
+      transition: opacity 0.4s, translate 0.55s var(--ease-esse);
+    }
+    /* Active: electric blue, white logo lifts, the use-case slides up */
+    .tool:is(:hover, :focus-visible, .is-open) {
+      background: var(--color-secondary);
+    }
+    .tool:is(:hover, :focus-visible, .is-open) .tool-icon {
+      background-color: var(--color-white);
+      translate: 0 -22%;
+      scale: 0.8;
+    }
+    .tool:is(:hover, :focus-visible, .is-open) .tool-name {
+      color: var(--color-grey-10);
+    }
+    .tool:is(:hover, :focus-visible, .is-open) .tool-use {
+      opacity: 1;
+      translate: 0 0;
+      transition-delay: 0.08s;
+    }
+    /* Filtered out */
+    .tool.is-dim {
+      opacity: 0.18;
+      scale: 0.96;
+      pointer-events: none;
+    }
+
+    @media (width < 62rem) {
+      .tools-header {
+        grid-template-columns: 1fr;
+        align-items: start;
+        gap: 1.5rem;
+      }
+      .tools-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+      }
+    }
+    @media (width < 40rem) {
+      .tools-bar {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .tools-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .tool-icon {
+        width: 30%;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .tool,
+      .tool * {
+        transition: none !important;
+      }
+    }
+  }
+</style>
