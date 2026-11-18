@@ -22,8 +22,9 @@ function applyRedDotExit(root,exitTrigger){
       yPercent: 100,
       autoAlpha: 0,
       scale: 1,
+      // No backgroundColor here: tweening from `transparent` (= transparent black) painted the whole
+      // artwork column as a mid-grey box while it blurred out.
       filter: "blur(16px)",
-      backgroundColor: "#efeeed",
       ease: "none",
       scrollTrigger: {
         trigger: exitTrigger,

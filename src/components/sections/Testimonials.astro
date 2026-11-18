@@ -26,7 +26,7 @@ const controls = [
 ---
 
 <section class="stories section overflow-hidden bg-surface text-black" aria-labelledby="stories-title" data-stories>
-  <div class="stories-inner container padding-y-100">
+  <div class="stories-inner container">
     <header class="stories-header">
       <h2 id="stories-title" class="stories-trim heading-48" data-split>Client Stories</h2>
       <div class="stories-header-right flex items-start justify-between">
@@ -76,10 +76,12 @@ const controls = [
 <style>
   @layer components {
     .stories {
-      height: 42.5rem; /* 680px, fixed like the prototype */
+      height: 42.5rem; /* 680px, fixed like the prototype (tablet / mobile) */
     }
     /* 32px left / 64px right at desktop */
     .stories-inner {
+      padding-top: clamp(3.125rem, calc(2.0833rem + 4.6296vw), 6.25rem); /* = padding-y-100 */
+      padding-bottom: clamp(3.125rem, calc(2.0833rem + 4.6296vw), 6.25rem);
       padding-right: calc(var(--container-padding) * 2);
     }
     /* Trim leading to cap height / baseline so spacing matches Figma exactly */
@@ -217,6 +219,52 @@ const controls = [
     }
     .stories-testimonial :global(.stories-author-details) {
       gap: 0.875rem; /* 14px */
+    }
+
+    /* ---- Desktop: one full screen (680px … 960px), roomier spacing, content spread to fill it ---- */
+    @media (width >= 62rem) {
+      .stories {
+        height: 100svh;
+        min-height: 42.5rem; /* never shorter than the prototype */
+        max-height: 60rem;   /* 960px: never swallows a large monitor */
+      }
+      .stories-inner {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        padding-top: clamp(4.5rem, 10svh, 7.5rem);
+        padding-bottom: clamp(4rem, 9svh, 7rem);
+      }
+      .stories-header {
+        margin-bottom: clamp(2.375rem, 6svh, 4rem);
+      }
+      .stories-body {
+        flex: 1;
+        min-height: 0;
+        align-items: stretch;
+        padding-top: clamp(2.8125rem, 7svh, 5rem);
+      }
+      .stories-proof {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+      .stories-logo {
+        flex: 1;
+        height: auto;
+        min-height: 15rem;
+        max-height: 26rem;
+        margin: 0;
+      }
+      .stories-testimonial {
+        display: flex;
+        flex-direction: column;
+      }
+      /* author sits at the bottom of the column instead of a fixed 128px gap */
+      .stories-testimonial :global(.stories-author) {
+        margin-top: auto;
+        padding-top: 3rem;
+      }
     }
 
     /* ---- ≤1100px ---- */

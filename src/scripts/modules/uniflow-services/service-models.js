@@ -7,24 +7,15 @@
 //   search    — magnifying glass with orbiting "AI" sparks
 //   support   — two interlocking gears turning together
 
+import { createStudioEnv } from "../../lib/studio-env.js";
+
 const BLUE = 0x2929fd;
 
 export function createServiceModels(THREE, renderer) {
   renderer.localClippingEnabled = true; // the "design" cube is cut in half
 
-  // ---- shared studio lighting ----
-  const pmrem = new THREE.PMREMGenerator(renderer);
-  const envScene = new THREE.Scene();
-  envScene.add(new THREE.Mesh(new THREE.BoxGeometry(10, 6, 10), new THREE.MeshBasicMaterial({ color: new THREE.Color(0.55, 0.56, 0.58), side: THREE.BackSide })));
-  const softbox = (w, h, pos, rot, k) => {
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color(k, k, k), side: THREE.DoubleSide }));
-    m.position.copy(pos); m.rotation.set(...rot); envScene.add(m);
-  };
-  softbox(4, 3, new THREE.Vector3(0, 2.9, 0.5), [Math.PI / 2, 0, 0], 6);
-  softbox(0.8, 4, new THREE.Vector3(-4.9, 1, 1), [0, Math.PI / 2, 0], 5);
-  softbox(0.6, 4, new THREE.Vector3(4.9, 1, -1), [0, -Math.PI / 2, 0], 3);
-  const envMap = pmrem.fromScene(envScene, 0.03).texture;
-  pmrem.dispose();
+  // ---- shared studio lighting (scripts/lib/studio-env.js) ----
+  const envMap = createStudioEnv(THREE, renderer);
 
   const mat = {
     ceramic: () => new THREE.MeshPhysicalMaterial({ color: 0xf2f2f0, roughness: 0.32, clearcoat: 0.6, clearcoatRoughness: 0.2 }),
