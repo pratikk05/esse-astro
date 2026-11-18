@@ -5,7 +5,7 @@
 // bezel, slightly domed glowing screen, FUSE knob and a slim control strip, deep tube housing.
 // Everything is built from primitives — no model download, nothing to license.
 // The screen is a canvas texture that "changes channel" with the conversation (setChannel):
-//   0 — the problem: no signal (live grain)   1 — the answer: brand-blue broadcast with our line (live)
+//   0 — the problem: no signal (live grain)   1 — the answer: a website builds itself, block by block (live)
 // Rendering: anti-aliased, ACES filmic, lit by a baked reflection room (one-time cost). It redraws
 // on scroll / mouse tilt, and ~30fps for the live screen only while the scene is on screen. During the About → Stats dissolve the frame goes
 // through a multisampled target and the box-filling mask (about-dissolve.frag).
@@ -30,9 +30,11 @@ const smooth = (a, b, v) => {
 // ---------------------------------------------------------------------------------------------
 // Screen: a 768×576 canvas texture that animates (~30fps) while the scene is on screen.
 //   0 — no signal: moving grain, rolling vertical-hold band, jittering / flickering label
-//   1 — broadcast: brand-blue card with our line, slow roll bar, faint live grain, flicker, REC blink
-// Expensive layers are pre-rendered once (grain frames, broadcast card, tube overlay); a frame is just
-// a few drawImage calls.
+//   1 — build: on a brand-blue grid, website pieces drop in like falling blocks (stepping down cell by
+//       cell, sliding into their column) and lock into a page — footer, cards, hero, nav. A BUILD %
+//       counter climbs; when the page is whole a SITE LIVE banner shows, the blocks blink out, repeat.
+// Expensive layers are pre-rendered once (grain frames, build backdrop, tube overlay); a frame is just
+// a few drawImage / fillRect calls.
 const SW = 768, SH = 576;
 const BRAND = "#2929fd";
 
@@ -88,7 +90,9 @@ function createScreen(reduced) {
     g.restore();
   };
 
-  // Broadcast card (static part)
+  // Build backdrop (static): brand-blue field with a faint cell grid where the page assembles
+  const CELL = 24, COLS = 22, ROWS = 16;
+  const GX = (SW - COLS * CELL) / 2, GY = 118; // grid origin (528 × 384 px)
   const card = makeCanvas(SW, SH);
   {
     const g = card.getContext("2d");
@@ -97,10 +101,111 @@ function createScreen(reduced) {
     bg.addColorStop(1, BRAND);
     g.fillStyle = bg;
     g.fillRect(0, 0, SW, SH);
-    glowText(g, "UNIFLOW:", 98, 238, 42);
-    glowText(g, "WEBSITES THAT", 98, 308, 64);
-    glowText(g, "HOLD ATTENTION", 142, 382, 64);
+    g.fillStyle = "rgba(255,255,255,0.07)";
+    for (let c = 0; c <= COLS; c++) g.fillRect(GX + c * CELL, GY, 1, ROWS * CELL);
+    for (let r = 0; r <= ROWS; r++) g.fillRect(GX, GY + r * CELL, COLS * CELL, 1);
   }
+  // The page, as pieces in cells: [col, row, w, h, colour]. Listed in drop order (bottom-up, so each
+  // piece lands on something). from = the column it spawns in before sliding over.
+  const INK = { white: "#ffffff", soft: "#bcc9ff", teal: "#1bdbce", dark: "#0a0a3c", sky: "#7f9bff" };
+  const PIECES = [
+    { c: 0, r: 14, w: 22, h: 2, col: INK.dark, from: 0 },   // footer
+    { c: 0, r: 10, w: 8, h: 4, col: INK.teal, from: 6 },    // card 1
+    { c: 8, r: 10, w: 7, h: 4, col: INK.white, from: 2 },   // card 2
+    { c: 15, r: 10, w: 7, h: 4, col: INK.dark, from: 9 },   // card 3
+    { c: 12, r: 3, w: 10, h: 7, col: INK.sky, from: 4, img: true }, // hero image
+    { c: 0, r: 8, w: 5, h: 2, col: INK.teal, from: 8 },     // button
+    { c: 0, r: 6, w: 8, h: 2, col: INK.soft, from: 5 },     // subline
+    { c: 0, r: 3, w: 12, h: 3, col: INK.white, from: 3 },   // headline
+    { c: 0, r: 0, w: 5, h: 2, col: INK.white, from: 7 },    // logo
+    { c: 12, r: 0, w: 7, h: 2, col: INK.soft, from: 6 },    // nav links
+    { c: 19, r: 0, w: 3, h: 2, col: INK.teal, from: 12 },   // nav CTA
+  ];
+  const DROP = 0.72, LIVE = 1.9, CLEAR = 0.75; // seconds per piece / banner hold / blink-out
+  const BUILD = PIECES.length * DROP, CYCLE = BUILD + LIVE + CLEAR;
+  const pieceRect = (g, x, y, p, flash) => {
+    const w = p.w * CELL - 3, h = p.h * CELL - 3;
+    g.fillStyle = p.col;
+    g.fillRect(x + 1.5, y + 1.5, w, h);
+    if (p.img) { // a little picture inside the hero image block
+      g.fillStyle = "rgba(10,10,60,0.35)";
+      g.beginPath();
+      g.moveTo(x + 10, y + h - 6);
+      g.lineTo(x + w * 0.42, y + h * 0.42);
+      g.lineTo(x + w * 0.62, y + h * 0.66);
+      g.lineTo(x + w * 0.76, y + h * 0.52);
+      g.lineTo(x + w - 6, y + h - 6);
+      g.fill();
+      g.fillStyle = INK.white;
+      g.fillRect(x + w * 0.74, y + 14, 14, 14);
+    }
+    // bevel: light top-left, dark bottom-right — reads as a chunky block on the CRT
+    g.fillStyle = "rgba(255,255,255,0.45)";
+    g.fillRect(x + 1.5, y + 1.5, w, 3);
+    g.fillRect(x + 1.5, y + 1.5, 3, h);
+    g.fillStyle = "rgba(0,0,30,0.28)";
+    g.fillRect(x + 1.5, y + h - 1.5, w, 3);
+    g.fillRect(x + w - 1.5, y + 1.5, 3, h);
+    if (flash > 0) {
+      g.fillStyle = `rgba(255,255,255,${flash * 0.85})`;
+      g.fillRect(x + 1.5, y + 1.5, w, h);
+    }
+  };
+  // One frame of the build at time `bt` (seconds since the channel came on)
+  const drawBuild = (g, bt) => {
+    const lt = bt % CYCLE;
+    const clearing = lt > BUILD + LIVE;
+    const blinkOff = clearing && Math.floor((lt - BUILD - LIVE) / 0.12) % 2 === 1;
+    const gone = clearing && lt - BUILD - LIVE > CLEAR * 0.8;
+    let placed = 0;
+    if (!gone) {
+      PIECES.forEach((p, i) => {
+        const start = i * DROP;
+        if (lt < start) return;
+        const f = Math.min(1, (lt - start) / (DROP * 0.8)); // land at 80% of the slot, rest after
+        if (f >= 1) placed++;
+        if (blinkOff) return;
+        const row = f >= 1 ? p.r : Math.floor(lerp(-p.h - 1, p.r, f * f)); // steps down cell by cell, accelerating
+        const col = f >= 1 ? p.c : Math.round(lerp(p.from, p.c, smooth(0, 0.65, f)));
+        const landedFor = lt - start - DROP * 0.8;
+        const flash = clearing ? 0.5 : landedFor >= 0 && landedFor < 0.18 ? 1 - landedFor / 0.18 : 0;
+        g.save();
+        g.beginPath();
+        g.rect(GX, GY, COLS * CELL, ROWS * CELL); // pieces enter from above the grid
+        g.clip();
+        pieceRect(g, GX + col * CELL, GY + row * CELL, p, flash);
+        g.restore();
+      });
+    }
+    // HUD: build progress (top right)
+    const pct = Math.round((placed / PIECES.length) * 100);
+    g.save();
+    g.font = `500 26px "JetBrains Mono", ui-monospace, monospace`;
+    g.fillStyle = "#7df9ff";
+    g.shadowColor = "rgba(125,249,255,0.9)";
+    g.shadowBlur = 10;
+    g.textAlign = "right";
+    g.fillText(`BUILD ${String(pct).padStart(3, " ")}%`, SW - 52, 78);
+    g.restore();
+    // Complete: SITE LIVE banner
+    if (lt > BUILD && !clearing) {
+      const k = Math.min(1, (lt - BUILD) / 0.25);
+      g.save();
+      g.globalAlpha = k;
+      g.fillStyle = "rgba(6,6,40,0.86)";
+      g.fillRect(SW / 2 - 190, SH / 2 - 44, 380, 92);
+      g.strokeStyle = INK.teal;
+      g.lineWidth = 3;
+      g.strokeRect(SW / 2 - 190, SH / 2 - 44, 380, 92);
+      glowText(g, "SITE LIVE", SW / 2 - 150, SH / 2 + 22, 54);
+      g.fillStyle = INK.teal;
+      g.fillRect(SW / 2 + 128, SH / 2 - 14, 30, 30);
+      g.fillStyle = "#06062a";
+      g.font = `800 26px "Helvetica Neue", Helvetica, Arial, sans-serif`;
+      g.fillText("✓", SW / 2 + 134, SH / 2 + 10);
+      g.restore();
+    }
+  };
   // Tube overlay: scanlines, glare spot, curved-edge vignette
   const tube = makeCanvas(SW, SH);
   {
@@ -131,6 +236,7 @@ function createScreen(reduced) {
   }
 
   let channel = 0;
+  let channelAt = 0; // when the current channel came on — the build restarts from an empty grid
   let onChange = () => {};
   let lastFrame = -1;
   // Power: 0 = off (black glass). Switching on plays the classic CRT turn-on over ~0.9s:
@@ -195,7 +301,12 @@ function createScreen(reduced) {
     } else {
       ctx.imageSmoothingEnabled = true;
       const jy = Math.sin(t * 2.1) * 1.2 + (Math.random() < 0.03 ? 3 : 0);
-      ctx.drawImage(card, 0, jy);
+      ctx.save();
+      ctx.translate(0, jy);
+      ctx.drawImage(card, 0, 0);
+      // reduced motion: a still of the finished page
+      drawBuild(ctx, reduced ? BUILD + 0.5 : (now - channelAt) / 1000);
+      ctx.restore();
       ctx.drawImage(band, 0, ((t * 60) % (SH + 160)) - 160, SW, 160);
       ctx.globalAlpha = 0.07;
       ctx.imageSmoothingEnabled = false;
@@ -205,13 +316,6 @@ function createScreen(reduced) {
       ctx.fillRect(0, 0, SW, SH);
       ctx.globalAlpha = 1;
       osd(ctx, "CH 002");
-      if (Math.floor(t * 1.6) % 2 === 0) {
-        ctx.fillStyle = "#ff3b30";
-        ctx.beginPath();
-        ctx.arc(SW - 92, 68, 9, 0, Math.PI * 2);
-        ctx.fill();
-        osd(ctx, "", 1);
-      }
     }
     ctx.imageSmoothingEnabled = true;
   }
@@ -222,6 +326,7 @@ function createScreen(reduced) {
     paint(ch) {
       if (ch === channel && lastFrame >= 0) return;
       channel = ch;
+      channelAt = performance.now();
       draw(performance.now());
       lastFrame = performance.now();
       onChange();
