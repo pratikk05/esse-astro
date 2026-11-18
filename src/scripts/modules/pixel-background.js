@@ -58,8 +58,12 @@ function initBayer(el) {
 
   if (el.dataset.ripples === "1") {
     let next = 0;
-    (el.parentNode || el).addEventListener("pointerdown", (e) => {
+    // Listen on the whole section: its content sits above the canvas, so a listener on the canvas'
+    // own wrapper never saw clicks on the copy. Coordinates are mapped into the canvas, so a click
+    // anywhere in the section ripples from the right spot.
+    (el.closest("section, [data-cta-scene]") || el.parentNode || el).addEventListener("pointerdown", (e) => {
       const rect = canvas.getBoundingClientRect();
+      if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
       uniforms.uClickPos.value[next].set(
         (e.clientX - rect.left) * (canvas.width / rect.width),
         (rect.height - (e.clientY - rect.top)) * (canvas.height / rect.height)

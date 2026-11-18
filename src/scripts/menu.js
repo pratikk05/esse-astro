@@ -2,6 +2,7 @@
 // Desktop (>= 992px): card reveals downward from behind the CTA buttons.
 // Mobile: full-screen white panel reveals from the top; logo + toggle swap to the dark versions.
 import gsap from "gsap";
+import { scrollToTarget } from "./lib/scroll-to.js";
 
 const DESKTOP = "(min-width: 62rem)";
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -116,11 +117,7 @@ function initMenu(root) {
         return;
       }
       await close({ restoreFocus: false });
-      const target = href === "#top" ? 0 : document.querySelector(href);
-      if (target === null) return;
-      if (window.lenis) window.lenis.scrollTo(target, { duration: 1.4 });
-      else if (target === 0) window.scrollTo({ top: 0, behavior: "smooth" });
-      else target.scrollIntoView({ behavior: "smooth" });
+      scrollToTarget(href === "#top" ? 0 : document.querySelector(href));
     });
   });
 

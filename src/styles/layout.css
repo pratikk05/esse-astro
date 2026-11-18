@@ -44,9 +44,7 @@
     inset: 0;
     z-index: -1;
     pointer-events: none;
-    background-image:
-      linear-gradient(#eef0f080 1px, transparent 1px),
-      linear-gradient(90deg, #eef0f080 1px, transparent 1px);
+    background-image: var(--line-grid);
     background-size: 12px 12px;
   }
 

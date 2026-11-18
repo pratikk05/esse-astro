@@ -1,9 +1,10 @@
 ---
 /**
- * Preloader — dither overlay that dissolves from a centre seam to reveal the page.
+ * Preloader — dither overlay that dissolves out of its halftone "gap" (where the hero gradient already
+ * shows through) to reveal the page. Chrome mirrors the hero: grid lines + a bottom status bar.
  * Based on the approved "dither-logo-loader" concept, adapted to the site:
  *  - waits for fonts + page load (min 0.9s, max 5s) instead of a fixed timer
- *  - grey-100 overlay, square 5×5 indicator (same square as the section tags), JetBrains Mono label + counter
+ *  - grey-100 overlay; status bar: teal live square + "UI IS LOADING", [ 064 ] counter, pixel progress cells
  *  - all dots are drawn as batched paths (one fill per layer) so the dissolve holds 60fps
  * Elements marked data-reveal lift in while the last cells clear; data-reveal="fade" only fades
  * (used on the header, whose fixed CTA must not get a transformed ancestor).
@@ -125,6 +126,7 @@
   const canvas = wrap?.querySelector("canvas");
 
   if (wrap && canvas) {
+    const preloader: HTMLElement = wrap; // non-null for the hoisted functions below
     const mode = root.dataset.loader; // "load" (preloader) | "enter" (page transition) | undefined
     const ctx = canvas.getContext("2d", { alpha: true })!;
     const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -153,6 +155,37 @@
 
     let W = 0, H = 0, dpr = 1, step = 9, cols = 0, rows = 0;
     let thresholds = new Float32Array(0);
+    let seamT: number | null = null; // time the dissolve froze the gap's shape (null = flat page-transition seam)
+
+    // Centre line of the halftone "gap" at time t (seconds) — the same curve drawCurrent() wobbles along.
+    const gapBase = () => H * 0.44;
+    const gapBand = () => H * (W < 700 ? 0.105 : 0.125);
+    function gapCentre(u: number, t: number) {
+      const band = gapBand(), n1 = valueNoise(u, 0.5, 5.5, 3.5);
+      return gapBase() + Math.sin(u * 7.5 + t * 0.68) * band * 0.29 + Math.sin(u * 15.2 - t * 0.42 + n1 * 2.2) * band * 0.13;
+    }
+
+    function buildThresholds() {
+      for (let gx = 0; gx < cols; gx++) {
+        const u = (gx + 0.5) / cols;
+        const c = seamT === null ? H / 2 : gapCentre(u, seamT);
+        for (let gy = 0; gy < rows; gy++) {
+          const v = (gy + 0.5) / rows, y = v * H;
+          // Distance from the gap, normalised to the far edge on that side: the gap opens first.
+          const d = Math.abs(y - c) / Math.max(1, y < c ? c : H - c);
+          const t =
+            0.006 +
+            d * 0.65 +
+            (valueNoise(u, v, 4.2, 3.2) - 0.5) * 0.15 +
+            (valueNoise(u, v, 15, 11) - 0.5) * 0.085 +
+            (hash2(gx + 41, gy + 83) - 0.5) * 0.045 +
+            (bayer8[gy % 8][gx % 8] / 63 - 0.5) * 0.045 +
+            Math.sin(u * 8.2 + v * 2.6) * 0.038 +
+            Math.sin(u * 16.5 - v * 5.2) * 0.018;
+          thresholds[gy * cols + gx] = Math.max(0.015, Math.min(0.985, t));
+        }
+      }
+    }
 
     function resize() {
       W = innerWidth;
@@ -165,22 +198,7 @@
       cols = Math.ceil(W / step);
       rows = Math.ceil(H / step);
       thresholds = new Float32Array(cols * rows);
-      for (let gy = 0; gy < rows; gy++) {
-        for (let gx = 0; gx < cols; gx++) {
-          const u = (gx + 0.5) / cols, v = (gy + 0.5) / rows;
-          // The centre seam opens first; noise + ordered dither break the edge into organic patches.
-          const t =
-            0.006 +
-            Math.abs(v - 0.5) * 2 * 0.65 +
-            (valueNoise(u, v, 4.2, 3.2) - 0.5) * 0.15 +
-            (valueNoise(u, v, 15, 11) - 0.5) * 0.085 +
-            (hash2(gx + 41, gy + 83) - 0.5) * 0.045 +
-            (bayer8[gy % 8][gx % 8] / 63 - 0.5) * 0.045 +
-            Math.sin(u * 8.2 + v * 2.6) * 0.038 +
-            Math.sin(u * 16.5 - v * 5.2) * 0.018;
-          thresholds[gy * cols + gx] = Math.max(0.015, Math.min(0.985, t));
-        }
-      }
+      buildThresholds();
     }
 
     /** Living halftone current: transparent holes that let the hero gradient show through. */
@@ -208,7 +226,7 @@
     function drawCurrent(now: number, strength: number) {
       const t = now * 0.001, mobile = W < 700;
       const spacing = mobile ? 8.5 : 10.5;
-      const baseY = H * 0.44, band = H * (mobile ? 0.105 : 0.125);
+      const baseY = gapBase(), band = gapBand();
       const { nCols, nRows, n1: N1, n2: N2, h: HASH } = currentCache(spacing, band);
       // Three opacity buckets → three fills instead of one fill per dot.
       const paths = [new Path2D(), new Path2D(), new Path2D()];
@@ -238,31 +256,49 @@
       ctx.globalCompositeOperation = "source-over";
     }
 
-    const perimeter = [[0, 0], [1, 0], [2, 0], [3, 0], [4, 0], [4, 1], [4, 2], [4, 3], [4, 4], [3, 4], [2, 4], [1, 4], [0, 4], [0, 3], [0, 2], [0, 1]];
+    /**
+     * Loader chrome in the site's UI language (mirrors the hero): faint 5-column grid lines, a hairline
+     * status bar at the bottom — teal live square + "UI IS LOADING" · [ 064 ] counter · pixel progress cells.
+     */
+    function drawChrome(now: number, percent: number, strength: number) {
+      const mobile = W < 700, pad = mobile ? 16 : 32;
+      ctx.fillStyle = `rgba(255,255,255,${0.07 * strength})`; // --color-line-on-dark
+      for (let k = 1; k < 5; k++) ctx.fillRect(Math.round((W * k) / 5), 0, 1, H);
+      const barTop = H - (mobile ? 104 : 88);
+      ctx.fillRect(0, barTop, W, 1);
 
-    /** 5×5 square-dot indicator + mono label and counter (site label style). */
-    function drawIndicator(now: number, percent: number, strength: number) {
-      const mobile = W < 700, pitch = mobile ? 8 : 9, dot = 3, size = 4 * pitch;
-      const bottom = Math.max(78, Math.min(H * 0.13, 128));
-      const cx = W / 2, originX = Math.round(cx - size / 2), originY = Math.round(H - bottom - size - 28);
-      ctx.fillStyle = `rgba(227,232,232,${0.26 * strength})`; // grey-10
-      for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) ctx.fillRect(originX + c * pitch - dot / 2, originY + r * pitch - dot / 2, dot, dot);
-      // Three bright squares travel the perimeter; the head eases between nodes instead of snapping.
-      const pos = (now / 120) % perimeter.length, head = Math.floor(pos), frac = pos - head;
-      [1, 0.72, 0.46].forEach((alpha, trail) => {
-        const [c, r] = perimeter[(head - trail + perimeter.length) % perimeter.length];
-        const a = trail === 0 ? alpha * (0.55 + 0.45 * smooth01(frac)) : alpha;
-        ctx.fillStyle = `rgba(255,255,255,${a * strength})`;
-        ctx.fillRect(originX + c * pitch - dot / 2 - 0.5, originY + r * pitch - dot / 2 - 0.5, dot + 1, dot + 1);
-      });
-      ctx.textAlign = "center";
-      ctx.textBaseline = "top";
-      ctx.font = "600 10px Jetbrainsmono, ui-monospace, monospace"; // Figma Label 04
-      if ("letterSpacing" in ctx) (ctx as any).letterSpacing = "-0.1px";
-      ctx.fillStyle = `rgba(200,210,210,${0.9 * strength})`; // grey-20
-      ctx.fillText("LOADING", cx, originY + size + 14);
-      ctx.fillStyle = `rgba(109,119,119,${strength})`; // grey-50
-      ctx.fillText(`[ ${String(Math.round(percent)).padStart(3, "0")} ]`, cx, originY + size + 30);
+      ctx.font = "600 12px Jetbrainsmono, ui-monospace, monospace"; // text-12
+      if ("letterSpacing" in ctx) (ctx as any).letterSpacing = "-0.12px";
+      ctx.textBaseline = "middle";
+      const rowY = barTop + (mobile ? 30 : 36);
+
+      // Left: teal "live" square + soft ping (same as the hero's AVAILABLE square)
+      const sq = 4, sx = pad, sy = Math.round(rowY - sq / 2);
+      const ping = (now % 1600) / 1600;
+      ctx.strokeStyle = `rgba(27,219,206,${(1 - ping) * 0.6 * strength})`;
+      ctx.lineWidth = 1;
+      const pr = sq / 2 + ping * 7;
+      ctx.strokeRect(sx + sq / 2 - pr, sy + sq / 2 - pr, pr * 2, pr * 2);
+      ctx.fillStyle = `rgba(27,219,206,${strength})`; // --color-accent
+      ctx.fillRect(sx, sy, sq, sq);
+      ctx.textAlign = "left";
+      ctx.fillStyle = `rgba(227,232,232,${strength})`; // grey-10
+      ctx.fillText(percent >= 99.5 ? "UI READY" : "UI IS LOADING", sx + 14, rowY);
+
+      // Centre (desktop) / under the label (mobile): counter
+      const counter = `[ ${String(Math.round(percent)).padStart(3, "0")} ]`;
+      ctx.fillStyle = `rgba(146,156,156,${strength})`; // grey-40
+      if (mobile) { ctx.textAlign = "left"; ctx.fillText(counter, sx + 14, rowY + 24); }
+      else { ctx.textAlign = "center"; ctx.fillText(counter, W / 2, rowY); }
+
+      // Right: pixel progress cells
+      const cells = mobile ? 12 : 16, cs = 6, gap = 3, total = cells * cs + (cells - 1) * gap;
+      const cx0 = W - pad - total, filled = (percent / 100) * cells;
+      for (let i = 0; i < cells; i++) {
+        const f = clamp01(filled - i);
+        ctx.fillStyle = `rgba(255,255,255,${(0.14 + 0.86 * f) * strength})`;
+        ctx.fillRect(cx0 + i * (cs + gap), Math.round(rowY - cs / 2), cs, cs);
+      }
     }
 
     function draw(p: number, now: number, percent: number, marks = true) {
@@ -277,7 +313,7 @@
         // page transition: plain ink, no loader marks
       } else if (strength > 0.01) {
         drawCurrent(now, 0.35 + 0.65 * strength);
-        drawIndicator(now, percent, strength);
+        drawChrome(now, percent, strength);
       } else {
         drawCurrent(now, 0.35);
       }
@@ -304,15 +340,15 @@
     const lenis = () => (window as any).lenis;
     let raf = 0;
     const show = () => {
-      wrap.style.display = "block";
-      wrap.classList.add("is-running"); // the canvas paints the ink; holes show the page
+      preloader.style.display = "block";
+      preloader.classList.add("is-running"); // the canvas paints the ink; holes show the page
     };
     const hide = () => {
       cancelAnimationFrame(raf);
-      wrap.style.display = "";
-      wrap.classList.remove("is-running");
+      preloader.style.display = "";
+      preloader.classList.remove("is-running");
     };
-    addEventListener("resize", () => wrap.style.display === "block" && resize());
+    addEventListener("resize", () => preloader.style.display === "block" && resize());
 
     /**
      * Reveal: dither opens from the centre seam.
@@ -320,6 +356,7 @@
      * without marks it is the short page-transition entrance.
      */
     function reveal(marks: boolean) {
+      seamT = null;
       const MIN_HOLD = reduce ? 100 : marks ? 900 : 60;
       const MAX_HOLD = marks ? 5000 : 1200;
       const DISSOLVE = reduce ? 250 : marks ? 2300 : 1250;
@@ -353,7 +390,7 @@
         liftContent();
         hide();
         delete root.dataset.loader;
-        wrap.removeEventListener("click", finish);
+        preloader.removeEventListener("click", finish);
         lenis()?.start();
         setTimeout(() => root.classList.remove("is-revealing"), 1800);
         document.dispatchEvent(new CustomEvent("uniflow:loaded"));
@@ -370,7 +407,10 @@
           // Counter chases the real load state, capped until the dissolve begins.
           const target = Math.min(99, Math.max(loaded * 100, (elapsed / MAX_HOLD) * 100));
           shown += (target - shown) * (1 - Math.exp(-dt / 220));
-          if ((loaded >= 1 && elapsed >= MIN_HOLD && (!marks || shown > 96)) || elapsed >= MAX_HOLD) dissolveAt = now;
+          if ((loaded >= 1 && elapsed >= MIN_HOLD && (!marks || shown > 96)) || elapsed >= MAX_HOLD) {
+            dissolveAt = now;
+            if (marks) { seamT = now * 0.001; buildThresholds(); } // open from the visible gap
+          }
         } else {
           shown += (100 - shown) * (1 - Math.exp(-dt / 90));
         }
@@ -383,12 +423,13 @@
       resize();
       draw(0, performance.now(), 0, marks);
       show();
-      if (marks) wrap.addEventListener("click", finish); // click to skip
+      if (marks) preloader.addEventListener("click", finish); // click to skip
       raf = requestAnimationFrame(frame);
     }
 
     /** Cover: the same dither closes back onto the seam, then the browser navigates. */
     function leave(url: string) {
+      seamT = null;
       try {
         sessionStorage.setItem("uniflow:transition", "1");
       } catch {}
@@ -399,13 +440,13 @@
       resize();
       draw(1, performance.now(), 0, false);
       show();
-      wrap.style.cursor = "default";
+      preloader.style.cursor = "default";
       const frame = (now: number) => {
         if (!start) start = now;
         const raw = clamp01((now - start) / DURATION);
         draw(1 - easeInOut(raw), now, 0, false);
         if (raw < 1) return void (raf = requestAnimationFrame(frame));
-        wrap.classList.remove("is-running"); // solid ink while the next page loads
+        preloader.classList.remove("is-running"); // solid ink while the next page loads
         location.href = url;
       };
       raf = requestAnimationFrame(frame);
@@ -442,7 +483,7 @@
       resize();
       draw(0, performance.now(), 0, false);
       show();
-      wrap.classList.remove("is-running"); // solid ink background too, in case the canvas is discarded
+      preloader.classList.remove("is-running"); // solid ink background too, in case the canvas is discarded
     });
 
     // Back/forward cache: the page comes back still covered — open it again.

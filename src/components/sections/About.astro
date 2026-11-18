@@ -89,7 +89,7 @@ const insights = [
               )}
               {c.kind === "metric" && (
                 <>
-                  <p class="insight-value"><span data-insight-num data-bad={c.bad} data-good={c.good} data-dec={c.dec ?? 0}>{c.bad}</span>{c.unit}</p>
+                  <p class="insight-value"><span data-insight-num data-bad={c.bad} data-good={c.good} data-dec="0">{c.bad}</span>{c.unit}</p>
                   <div class="insight-meter" style={`--bad:${c.meterBad};--good:${c.meterGood}`}><i></i></div>
                   <p class="insight-note text-12 uppercase"><b class="insight-when-bad">{c.worse}</b><b class="insight-when-good">{c.better}</b></p>
                 </>
@@ -108,7 +108,7 @@ const insights = [
               )}
               {c.kind === "review" && (
                 <div class="insight-review">
-                  <p class="insight-stars"><b class="insight-when-bad">{"★".repeat(c.badStars)}<s>{"★".repeat(5 - c.badStars)}</s></b><b class="insight-when-good">{"★".repeat(c.goodStars)}</b></p>
+                  <p class="insight-stars"><b class="insight-when-bad">{"★".repeat(c.badStars ?? 0)}<s>{"★".repeat(5 - (c.badStars ?? 0))}</s></b><b class="insight-when-good">{"★".repeat(c.goodStars ?? 5)}</b></p>
                   <p class="insight-quote"><b class="insight-when-bad">“{c.badQuote}”</b><b class="insight-when-good">“{c.goodQuote}”</b></p>
                 </div>
               )}
@@ -163,7 +163,7 @@ const insights = [
       inset: 0;
       /* Same 12px line grid as Works / Team (.section-pixel); about-dissolve.frag paints the identical
          grid during the pixel dissolve, so keep the two in sync. */
-      background-image: linear-gradient(#eef0f080 1px, transparent 1px), linear-gradient(90deg, #eef0f080 1px, transparent 1px);
+      background-image: var(--line-grid);
       background-size: 12px 12px;
     }
 

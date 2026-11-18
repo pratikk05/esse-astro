@@ -74,17 +74,16 @@
   <!-- Script lives inside the section: a <script> rendered between sections would break the
        next-sibling overlap (CSS `+ section`, section-overlap.js / about-scene.js nextElementSibling). -->
   <script>
-    // "Scroll to explore" glides to the logo strip (through Lenis when it's running).
-    document.querySelectorAll<HTMLAnchorElement>("[data-hero-scroll]").forEach((link) => {
+    import { scrollToTarget } from "../../scripts/lib/scroll-to.js";
+    // "Scroll to explore" glides to the logo strip
+    document.querySelectorAll<HTMLAnchorElement>("[data-hero-scroll]").forEach((link) =>
       link.addEventListener("click", (e) => {
         const target = document.querySelector(link.hash);
         if (!target) return;
         e.preventDefault();
-        const lenis = (window as any).lenis;
-        if (lenis) lenis.scrollTo(target);
-        else target.scrollIntoView({ behavior: "smooth" });
-      });
-    });
+        scrollToTarget(target);
+      }),
+    );
   </script>
 </section>
 

@@ -41,16 +41,14 @@ const members = [{ name: "John Doe" }, { name: "John Doe" }];
 </section>
 
 <style is:global>
-  @font-face{font-family:TeamSans;src:url("/uniflow/fonts/42dotSansLight-7bcc.woff2");font-weight:100 900;font-display:swap}
-  @font-face{font-family:TeamMono;src:url("/uniflow/fonts/JetBrainsMono-c112.woff2");font-weight:100 800;font-display:swap}
   /* Section frame: height follows the scaled 1440×900 artboard on desktop (min one screen). */
   .team-section{position:relative;min-height:100svh;height:max(100svh,62.5vw);overflow:hidden}
-  .team-section .tm-canvas{font-family:TeamSans,Arial,sans-serif;color:#000203;transform:scale(var(--team-scale,1))}
+  .team-section .tm-canvas{font-family:Uniflow,Arial,sans-serif;color:#000203;transform:scale(var(--team-scale,1))}
   .team-section .white-fade{z-index:2;pointer-events:none}
   @media(max-width:767px){.team-section{height:auto;min-height:0}}
 .team-section .tm-canvas{position:relative;width:1440px;height:900px;transform-origin:top left;background:transparent}
 .team-section .tm-heading{position:absolute;left:32.55px;top:307.69px;width:411px;padding:40px;background:#fff}
-.team-section .tm-eyebrow{display:flex;gap:12px;align-items:center;font:600 12px/1 TeamMono,monospace;letter-spacing:-.12px;color:#586464;margin:0 0 16px}
+.team-section .tm-eyebrow{display:flex;gap:12px;align-items:center;font:600 12px/1 UniflowMono,monospace;letter-spacing:-.12px;color:#586464;margin:0 0 16px}
 .team-section .tm-eyebrow:before{content:'';width:4px;height:4px;background:#586464}
 .team-section .tm-title{font-size:56px;font-weight:500;line-height:1.2;letter-spacing:-3.36px;margin:0;text-transform:capitalize}
 .team-section .tm-copy{position:absolute;left:994.608px;top:348.66px;width:414px;height:197.01px;background:#fff;color:#3c4646;font-size:14px;line-height:1.4;font-weight:500;letter-spacing:-.28px}
@@ -65,7 +63,7 @@ const members = [{ name: "John Doe" }, { name: "John Doe" }];
 .team-section .tm-dot img{width:8px;height:8px;display:block}
 .team-section .tm-dot:focus-visible{outline:1px solid #2929fd;border-radius:50%;outline-offset:2px}
 .team-section .tm-reveal{position:absolute;inset:0;pointer-events:none}
-.team-section .tm-name{position:absolute;left:-61.74px;top:-27.49px;width:90.086px;height:39.6px;background:#2929fd;color:#fff;border-radius:8px;padding:10px;display:flex;justify-content:center;align-items:center;white-space:nowrap;font:400 14px/1.4 TeamSans;letter-spacing:-.28px}
+.team-section .tm-name{position:absolute;left:-61.74px;top:-27.49px;width:90.086px;height:39.6px;background:#2929fd;color:#fff;border-radius:8px;padding:10px;display:flex;justify-content:center;align-items:center;white-space:nowrap;font:400 14px/1.4 Uniflow;letter-spacing:-.28px}
 .team-section .tm-badge{position:absolute;background:#d9e5ff;border-radius:4.023px;display:flex;align-items:center;justify-content:center;padding:4.023px 6.705px}
 .team-section .tm-badge.tm-one{left:39.3px;top:12.3px;transform:rotate(24deg);width:23.335px;height:18.046px}
 .team-section .tm-badge.tm-two{left:-60.5px;top:16.5px;transform:rotate(-34.54deg);width:25.951px;height:20.587px}
@@ -96,9 +94,8 @@ const members = [{ name: "John Doe" }, { name: "John Doe" }];
 .team-section .tm-dot{z-index:3}
 .team-section .tm-letters{display:inline-flex;white-space:nowrap;line-height:1.4}
 .team-section .tm-letter{display:inline-block;will-change:transform,opacity}
-@font-face{font-family:TeamPixel;src:url('/uniflow/fonts/GeistPixel-c446.woff2') format('truetype');font-weight:100 900;font-display:swap}
 .team-section .tm-heading{width:440px}
-.team-section .tm-title{font-family:TeamPixel,sans-serif;font-size:48px;font-weight:400;line-height:1.1;letter-spacing:-1.92px;font-variation-settings:"ELSH" 0}
+.team-section .tm-title{font-family:GeistPixel,sans-serif;font-size:48px;font-weight:400;line-height:1.1;letter-spacing:-1.92px;font-variation-settings:"ELSH" 0}
 .team-section .tm-eyebrow{gap:8px}
 .team-section .tm-eyebrow:before{background:#2929fd;flex:none}
 @media(max-width:767px){

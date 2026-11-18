@@ -13,6 +13,10 @@
 @font-face { font-family: "42 Dotsans"; src: url("/fonts/42dotsans-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
 @font-face { font-family: "42 Dotsans"; src: url("/fonts/42dotsans-medium.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
 @font-face { font-family: "42 Dotsans"; src: url("/fonts/42dotsans-extrabold.woff2") format("woff2"), url("/fonts/42dotsans-bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+/* Variable fonts shared by the Services + Team sections (declared once) */
+@font-face { font-family: Uniflow; src: url("/uniflow/fonts/42dotSansLight-7bcc.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: UniflowMono; src: url("/uniflow/fonts/JetBrainsMono-c112.woff2") format("woff2"); font-weight: 100 800; font-display: swap; }
+@font-face { font-family: GeistPixel; src: url("/uniflow/fonts/GeistPixel-c446.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
 
 @layer base {
   /* ---------- Normalize ---------- */

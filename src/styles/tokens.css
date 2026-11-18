@@ -72,6 +72,8 @@
   --color-border-stat: #4a5dff;
   --color-line-on-dark: #ffffff12;   /* hero/grid hairlines on black */
   --color-line-on-light: #00000012;  /* grid hairlines on grey */
+  /* 12px line grid (Logo strip, About, Works/Team .section-pixel; about-dissolve.frag paints the same) */
+  --line-grid: linear-gradient(#eef0f080 1px, transparent 1px), linear-gradient(90deg, #eef0f080 1px, transparent 1px);
 
   --color-success: #cef5ca;
   --color-success-dark: #114e0b;

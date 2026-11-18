@@ -11,21 +11,14 @@ import WorkIcon from "../../assets/svg/icon-work.svg";
 interface Props {
   size?: "large" | "small";
   name: string;
-  industry: string;
-  year: string;
-  duration: string;
+  /** Detail rows for the hover panel, e.g. [["Industry", "Construction"], ["Platform", "Webflow"]] */
+  details: [string, string][];
   cover: { src: string; srcset?: string; alt?: string };
   /** Screens shown in the hover preview window */
   gallery?: string[];
 }
 
-const { size = "large", name, industry, year, duration, cover, gallery = [] } = Astro.props;
-
-const meta = [
-  ["Industry", industry],
-  ["Year", year],
-  ["Duration", duration],
-];
+const { size = "large", name, details: meta, cover, gallery = [] } = Astro.props;
 ---
 
 <article
