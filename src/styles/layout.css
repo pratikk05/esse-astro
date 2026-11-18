@@ -253,6 +253,15 @@
      border, arrow tile and label together. */
   .overlap-sticky .project-cta {
     filter: blur(calc(var(--overlap-blur, 0px) * 0.45));
+    /* Build the filter layer up front — otherwise Chrome creates it on the first non-zero blur and the
+       button stays sharp for a frame or two on the first scroll. */
+    will-change: filter;
+  }
+  /* While the hero is being covered the blur must track the scroll 1:1. The preloader's intro leaves a
+     1s filter transition on [data-reveal] for ~1.8s after load (unlayered, hence !important), which made
+     the blur lag if you scrolled early. Keep only the button's own hover transitions. */
+  .overlap-sticky.is-overlapping .project-cta {
+    transition-property: border-color, color !important;
   }
 }
 

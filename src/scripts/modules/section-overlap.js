@@ -103,6 +103,7 @@ function initPair(under) {
       onEnterBack: () => plain && (under.style.visibility = ""),
       onUpdate: (st) => {
         if (!plain) return;
+        under.classList.toggle("is-overlapping", st.progress > 0); // drops the intro's filter transition (layout.css)
         const b = Math.sqrt(st.progress) * 16; // builds fast, up to 16px
         under.style.setProperty("--overlap-blur", `${b.toFixed(2)}px`);
         // Sharp glyph core fades out over the first ~1.5px of blur, so what's left is the blurred copy.

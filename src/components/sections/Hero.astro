@@ -1,5 +1,4 @@
 ---
-import GlobeIcon from "../../assets/svg/globe.svg";
 ---
 
 <section class="section bg-black text-white" data-overlap-under="plain">
@@ -9,20 +8,31 @@ import GlobeIcon from "../../assets/svg/globe.svg";
     data-reveal="fade" style="--reveal-order: 4"
   >
     <div class="container-wide">
-      <div
-        class="grid grid-cols-1 items-center justify-items-start gap-figma-8 sm:grid-cols-3 sm:gap-0"
-      >
-        <div class="flex items-center justify-center gap-figma-10">
-          <span class="size-1 flex-none bg-white" aria-hidden="true"></span>
+      <!-- Mobile: Available on its own row, Mumbai + Scroll below. Desktop: Available · Scroll (centre) · Mumbai (right). -->
+      <div class="hero-status">
+        <div class="hero-status-item hero-available">
+          <span class="hero-dot" aria-hidden="true"></span>
           <p class="text-12">AVAILABLE FOR NEW PROJECTS</p>
         </div>
-        <div
-          class="flex items-center justify-center gap-figma-10 sm:justify-self-center"
-        >
-          <GlobeIcon class="hero-globe" aria-hidden="true" />
+        <a class="hero-status-item hero-scroll" href="#clients" data-hero-scroll>
+          <span class="hero-scroll-icon" aria-hidden="true">
+            <svg viewBox="0 0 12 12" width="12" height="12" fill="none"><path d="M6 1v10M1.5 6.5 6 11l4.5-4.5" stroke="currentColor" stroke-width="1.2" /></svg>
+          </span>
+          <p class="text-12">SCROLL TO EXPLORE</p>
+        </a>
+        <div class="hero-status-item hero-location">
+          <!-- Wireframe globe: meridians sweep (scaleX) on a staggered loop so it reads as slowly turning -->
+          <svg class="hero-globe" viewBox="0 0 21 21" fill="none" aria-hidden="true">
+            <g stroke="currentColor" stroke-width="0.8">
+              <circle cx="10.5" cy="10.5" r="9.6" />
+              <path d="M0.9 10.5h19.2M2.6 5.6h15.8M2.6 15.4h15.8" />
+              <ellipse class="hero-meridian" cx="10.5" cy="10.5" rx="9.6" ry="9.6" vector-effect="non-scaling-stroke" />
+              <ellipse class="hero-meridian" cx="10.5" cy="10.5" rx="9.6" ry="9.6" vector-effect="non-scaling-stroke" />
+              <ellipse class="hero-meridian" cx="10.5" cy="10.5" rx="9.6" ry="9.6" vector-effect="non-scaling-stroke" />
+            </g>
+          </svg>
           <p class="text-12">BASED IN MUMBAI</p>
         </div>
-        <p class="text-12 sm:justify-self-end">©2K26</p>
       </div>
     </div>
   </div>
@@ -55,9 +65,27 @@ import GlobeIcon from "../../assets/svg/globe.svg";
     </div>
   </div>
 
+  <!-- Soft top scrim: keeps the logo / nav legible over the bright gradient without dimming the headline -->
+  <div class="hero-top-scrim" aria-hidden="true"></div>
+
   <div class="grid-lines" aria-hidden="true">
     <div></div><div></div><div></div><div></div>
   </div>
+  <!-- Script lives inside the section: a <script> rendered between sections would break the
+       next-sibling overlap (CSS `+ section`, section-overlap.js / about-scene.js nextElementSibling). -->
+  <script>
+    // "Scroll to explore" glides to the logo strip (through Lenis when it's running).
+    document.querySelectorAll<HTMLAnchorElement>("[data-hero-scroll]").forEach((link) => {
+      link.addEventListener("click", (e) => {
+        const target = document.querySelector(link.hash);
+        if (!target) return;
+        e.preventDefault();
+        const lenis = (window as any).lenis;
+        if (lenis) lenis.scrollTo(target);
+        else target.scrollIntoView({ behavior: "smooth" });
+      });
+    });
+  </script>
 </section>
 
 <style>
@@ -74,9 +102,110 @@ import GlobeIcon from "../../assets/svg/globe.svg";
       width: 22.5em; /* 315px at 14px */
       max-width: 100%;
     }
+    /* ---- Bottom status bar ---- */
+    /* Mobile (Figma "Home Page - Mobile UI"): two left-aligned rows, Available then Mumbai.
+       Scroll joins from tablet up — on a phone it only crowded the row. */
+    .hero-status {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-areas: "available" "location";
+      align-items: center;
+      row-gap: 0.75rem;
+    }
+    .hero-available { grid-area: available; }
+    .hero-location { grid-area: location; }
+    .hero-scroll { grid-area: scroll; }
+    .hero-status .hero-scroll { display: none; }
+    @media (width >= 40rem) {
+      .hero-status .hero-scroll { display: flex; }
+      .hero-status {
+        grid-template-columns: 1fr auto 1fr;
+        grid-template-areas: "available scroll location";
+      }
+      .hero-scroll { justify-self: center; }
+      .hero-location { justify-self: end; }
+    }
+    .hero-status-item {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+    }
+    .hero-status-item p {
+      margin: 0;
+    }
+    /* Phones: every icon sits in the same 21px slot so the labels start on one line */
+    @media (width < 40rem) {
+      .hero-dot {
+        margin-inline: calc((1.3106rem - 0.25rem) / 2);
+      }
+    }
+
+    /* Available: teal "live" square with a soft ping */
+    .hero-dot {
+      position: relative;
+      flex: none;
+      width: 0.25rem;
+      height: 0.25rem;
+      background: var(--color-accent);
+    }
+    .hero-dot::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border: 1px solid var(--color-accent);
+      opacity: 0;
+    }
+
+    /* Location: wireframe globe, meridians sweep to read as slowly turning */
     .hero-globe {
       width: 1.3106rem; /* 20.97px */
       height: 1.3106rem;
+      overflow: visible;
+    }
+
+    /* Scroll: arrow drops out of the bottom, re-enters from the top, then rests */
+    .hero-scroll {
+      color: inherit;
+      text-decoration: none;
+    }
+    .hero-scroll-icon {
+      display: grid;
+      place-items: center;
+      width: 1.3106rem;
+      height: 1.3106rem;
+      overflow: hidden;
+      border: 1px solid var(--color-line-on-dark);
+      border-radius: var(--radius-xs);
+      transition: border-color 0.3s, background-color 0.3s, color 0.3s;
+    }
+    .hero-scroll:focus-visible {
+      outline: 1px solid var(--color-white);
+      outline-offset: 4px;
+    }
+
+    /* ---- Continuous, low-key loops (slow, small, low contrast so they never pull focus) ---- */
+    .hero-dot::after {
+      animation: hero-ping 2.8s cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+    }
+    .hero-meridian {
+      transform-box: fill-box;
+      transform-origin: center;
+      opacity: 0.85;
+      animation: hero-meridian 9s ease-in-out infinite;
+    }
+    .hero-meridian:nth-of-type(2) { animation-delay: -3s; }
+    .hero-meridian:nth-of-type(3) { animation-delay: -6s; }
+    .hero-scroll-icon svg {
+      animation: hero-arrow-drop 2.6s var(--ease-esse) infinite;
+    }
+    /* Scroll is a link: hover still fills the box */
+    .hero-scroll:is(:hover, :focus-visible) .hero-scroll-icon {
+      border-color: var(--color-white);
+      background: var(--color-white);
+      color: var(--color-black);
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .hero-dot::after, .hero-scroll-icon svg, .hero-meridian { animation: none !important; }
     }
 
     @media (width < 48rem) {
@@ -89,6 +218,21 @@ import GlobeIcon from "../../assets/svg/globe.svg";
       .hero-intro-block {
         margin-left: calc(260.6 * var(--px));
       }
+    }
+
+    /* Eased black → transparent over the nav band only; ends well above the headline */
+    .hero-top-scrim {
+      position: absolute;
+      inset: 0 0 auto;
+      height: 11rem;
+      pointer-events: none;
+      background-image: linear-gradient(
+        180deg,
+        rgb(0 0 0 / 0.38) 0%,
+        rgb(0 0 0 / 0.22) 35%,
+        rgb(0 0 0 / 0.08) 70%,
+        rgb(0 0 0 / 0) 100%
+      );
     }
 
     #liquid-gradient {
@@ -113,5 +257,22 @@ import GlobeIcon from "../../assets/svg/globe.svg";
       );
       mask-image: linear-gradient(0deg, rgb(0 0 0 / 0) 0%, rgb(0 0 0 / 1) 100%);
     }
+  }
+
+  @keyframes hero-ping {
+    0% { transform: scale(1); opacity: 0.5; }
+    70%, 100% { transform: scale(3.5); opacity: 0; }
+  }
+  /* A meridian's projected width follows |cos| of its longitude: full → line → full */
+  @keyframes hero-meridian {
+    0%, 100% { transform: scaleX(1); }
+    50% { transform: scaleX(0.04); }
+  }
+  /* Drop out, re-enter, then rest — most of the cycle is still */
+  @keyframes hero-arrow-drop {
+    0%, 55% { transform: translateY(0); }
+    72% { transform: translateY(140%); }
+    72.01% { transform: translateY(-140%); }
+    90%, 100% { transform: translateY(0); }
   }
 </style>

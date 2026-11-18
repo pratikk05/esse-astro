@@ -49,7 +49,16 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    cursor: default; /* arrow over headings / copy — no I-beam on plain text */
   }
+
+  /* The typing cursor only where you can actually type */
+  input:not([type="button"], [type="submit"], [type="reset"], [type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"]),
+  textarea,
+  [contenteditable]:not([contenteditable="false"]) {
+    cursor: text;
+  }
+  a[href], label[for], select, summary { cursor: pointer; }
 
   h1, h2, h3, h4, h5, h6 { margin-top: 0; margin-bottom: 0; font-weight: 700; }
   h1 { font-size: 4rem; line-height: 1.1; }

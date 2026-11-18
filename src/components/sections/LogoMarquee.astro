@@ -1,24 +1,55 @@
 ---
-import ClientLogo from "../../assets/svg/client-logo.svg";
+/**
+ * Client logos — full-bleed GSAP marquee on the site's 12px line grid (.section-pixel, as About / Works / Team).
+ * Logos live in public/images/clients and are drawn as CSS masks, so every mark renders in one
+ * flat grey whatever its original colours (many were white-on-dark nav logos).
+ */
 
-const logos = Array.from({ length: 6 });
+// [file, name, aspect ratio (w / h)]
+const clients: [string, string, number][] = [
+  ["gsf.svg", "GSF India", 1147 / 385],
+  ["ys-homes.svg", "YS Homes", 123 / 20],
+  ["lumikai.svg", "Lumikai", 155 / 47],
+  ["pineapple.svg", "Pineapple", 160 / 37],
+  ["alien.svg", "The Alien Design", 105 / 22],
+  ["nocturn.svg", "Nocturn Studio", 68 / 32],
+  ["izart.svg", "Izart", 183 / 24],
+  ["outcomes.svg", "Outcomes AI", 141 / 27],
+  ["inato.svg", "Inato", 127 / 44],
+  ["10x10booths.svg", "10x10 Booths", 280 / 98],
+  ["exhibit-merch.svg", "Exhibit Merch", 81 / 50],
+  ["aarza.svg", "Aarza", 109 / 79],
+  ["unwild.avif", "Unwild Planet", 90 / 48],
+];
+
+// Equal visual area for every mark: width ∝ √ratio, height ∝ 1/√ratio (capped so wide wordmarks fit the tile)
+const AREA = 3.1; // rem
+const logos = clients.map(([file, name, ratio]) => {
+  const w = Math.min(AREA * Math.sqrt(ratio), 8.75);
+  return { name, style: `--logo: url("/images/clients/${file}"); --w: ${w.toFixed(3)}rem; --h: ${(w / ratio).toFixed(3)}rem;` };
+});
 ---
 
-<section class="section overflow-x-clip bg-background" aria-label="Clients">
-  <div class="container">
+<section id="clients" class="logo-section section overflow-x-clip" aria-label="Clients">
+  <!-- 12px line grid that scrolls with the page and continues straight into About's grid below;
+       white fade so it eases in under the hero -->
+  <div class="logo-grid" aria-hidden="true"></div>
+  <div class="white-fade" aria-hidden="true"></div>
+  <!-- Full-bleed: the marquee runs edge to edge on every screen width (no container) -->
+  <div class="relative">
     <div class="padding-y-90">
       <!-- GSAP marquee: scripts/logo-marquee.js (drag, scroll-direction + velocity, infinite wrap) -->
       <div class="logo-marquee relative" data-logo-marquee>
         <div class="logo-marquee-track flex w-max" data-marquee-track>
-          <div class="flex flex-none gap-figma-12 pr-3" data-marquee-set>
+          <ul class="logo-set flex flex-none" role="list" data-marquee-set>
             {
-              logos.map(() => (
-                <div class="logo-tile flex flex-none items-center justify-center rounded-lg bg-surface-light">
-                  <ClientLogo class="h-4" aria-hidden="true" />
-                </div>
+              logos.map(({ name, style }) => (
+                <li class="logo-tile flex flex-none items-center justify-center rounded-lg bg-surface-light">
+                  <span class="logo-mark" style={style} role="img" aria-label={name}></span>
+                </li>
               ))
             }
-          </div>
+          </ul>
         </div>
       </div>
     </div>
@@ -27,6 +58,25 @@ const logos = Array.from({ length: 6 });
 
 <style>
   @layer components {
+    .logo-section {
+      position: relative;
+      background-color: var(--color-white);
+    }
+    /* Same lines as About's .about-grid. Anchored to the bottom edge so the 12px rhythm runs on
+       unbroken into About (whose grid starts at its top edge) whatever this section's height. */
+    .logo-grid {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background-image: linear-gradient(#eef0f080 1px, transparent 1px), linear-gradient(90deg, #eef0f080 1px, transparent 1px);
+      background-size: 12px 12px;
+      background-position: 0 100%;
+    }
+    @media (width < 37.5rem) {
+      .logo-section .padding-y-90 {
+        padding-top: 2.3125rem; /* Figma mobile: 37px from hero to tiles */
+      }
+    }
     .logo-marquee {
       cursor: grab;
       touch-action: pan-y; /* horizontal drag on touch, vertical page scroll still works */
@@ -39,10 +89,43 @@ const logos = Array.from({ length: 6 });
     .logo-marquee-track {
       will-change: transform;
     }
+    .logo-marquee ul {
+      margin: 0;
+      padding-left: 0;
+      list-style: none;
+    }
+    /* Desktop: 210 × 150 tiles, 12px gap. Figma mobile (Home Page - Mobile UI, 179:4811): 120 × 84, 4px gap.
+       The set's trailing padding equals the gap so the seam between looped sets matches. */
+    .logo-set {
+      --gap: 0.75rem;
+      --tile-w: 13.125rem;
+      --tile-h: 9.375rem;
+      --logo-scale: 1;
+      gap: var(--gap);
+      padding-right: var(--gap);
+    }
+    @media (width < 37.5rem) {
+      .logo-set {
+        --gap: 0.25rem;
+        --tile-w: 7.5rem;
+        --tile-h: 5.25rem;
+        --logo-scale: 0.42; /* Figma mobile: marks ~35–45px wide, ~10px tall */
+      }
+    }
     .logo-tile {
-      width: 13.125rem; /* 210px */
-      height: 9.375rem; /* 150px */
+      width: var(--tile-w);
+      height: var(--tile-h);
       transition: transform 0.6s var(--ease-esse), background-color 0.4s ease;
+    }
+    .logo-mark {
+      display: block;
+      width: calc(var(--w) * var(--logo-scale));
+      height: calc(var(--h) * var(--logo-scale));
+      flex: none;
+      background-color: var(--color-grey-50);
+      -webkit-mask: var(--logo) center / contain no-repeat;
+      mask: var(--logo) center / contain no-repeat;
+      transition: background-color 0.4s ease;
     }
     .logo-marquee.is-dragging .logo-tile {
       transform: scale(0.97);
@@ -51,6 +134,10 @@ const logos = Array.from({ length: 6 });
       .logo-tile:hover {
         background-color: var(--color-surface);
       }
+      .logo-tile:hover .logo-mark {
+        background-color: var(--color-grey-90);
+      }
     }
   }
+
 </style>
