@@ -24,7 +24,7 @@ const members = [{ name: "John Doe" }, { name: "John Doe" }];
             <img src="/uniflow/img/team-1-3ac0.svg" alt="" />
           </button>
           <div class="tm-reveal" id={`member-${i}`} aria-hidden="true">
-            <span class="tm-name"><span class="tm-letters" aria-label={m.name}>{[...m.name].map((c) => <span class="tm-letter" aria-hidden="true">{c === " " ? "\u00a0" : c}</span>)}</span></span>
+            <span class="tm-name"><span class="tm-letters">{[...m.name].map((c) => <span class="tm-letter" aria-hidden="true">{c === " " ? "\u00a0" : c}</span>)}</span></span>
             <span class="tm-badge tm-one"><img src="/uniflow/img/team-2-2df6.svg" alt="" /></span>
             <span class="tm-badge tm-two"><img src="/uniflow/img/team-3-05e6.svg" alt="" /></span>
           </div>

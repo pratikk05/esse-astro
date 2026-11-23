@@ -14,7 +14,6 @@ const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 // then the plain text is restored so the number stays crisp and responsive.
 function odometer(el) {
   const final = el.textContent.trim();
-  el.setAttribute("aria-label", final);
   const mask = "display:inline-block;height:1lh;overflow:hidden;vertical-align:top";
   const cell = "display:block;height:1lh";
   const cols = [...final].map((ch, i) => {
@@ -23,7 +22,9 @@ function odometer(el) {
     const seq = isDigit ? [...Array(turns * 10).keys()].map((n) => n % 10).concat([...Array(+ch + 1).keys()]) : [ch];
     return { isDigit, seq, target: seq.length - 1 };
   });
-  el.innerHTML = cols
+  // screen readers read the number from visually-hidden text (aria-label isn't allowed on a <p>);
+  // the spinning digit columns are hidden from them
+  el.innerHTML = `<span class="sr-only">${final}</span>` + cols
     .map(({ seq }) => `<span aria-hidden="true" style="${mask}"><span data-od style="display:flex;flex-direction:column">${seq.map((c) => `<span style="${cell}">${c}</span>`).join("")}</span></span>`)
     .join("");
   const strips = [...el.querySelectorAll("[data-od]")];
@@ -38,30 +39,33 @@ function odometer(el) {
   });
 }
 
-// Split into word spans; each fades from the dim blue to white across the scroll range.
+// Word highlight, scrubbed by scroll — every time, both directions. Progress comes from the
+// paragraph's live on-screen position each frame (not pre-computed trigger points), so it stays right
+// however the page above changes height (pinned About scene, late-loading sections). Each word blends
+// from the dim blue to white with a soft two-word overlap.
 function wordReveal(el) {
   const words = el.textContent.trim().split(/\s+/);
   el.setAttribute("aria-label", words.join(" "));
-  el.innerHTML = words.map((w) => `<span aria-hidden="true">${w}</span>`).join(" ");
-  const spans = el.querySelectorAll("span");
-  const token = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  gsap.fromTo(
-    spans,
-    { color: token("--color-secondary-light") },
-    {
-      color: token("--color-white"),
-      ease: "none",
-      stagger: 0.5,
-      scrollTrigger: {
-        trigger: el,
-        start: "top 90%",
-        // Responsive range: paragraph height + 13vh, capped at 40vh
-        end: () => `+=${Math.min(el.offsetHeight + innerHeight * 0.13, innerHeight * 0.4)}`,
-        scrub: true,
-        invalidateOnRefresh: true,
-      },
-    },
-  );
+  el.innerHTML = words.map((w) => `<span aria-hidden="true" style="color:color-mix(in srgb, var(--color-white) calc(var(--w, 0) * 100%), var(--color-secondary-light))">${w}</span>`).join(" ");
+  const spans = [...el.querySelectorAll("span")];
+  const n = spans.length, SPREAD = 2;
+  let raf = 0, visible = false, last = -1;
+  const frame = () => {
+    raf = 0;
+    const r = el.getBoundingClientRect(), vh = innerHeight;
+    const range = Math.min(r.height + vh * 0.13, vh * 0.4); // same responsive range as before
+    const p = Math.min(1, Math.max(0, (vh * 0.9 - r.top) / range));
+    if (Math.abs(p - last) > 0.0005) {
+      last = p;
+      const head = p * (n + SPREAD);
+      spans.forEach((s, i) => s.style.setProperty("--w", Math.min(1, Math.max(0, (head - i) / SPREAD)).toFixed(3)));
+    }
+    if (visible) raf = requestAnimationFrame(frame);
+  };
+  new IntersectionObserver(([e]) => {
+    visible = e.isIntersecting;
+    if (visible && !raf) raf = requestAnimationFrame(frame);
+  }, { rootMargin: "20% 0px" }).observe(el);
 }
 
 function stripes(container) {
