@@ -358,9 +358,16 @@
     function reveal(marks: boolean) {
       seamT = null;
       const MIN_HOLD = reduce ? 100 : marks ? 900 : 60;
-      const MAX_HOLD = marks ? 5000 : 1200;
+      const hasGradient = !!document.getElementById("liquid-gradient-canvas");
+      const MAX_HOLD = marks ? 7000 : hasGradient ? 2500 : 1200; // safety caps — the gradient is normally ready far sooner
       const DISSOLVE = reduce ? 250 : marks ? 2300 : 1250;
       let loaded = marks ? 0 : 1; // 0 → 1: fonts (0.5) + window load (1)
+      // The hero gradient must have drawn (and started blooming in) before the dots open, so the gap
+      // never shows black first. hero-gradient.js fires `uniflow:gradient-ready`.
+      const wantsGradient = hasGradient; // preloader and page-transition entrance alike
+      let gradientAt = !wantsGradient || root.dataset.gradient === "ready" ? -1 : 0;
+      if (!gradientAt) document.addEventListener("uniflow:gradient-ready", () => (gradientAt = performance.now()), { once: true });
+      const gradientSettled = (now: number) => gradientAt === -1 || (gradientAt > 0 && now - gradientAt > 700);
       let shown = 0, start = 0, dissolveAt = 0, done = false, revealed = false, last = 0;
       if (marks) {
         document.fonts?.ready.then(() => (loaded = Math.max(loaded, 0.5)));
@@ -405,9 +412,10 @@
         const elapsed = now - start;
         if (!dissolveAt) {
           // Counter chases the real load state, capped until the dissolve begins.
-          const target = Math.min(99, Math.max(loaded * 100, (elapsed / MAX_HOLD) * 100));
+          const progress = wantsGradient ? loaded * 0.85 + (gradientAt ? 0.15 : 0) : loaded;
+          const target = Math.min(99, Math.max(progress * 100, (elapsed / MAX_HOLD) * 100));
           shown += (target - shown) * (1 - Math.exp(-dt / 220));
-          if ((loaded >= 1 && elapsed >= MIN_HOLD && (!marks || shown > 96)) || elapsed >= MAX_HOLD) {
+          if ((loaded >= 1 && gradientSettled(now) && elapsed >= MIN_HOLD && (!marks || shown > 96)) || elapsed >= MAX_HOLD) {
             dissolveAt = now;
             if (marks) { seamT = now * 0.001; buildThresholds(); } // open from the visible gap
           }

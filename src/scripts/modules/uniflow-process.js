@@ -62,7 +62,6 @@
     baseR = W <= 767 ? Math.min(102.5 * W / 343, Math.max(30,(H-190)/2)) : Math.min(sticky.clientWidth, sticky.clientHeight) * (107.51 / 815);
     road = W <= 767 ? Math.min(372 * W / 343, H - 190) : Math.min(H * .57, H - 245);
     road = Math.max(2.35 * baseR, road);
-    measure();
     draw(progress);
   }
 
@@ -120,53 +119,34 @@
     const guideY=road-R;
     ctx.moveTo(0,guideY);ctx.lineTo(W,guideY);ctx.stroke();
     ctx.setLineDash([]);ctx.globalAlpha=1;
-    const step=String(Math.min(4,Math.floor(p*4)+1)).padStart(2,'0');
-    if(shownStep!==step)rollCounter(step);
+    counter.textContent=String(Math.min(4,Math.floor(p*4)+1)).padStart(2,'0');
     const desktop = innerWidth >= 992;
-    // Smoothness: every size is measured once (measure(), on resize) and all reads happen before
-    // any write, so a scroll frame never forces the browser to recalculate layout mid-frame.
-    const inView = desktop ? null : cards.map(card=>{const b=card.getBoundingClientRect();return b.left<innerWidth*.8&&b.right>innerWidth*.2;});
     cards.forEach((card,i)=>{
-      const m=metrics[i]||measureCard(card,i);
-      const active=String(i===Math.min(3,Math.floor(p*4)));
+      card.setAttribute('data-active',String(i===Math.min(3,Math.floor(p*4))));
       // `reveal` is the original track (0 → 1, each card finishing at .30 / .45 / .60 / .75): it still
       // drives the one-by-one copy / heading / number reveal exactly as before.
       // Only the blue bar's HEIGHT starts from a staircase (100 / 67 / 50 / 40%) instead of zero.
       const reveal = desktop ? clamp(cardProgress / [.30,.45,.60,.75][i]) : 1;
       const opening = desktop ? mix([1,.67,.5,.4][i], 1, reveal) : 1;
-      const copyVisible=clamp((reveal*m.cardHeight-m.safeHeight)/24);
-      const number=reveal>.98?'0.7':'0';
-      const last=m.last;
-      if(last.active!==active){card.setAttribute('data-active',active);last.active=active;}
-      if(last.opening!==opening){card.style.setProperty('--opening',String(opening));last.opening=opening;}
-      const isIn=copyVisible>.5;
-      if(last.isIn!==isIn){card.classList.toggle('is-in',isIn);last.isIn=isIn;}
-      if(last.number!==number){card.style.setProperty('--number-visible',number);last.number=number;}
-      revealHeading(card,copyVisible>0&&(desktop||inView[i]));
+      card.style.setProperty('--opening', String(opening));
+      card.querySelector('.process_cover').style.height = `${opening*100}%`;
+      const copy=card.querySelector('.process-card-container');
+      const paddingBottom=parseFloat(getComputedStyle(card).paddingBottom)||0;
+      const safeHeight=copy.offsetHeight+paddingBottom+24;
+      const copyVisible=clamp((reveal*card.clientHeight-safeHeight)/24);
+      copy.style.transition=copyVisible>0?'opacity 160ms ease':'none';
+      card.style.setProperty('--copy-visible',String(copyVisible));
+      const headingBounds=card.getBoundingClientRect();
+      const headingInView=innerWidth>=992||(headingBounds.left<innerWidth*.8&&headingBounds.right>innerWidth*.2);
+      revealHeading(card,copyVisible>0&&headingInView);
+      card.style.setProperty('--number-visible',reveal>.98?'0.7':'0');
     });
-    const rowTransform=desktop?'none':(()=>{const mobile=innerWidth<=479,start=mobile?.35:.28,travel=mobile?2.98:1;return `translate3d(${-clamp((cardProgress-start)/(.75-start))*travel*100}%,0,0)`;})();
-    if(rowTransform!==lastRowTransform){row.style.transform=rowTransform;lastRowTransform=rowTransform;}
+    if(desktop) row.style.transform='none';
+    else {
+      const mobile=innerWidth<=479,start=mobile?.35:.28,travel=mobile?2.98:1;
+      row.style.transform=`translate3d(${-clamp((cardProgress-start)/(.75-start))*travel*100}%,0,0)`;
+    }
   }
-  // Step counter rolls like an odometer: the old number slides out, the new one in (direction-aware).
-  let shownStep=counter.textContent.trim();
-  counter.style.display='inline-block';counter.style.overflow='hidden';counter.style.verticalAlign='top';
-  function rollCounter(step){
-    const up=+step>+shownStep;shownStep=step;
-    if(reduced.matches||!counter.animate){counter.textContent=step;return;}
-    const ease='cubic-bezier(0.16, 1, 0.3, 1)';
-    counter.animate([{transform:'translateY(0)',opacity:1},{transform:`translateY(${up?-100:100}%)`,opacity:0}],{duration:180,easing:'ease-in'}).onfinish=()=>{
-      counter.textContent=step;
-      counter.animate([{transform:`translateY(${up?100:-100}%)`,opacity:0},{transform:'translateY(0)',opacity:1}],{duration:520,easing:ease});
-    };
-  }
-  // Card sizes used by draw(): measured on resize, never during a scroll frame.
-  let metrics=[],lastRowTransform='';
-  function measureCard(card,i){
-    const copy=card.querySelector('.process-card-container');
-    const paddingBottom=parseFloat(getComputedStyle(card).paddingBottom)||0;
-    return (metrics[i]={copy,cover:card.querySelector('.process_cover'),cardHeight:card.clientHeight,safeHeight:copy.offsetHeight+paddingBottom+24,last:metrics[i]?.last||{}});
-  }
-  function measure(){metrics=[];cards.forEach(measureCard);}
 
   // Same SCROLLING_IN_VIEW mapping, start offset, and smoothing as the reference.
   function cardTarget() {
@@ -178,7 +158,7 @@
     return clamp((vh-c)/den);
   }
   function tick() {
-    const target=cardTarget(),s=innerWidth>=992?.16:innerWidth<=479?.2:.18; // a touch of inertia: bars, gear and cards glide
+    const target=cardTarget(),s=innerWidth>=992?.7:innerWidth<=479?.25:.5;
     const old=cardProgress;
     cardProgress=reduced.matches?target:mix(cardProgress,target,s);
     if(Math.abs(target-cardProgress)<.00001)cardProgress=target;

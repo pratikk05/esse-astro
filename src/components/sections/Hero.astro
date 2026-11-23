@@ -238,6 +238,8 @@ import HeroFeatured from "../ui/HeroFeatured.astro"; // "Featured work" card —
       );
     }
 
+    /* The gradient blooms in from the centre once its first frame is drawn (hero-gradient.js adds
+       .is-ready), with a soft edge — so the preloader's dots never show a black flash or a pop. */
     #liquid-gradient {
       position: absolute;
       inset: 0;
@@ -246,6 +248,26 @@ import HeroFeatured from "../ui/HeroFeatured.astro"; // "Featured work" card —
       height: 100%;
       overflow: hidden;
       pointer-events: none;
+      --hg-r: 0%;
+      -webkit-mask-image: radial-gradient(circle at 50% 55%, #000 calc(var(--hg-r) - 18%), transparent var(--hg-r));
+      mask-image: radial-gradient(circle at 50% 55%, #000 calc(var(--hg-r) - 18%), transparent var(--hg-r));
+      transition: --hg-r 1.8s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    #liquid-gradient.is-ready {
+      --hg-r: 160%;
+    }
+    #liquid-gradient canvas {
+      scale: 1.08;
+      transition: scale 2.2s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    #liquid-gradient.is-ready canvas {
+      scale: 1;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      #liquid-gradient,
+      #liquid-gradient canvas {
+        transition: none;
+      }
     }
     #liquid-gradient canvas {
       position: absolute;
@@ -277,5 +299,14 @@ import HeroFeatured from "../ui/HeroFeatured.astro"; // "Featured work" card —
     72% { transform: translateY(140%); }
     72.01% { transform: translateY(-140%); }
     90%, 100% { transform: translateY(0); }
+  }
+</style>
+
+<style is:global>
+  /* animatable radius for the hero gradient's circular reveal */
+  @property --hg-r {
+    syntax: "<percentage>";
+    inherits: false;
+    initial-value: 0%;
   }
 </style>

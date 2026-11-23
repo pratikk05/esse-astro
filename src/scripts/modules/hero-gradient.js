@@ -11,9 +11,23 @@ in vec2 a_position;
 out vec2 v_uv;
 void main() { v_uv = a_position * 0.5 + 0.5; gl_Position = vec4(a_position, 0.0, 1.0); }`;
 
+// First frame drawn → the container gets .is-ready (CSS blooms it in from the centre) and the page
+// hears `uniflow:gradient-ready`, which the preloader waits for before it opens.
+function markReady(canvas) {
+  if (canvas.dataset.ready) return;
+  canvas.dataset.ready = "1";
+  requestAnimationFrame(() => {
+    canvas.parentElement?.classList.add("is-ready");
+    if (canvas.id === "liquid-gradient-canvas") {
+      document.documentElement.dataset.gradient = "ready";
+      document.dispatchEvent(new CustomEvent("uniflow:gradient-ready"));
+    }
+  });
+}
+
 function initHeroGradient(canvas) {
   const gl = canvas.getContext("webgl2", { alpha: false, antialias: false, preserveDrawingBuffer: false });
-  if (!gl) return;
+  if (!gl) return markReady(canvas); // no WebGL2: don't keep the preloader waiting
 
   const compile = (type, src) => {
     const sh = gl.createShader(type);
@@ -25,13 +39,13 @@ function initHeroGradient(canvas) {
   };
   const vs = compile(gl.VERTEX_SHADER, vertex);
   const fs = compile(gl.FRAGMENT_SHADER, fragment);
-  if (!vs || !fs) return;
+  if (!vs || !fs) return markReady(canvas);
 
   const program = gl.createProgram();
   gl.attachShader(program, vs);
   gl.attachShader(program, fs);
   gl.linkProgram(program);
-  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return console.error(gl.getProgramInfoLog(program));
+  if (!gl.getProgramParameter(program, gl.LINK_STATUS)) { markReady(canvas); return console.error(gl.getProgramInfoLog(program)); }
   gl.useProgram(program);
 
   // Fullscreen quad
@@ -57,6 +71,7 @@ function initHeroGradient(canvas) {
   const draw = (now) => {
     gl.uniform1f(uTime, (now - start) / 1000);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
+    markReady(canvas);
   };
 
   function resize() {
