@@ -67,10 +67,9 @@ const logos = clients.map(([file, name, ratio]) => {
     .logo-grid {
       position: absolute;
       inset: 0;
+      overflow: hidden;
       pointer-events: none;
-      background-image: var(--line-grid);
-      background-size: 12px 12px;
-      background-position: 0 100%;
+      /* lines: scripts/modules/ripple-grid.js (rows anchored to the bottom edge) */
     }
     @media (width < 37.5rem) {
       .logo-section .padding-y-90 {

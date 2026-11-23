@@ -634,6 +634,8 @@ export function createSculpture(canvas, token) {
 
   let width = 1;
   let cardBottom = 0.45; // fraction of the stage height where the statement card ends
+  let openBottom = 0.4; // opening frame: where the title card ends …
+  let cueTop = 0.9; // … and where the scroll cue starts
   const HALF_H = Math.tan((34 / 2) * (Math.PI / 180)) * 9.5; // half the visible height at z = 0 (world units)
   const TV_H = 3.0 * 0.62; // TV height × its build scale, world units
   return {
@@ -654,8 +656,10 @@ export function createSculpture(canvas, token) {
       needsDraw = false;
       return d;
     },
-    setLayout(bottom) {
+    setLayout(bottom, open = openBottom, cue = cueTop) {
       cardBottom = Math.min(0.75, Math.max(0.2, bottom));
+      openBottom = Math.min(0.7, Math.max(0.15, open));
+      cueTop = Math.min(0.98, Math.max(openBottom + 0.15, cue));
       needsDraw = true;
     },
     resize(w, h) {
@@ -677,13 +681,18 @@ export function createSculpture(canvas, token) {
         lerp(-0.62, -0.04, face) + Math.sin(p * Math.PI * 3) * 0.04 + px * 0.7,
         Math.sin(p * Math.PI * 2) * 0.02 - px * 0.05,
       );
-      const top = cardBottom + 0.04, bottom = 0.93;
-      const centreY = (0.5 - (top + bottom) / 2) * 2 * HALF_H;
-      const fit = (((bottom - top) * 2 * HALF_H) * 0.8) / TV_H;
+      // Fit the TV into a vertical band of the stage (fractions from the top), centred horizontally
+      const band = (top, bottom, fill) => [
+        (0.5 - (top + bottom) / 2) * 2 * HALF_H,
+        (((bottom - top) * 2 * HALF_H) * fill) / TV_H,
+      ];
       const widthCap = width < 768 ? 0.72 : width < 992 ? 0.85 : 1;
-      group.scale.setScalar(lerp(width < 768 ? 0.7 : 1.15, Math.min(fit, widthCap), enter));
-      group.position.x = width >= 768 ? lerp(width < 992 ? 1.5 : 1.35, 0, enter) : 0;
-      group.position.y = lerp(width < 768 ? -0.4 : 0, centreY, enter);
+      // Opening: between the title card and the scroll cue. Story: below the statement card.
+      const [startY, startFit] = band(openBottom + 0.03, cueTop - 0.03, 0.86);
+      const [centreY, fit] = band(cardBottom + 0.04, 0.93, 0.8);
+      group.scale.setScalar(lerp(Math.min(startFit, widthCap * 1.1), Math.min(fit, widthCap), enter));
+      group.position.x = 0;
+      group.position.y = lerp(startY, centreY, enter);
 
       if (t > 0) {
         maskMaterial.uniforms.u_bottomProgress.value = t;

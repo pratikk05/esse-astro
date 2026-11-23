@@ -29,23 +29,22 @@
     position: relative;
   }
 
-  /* Section with the 12px line-grid background — same as the Team section (public/uniflow/team.html).
-     The grid is FIXED: a viewport-sized fixed layer, clipped to the section by clip-path, so content
-     scrolls over a still grid. (background-attachment: fixed is ignored on iOS and on the touch
-     body-scroller, this works everywhere.) */
+  /* Section with the 12px line-grid background. The grid is drawn by scripts/modules/ripple-grid.js
+     (the "Our stack" grid): a canvas that scrolls with the content and ripples where you click. */
   .section-pixel {
     background-color: var(--color-white);
     isolation: isolate;
     clip-path: inset(0);
   }
-  .section-pixel::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -1;
+  .ripple-grid {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
     pointer-events: none;
-    background-image: var(--line-grid);
-    background-size: 12px 12px;
+  }
+  .section-pixel > .ripple-grid {
+    z-index: -1;
   }
 
   /* 4/5-column hairline grid overlay (Hero, Services) */

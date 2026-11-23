@@ -41,7 +41,7 @@ const sample = "We make websites impossible to ignore.";
 <Layout title="FlowScale · Style guide" scripts={false}>
   <header class="sg-header sticky top-0 z-10 border-b border-grey-20 bg-white/95 backdrop-blur">
     <div class="container flex flex-wrap items-center justify-between gap-figma-16 padding-y-16">
-      <p class="heading-16 font-bold">FlowScale <span class="text-grey-50 font-normal">style guide</span></p>
+      <p class="subheading-16">FlowScale <span class="text-grey-50 font-normal">style guide</span></p>
       <nav aria-label="Style guide sections">
         <ul class="m-0 flex list-none flex-wrap gap-figma-16 p-0">
           {nav.map(([id, label]) => <li class="m-0"><a href={`#${id}`} class="text-12 text-grey-60 no-underline hover:text-black">{label}</a></li>)}
@@ -53,7 +53,7 @@ const sample = "We make websites impossible to ignore.";
   <main class="container padding-bottom-160">
     <section class="padding-y-96">
       <Tag label="DESIGN SYSTEM" />
-      <h1 class="heading-76 padding-top-12">FlowScale</h1>
+      <h1 class="heading-64 padding-top-12">FlowScale</h1>
       <p class="sg-lead para-16 margin-top-24 text-grey-60">
         Live reference for every FlowScale class, rendered with the production CSS. Class numbers are Figma px (16px root).
         Fluid values scale linearly from {viewport.min}px to {viewport.max}px viewport. Source: <code>tools/flowscale.config.mjs</code> → <code>pnpm flowscale</code>.
@@ -62,7 +62,7 @@ const sample = "We make websites impossible to ignore.";
 
     <!-- A. Typography -->
     <section id="typography" class="sg-section">
-      <h2 class="heading-36">Typography</h2>
+      <h2 class="heading-40">Typography</h2>
       {
         Object.entries(groups).map(([prefix, items]) => (
           <div class="margin-top-64">
@@ -93,7 +93,7 @@ const sample = "We make websites impossible to ignore.";
 
     <!-- B. Spacers -->
     <section id="spacers" class="sg-section">
-      <h2 class="heading-36">Spacers</h2>
+      <h2 class="heading-40">Spacers</h2>
       <p class="para-14 margin-top-16 text-grey-60">Vertical rhythm only — use <code>gap-figma-*</code> inside flex/grid.</p>
       <div class="flex flex-col gap-figma-16 margin-top-32">
         {
@@ -109,7 +109,7 @@ const sample = "We make websites impossible to ignore.";
 
     <!-- C. Gaps -->
     <section id="gaps" class="sg-section">
-      <h2 class="heading-36">Gaps</h2>
+      <h2 class="heading-40">Gaps</h2>
       <p class="para-14 margin-top-16 text-grey-60">Namespaced <code>gap-figma-*</code> so Tailwind’s <code>gap-*</code> keeps working.</p>
       <div class="grid gap-figma-24 margin-top-32 md:grid-cols-2">
         {
@@ -127,7 +127,7 @@ const sample = "We make websites impossible to ignore.";
 
     <!-- D. Padding & margin -->
     <section id="padding-margin" class="sg-section">
-      <h2 class="heading-36">Padding &amp; margin</h2>
+      <h2 class="heading-40">Padding &amp; margin</h2>
       <div class="grid gap-figma-24 margin-top-32 sm:grid-cols-2 lg:grid-cols-4">
         {
           paddings.map((p) => (
@@ -152,7 +152,7 @@ const sample = "We make websites impossible to ignore.";
 
     <!-- E. Colours -->
     <section id="colours" class="sg-section">
-      <h2 class="heading-36">Colours</h2>
+      <h2 class="heading-40">Colours</h2>
       <div class="grid grid-cols-2 gap-figma-16 margin-top-32 md:grid-cols-4 lg:grid-cols-6">
         {
           colors.map((c) => (
@@ -171,7 +171,7 @@ const sample = "We make websites impossible to ignore.";
 
     <!-- F. Buttons -->
     <section id="buttons" class="sg-section">
-      <h2 class="heading-36">Buttons</h2>
+      <h2 class="heading-40">Buttons</h2>
       <div class="flex flex-wrap items-center gap-figma-32 margin-top-32">
         <div><p class="text-12 text-grey-50 padding-bottom-12">primary</p><Button>Get in touch</Button></div>
         <div><p class="text-12 text-grey-50 padding-bottom-12">primary · small</p><Button size="small">Get in touch</Button></div>
@@ -183,7 +183,7 @@ const sample = "We make websites impossible to ignore.";
 
     <!-- G. Components -->
     <section id="components" class="sg-section">
-      <h2 class="heading-36">Components</h2>
+      <h2 class="heading-40">Components</h2>
       <h3 class="text-14 uppercase text-grey-50 margin-top-32">Tag</h3>
       <div class="flex flex-wrap items-center gap-figma-32 margin-top-16">
         <Tag label="SELECTED WORKS" />
@@ -198,7 +198,7 @@ const sample = "We make websites impossible to ignore.";
 
     <!-- H. Fluid preview -->
     <section id="fluid-preview" class="sg-section">
-      <h2 class="heading-36">Fluid preview</h2>
+      <h2 class="heading-40">Fluid preview</h2>
       <p class="para-14 margin-top-16 text-grey-60">Drag to resize the frame — clamp() values inside respond to the frame width.</p>
       <div class="flex flex-wrap items-center gap-figma-16 margin-top-24">
         <input id="sg-width" type="range" min="320" max="1440" step="1" value="1440" aria-label="Preview width" class="w-64" />

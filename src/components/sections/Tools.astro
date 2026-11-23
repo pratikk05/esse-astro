@@ -1,273 +1,644 @@
 ---
 /**
- * Tools — "the tools behind the work": filterable grid of the studio's stack.
- *   Filters dim tools outside the chosen group; hover (or tap on touch) turns a tile electric blue
- *   and slides up what we use it for. Logos: Simple Icons (CC0) in public/images/tools, drawn as
- *   one-colour masks (like the client logo strip) so they recolour on hover.
- * Self-contained. To remove: delete <Tools /> (and its import) in src/pages/index.astro, this file
- * and public/images/tools/. To change the stack: edit `tools` below.
+ * Our stack — "The Tools Behind The Work". A port of the Esse Tools Orbit prototype
+ * (~/Downloads/Esse Tools Orbit/light.html), with the type on FlowScale classes:
+ *   Tag "OUR STACK" · heading-48 (heading-40 on mobile) · para-14 · text-12 caption · text-11 filters.
+ *
+ * Desktop: the orbit is drawn in the prototype's own pixel values inside `.tl-frame`, which is zoomed
+ * to 0.75 exactly as the prototype page is, so the geometry is identical. The copy sits outside the zoom
+ * at the sizes the prototype actually shows on screen.
+ * Mobile (< 62rem): the prototype's grid layout: copy, orbit turned vertical, filters in rows of three.
+ *
+ * Hub: pixel "u" whose squares pop teal on each pulse.
+ * Every 2.2s the hub pulses and the next tool turns into focus inside the frosted pill. Filters dim the
+ * other tools and list the matches. The grid ripples where you click. Pauses off-screen.
+ * Logos: public/images/tools/<name>.svg (from the prototype). To change the stack, edit `tools` / `groups`.
+ * To remove: delete <Tools /> and its import in src/pages/index.astro, this file and public/images/tools/.
  */
 import Tag from "../ui/Tag.astro";
 
-const groups = [
-  { key: "all", label: "ALL" },
-  { key: "design", label: "DESIGN" },
-  { key: "build", label: "BUILD" },
-  { key: "motion", label: "MOTION & 3D" },
-  { key: "commerce", label: "COMMERCE" },
-  { key: "launch", label: "LAUNCH" },
+// [name, what we use it for]. Logo: /images/tools/<slug>.svg
+const tools: [string, string][] = [
+  ["Figma", "Every layout, prototype and design system starts here."],
+  ["Blender", "Modelling and lighting the 3D you see on our sites."],
+  ["Webflow", "Visual builds and CMS sites clients can edit themselves."],
+  ["Framer", "Fast, interactive marketing sites and launch pages."],
+  ["Astro", "Content-first sites that ship almost no JavaScript."],
+  ["Next.js", "Custom web apps and headless ecommerce storefronts."],
+  ["React", "Interactive components and app-like interfaces."],
+  ["TypeScript", "Typed code that stays maintainable as projects grow."],
+  ["Tailwind CSS", "Design tokens straight into production CSS."],
+  ["Sanity", "Structured content for headless sites and stores."],
+  ["GSAP", "Scroll, timeline and micro-interaction animation."],
+  ["Three.js", "Real-time 3D and WebGL scenes in the browser."],
+  ["Rive", "Lightweight interactive animations with live states."],
+  ["Shopify", "Stores, checkout and inventory that scale."],
+  ["Vercel", "Deploys, previews and fast edge hosting."],
+  ["GitHub", "Version control and reviews on every build."],
+  ["Analytics", "Measuring what visitors actually do."],
+  ["Search Console", "Indexing, search health and SEO tracking."],
 ];
+const slug = (n: string) => n.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const groups: Record<string, string[]> = {
+  All: tools.map(([n]) => n),
+  Design: ["Figma", "Blender", "Webflow", "Framer"],
+  Build: ["Webflow", "Framer", "Astro", "Next.js", "React", "TypeScript", "Tailwind CSS", "Sanity"],
+  "Motion & 3D": ["Blender", "GSAP", "Three.js", "Rive"],
+  Commerce: ["Shopify"],
+  Launch: ["Vercel", "GitHub", "Analytics", "Search Console"],
+};
 
-const tools = [
-  { name: "Figma", icon: "figma", in: ["design"], use: "Every layout, prototype and design system starts here." },
-  { name: "Blender", icon: "blender", in: ["design", "motion"], use: "Modelling and lighting the 3D you see on our sites." },
-  { name: "Webflow", icon: "webflow", in: ["build", "commerce"], use: "Visual builds and CMS sites clients can edit themselves." },
-  { name: "Framer", icon: "framer", in: ["build"], use: "Fast, interactive marketing sites and launch pages." },
-  { name: "Astro", icon: "astro", in: ["build"], use: "Content-first sites that ship almost no JavaScript." },
-  { name: "Next.js", icon: "nextdotjs", in: ["build", "commerce"], use: "Custom web apps and headless ecommerce storefronts." },
-  { name: "React", icon: "react", in: ["build"], use: "Interactive components and app-like interfaces." },
-  { name: "TypeScript", icon: "typescript", in: ["build"], use: "Typed code that stays maintainable as projects grow." },
-  { name: "Tailwind CSS", icon: "tailwindcss", in: ["build"], use: "Design tokens straight into production CSS." },
-  { name: "Sanity", icon: "sanity", in: ["build", "commerce"], use: "Structured content for headless sites and stores." },
-  { name: "GSAP", icon: "greensock", in: ["motion"], use: "Scroll, timeline and micro-interaction animation." },
-  { name: "Three.js", icon: "threedotjs", in: ["motion"], use: "Real-time 3D and WebGL scenes in the browser." },
-  { name: "Rive", icon: "rive", in: ["motion"], use: "Lightweight interactive animations with live states." },
-  { name: "Shopify", icon: "shopify", in: ["commerce"], use: "Stores, checkout and inventory that scale." },
-  { name: "Vercel", icon: "vercel", in: ["launch"], use: "Deploys, previews and fast edge hosting." },
-  { name: "GitHub", icon: "github", in: ["launch"], use: "Version control and reviews on every build." },
-  { name: "Analytics", icon: "googleanalytics", in: ["launch"], use: "Measuring what visitors actually do." },
-  { name: "Search Console", icon: "googlesearchconsole", in: ["launch"], use: "Indexing, search health and SEO tracking." },
-];
+// Hub mark: pixel "u" (5×5 squares, electric blue). The squares pop teal on every pulse.
+const mark = ["#...#", "#...#", "#...#", "#...#", ".###."];
 ---
 
-<section id="stack" class="tools section section-pixel" aria-labelledby="tools-title" data-tools>
-  <div class="white-fade" aria-hidden="true"></div>
-  <div class="container relative">
-    <div class="padding-y-111">
-      <header class="tools-header">
-        <div>
-          <div data-fade><Tag label="OUR STACK" /></div>
-          <h2 id="tools-title" class="heading-48 padding-top-12" data-split>The tools behind the work</h2>
-        </div>
-        <p data-fade="1" class="tools-intro text-12 leading-base tracking-sm font-semibold text-grey-60">
-          WE PICK THE STACK FOR EACH PROJECT — FROM NO-CODE WEBFLOW TO CUSTOM NEXT.JS COMMERCE.
-        </p>
-      </header>
+<section id="stack" class="tl" aria-labelledby="tl-title" data-tl data-groups={JSON.stringify(groups)}>
+  <canvas class="tl-grid" aria-hidden="true" data-tl-grid></canvas>
 
-      <div class="tools-bar" data-fade="2">
-        <div class="tools-filters" role="group" aria-label="Filter tools">
-          {groups.map((g, i) => (
-            <button type="button" class="tools-filter text-12 font-semibold" data-filter={g.key} aria-pressed={i === 0 ? "true" : "false"}>{g.label}</button>
-          ))}
-        </div>
-        <p class="tools-count text-12 font-semibold text-grey-50" aria-live="polite">
-          [<span data-tools-count>{String(tools.length).padStart(2, "0")}</span>] TOOLS
-        </p>
-      </div>
-
-      <ul class="tools-grid" role="list">
-        {
-          tools.map((t) => (
-            <li class="tool" data-groups={t.in.join(" ")} tabindex="0">
-              <span class="tool-icon" style={`--icon:url("/images/tools/${t.icon}.svg")`} role="img" aria-label={`${t.name} logo`}></span>
-              <span class="tool-name text-12 font-semibold">{t.name.toUpperCase()}</span>
-              <span class="tool-use para-14">{t.use}</span>
-            </li>
-          ))
-        }
-      </ul>
+  <!-- Orbit (prototype pixels; zoomed 0.75 on desktop, grid items on mobile) -->
+  <div class="tl-frame">
+    <div class="tl-haze" aria-hidden="true"></div>
+    <div class="tl-wheel" aria-hidden="true">
+      {
+        tools.map(([name, use]) => (
+          <div class="tl-arm" data-tl-arm data-name={name} data-use={use}>
+            <div class="tl-disc">
+              <img src={`/images/tools/${slug(name)}.svg`} alt={name} width="36" height="36" loading="lazy" decoding="async" />
+            </div>
+          </div>
+        ))
+      }
+    </div>
+    <div class="tl-hub" data-tl-hub aria-hidden="true">
+      <svg class="tl-mark" viewBox="0 0 5 5" width="44" height="44">
+        {mark.flatMap((row, y) => [...row].map((c, x) => c === "#" && <rect x={x + 0.1} y={y + 0.1} width="0.8" height="0.8" style={`--k:${x + y}`} />))}
+      </svg>
     </div>
   </div>
-  <div class="white-fade is-bottom" aria-hidden="true"></div>
+
+  <div class="tl-copy">
+    <div class="tl-intro" data-tl-intro>
+      <div class="tl-eyebrow" data-fade><Tag label="OUR STACK" /></div>
+      <h2 id="tl-title" class="tl-title heading-48 max-[61.99rem]:heading-40 text-grey-90" data-split>The Tools<br />Behind The Work</h2>
+      <p class="tl-lead para-14 text-grey-70" data-fade="1">
+        We pick the tools for each project, from a <br class="tl-br" />Webflow site your team can edit to a custom <br class="tl-br" />storefront built with Next.js.
+      </p>
+    </div>
+
+    <div class="tl-browser">
+      <div>
+        <p class="tl-caption text-12 text-grey-60" aria-live="polite" data-tl-caption></p>
+        <div class="tl-filters" role="group" aria-label="Filter tools">
+          {Object.keys(groups).map((g, i) => (
+            <button type="button" class="tl-filter text-11" data-tl-filter={g} aria-pressed={i === 0 ? "true" : "false"}>{g}</button>
+          ))}
+        </div>
+        <ul class="tl-results" aria-label="Matching tools" data-tl-results hidden></ul>
+      </div>
+    </div>
+  </div>
 
   <!-- Script inside the section: nothing may render between sections (next-sibling overlaps). -->
   <script>
-    document.querySelectorAll<HTMLElement>("[data-tools]").forEach((root) => {
-      const filters = [...root.querySelectorAll<HTMLButtonElement>("[data-filter]")];
-      const tiles = [...root.querySelectorAll<HTMLElement>(".tool")];
-      const count = root.querySelector("[data-tools-count]");
-      filters.forEach((btn) =>
-        btn.addEventListener("click", () => {
-          const key = btn.dataset.filter!;
-          filters.forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
-          let shown = 0;
-          tiles.forEach((tile, i) => {
-            const on = key === "all" || tile.dataset.groups!.split(" ").includes(key);
-            tile.classList.toggle("is-dim", !on);
-            tile.style.setProperty("--d", `${(i % 6) * 30}ms`);
-            if (on) shown++;
-          });
-          if (count) count.textContent = String(shown).padStart(2, "0");
-        }),
-      );
-      // Touch: tap toggles a tile open (hover covers mouse; focus covers keyboard)
-      tiles.forEach((tile) =>
-        tile.addEventListener("click", () => {
-          if (matchMedia("(hover: hover)").matches) return;
-          const open = !tile.classList.contains("is-open");
-          tiles.forEach((t) => t.classList.remove("is-open"));
-          tile.classList.toggle("is-open", open);
-        }),
-      );
+    // ---- Orbit: same layout and rhythm as the prototype ----
+    document.querySelectorAll<HTMLElement>("[data-tl]").forEach((root) => {
+      const groups: Record<string, string[]> = JSON.parse(root.dataset.groups || "{}");
+      const arms = [...root.querySelectorAll<HTMLElement>("[data-tl-arm]")];
+      const hub = root.querySelector<HTMLElement>("[data-tl-hub]")!;
+      const caption = root.querySelector<HTMLElement>("[data-tl-caption]")!;
+      const results = root.querySelector<HTMLUListElement>("[data-tl-results]")!;
+      const filters = [...root.querySelectorAll<HTMLButtonElement>("[data-tl-filter]")];
+      const R = 315;
+      let index = 0, timer = 0, delay = 0;
+
+      // Focused tool at 90° (beside the hub), seven neighbours each side shrinking 120 → 80px.
+      function layout() {
+        const n = arms.length;
+        const states = [{ i: index, angle: 90, size: 120 }];
+        let offset = ((156 / R) * 180) / Math.PI;
+        for (let a = 0; a < 7; a++) {
+          const size = Math.max(120 - (a + 2) * 10, 80), margin = Math.min(36 + (a + 2) * 2, 40);
+          states.push({ i: index + a + 1, angle: 90 + offset, size }, { i: index - a - 1, angle: 90 - offset, size });
+          offset += (((margin + size) / R) * 180) / Math.PI;
+        }
+        arms.forEach((arm) => (arm.style.visibility = "hidden"));
+        for (const s of states) {
+          const arm = arms[((s.i % n) + n) % n];
+          arm.style.visibility = "visible";
+          arm.classList.toggle("is-focal", s.angle === 90);
+          arm.style.width = arm.style.height = `${s.size}px`;
+          arm.style.transform = `translate(-50%,-50%) rotate(${s.angle}deg)`;
+          (arm.firstElementChild as HTMLElement).style.transform = `rotate(${-s.angle}deg)`;
+        }
+        caption.textContent = arms[index].dataset.use || "";
+      }
+
+      function step() {
+        hub.classList.remove("is-pulse"); void hub.offsetWidth; hub.classList.add("is-pulse");
+        delay = window.setTimeout(() => { index = (index + 1) % arms.length; layout(); }, 400);
+      }
+      const start = () => { if (!timer) timer = window.setInterval(step, 2200); };
+      const stop = () => { clearInterval(timer); clearTimeout(delay); timer = 0; };
+      new IntersectionObserver(([e]) => (e.isIntersecting ? start() : stop())).observe(root);
+
+      // Filters: dim the other tools and list the matches
+      filters.forEach((btn) => btn.addEventListener("click", () => {
+        const g = btn.dataset.tlFilter!;
+        const matches = new Set(groups[g] || []);
+        filters.forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+        arms.forEach((arm) => arm.classList.toggle("is-muted", !matches.has(arm.dataset.name!)));
+        results.hidden = g === "All";
+        results.replaceChildren(...(g === "All" ? [] : [...matches].map((n) => Object.assign(document.createElement("li"), { className: "para-14", textContent: n }))));
+      }));
+
+      layout();
+    });
+
+    // ---- Physics grid: the prototype's ripple ("wake" mode), simulated in its own pixel units
+    //      (desktop page is zoomed 0.75: 16px cells → 12px on screen; mobile 12px) ----
+    document.querySelectorAll<HTMLElement>("[data-tl]").forEach((stage) => {
+      const canvas = stage.querySelector<HTMLCanvasElement>("[data-tl-grid]")!;
+      const intro = stage.querySelector<HTMLElement>("[data-tl-intro]")!;
+      const ctx = canvas.getContext("2d")!;
+      const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+      const mobile = matchMedia("(width < 62rem)");
+      type Node = { x: number; y: number; dx: number; dy: number; vx: number; vy: number };
+      let k = 1, step = 16, width = 0, height = 0, columns = 0, rows = 0, nodes: Node[] = [], frame = 0;
+      let waves: { x: number; y: number; time: number; strength: number }[] = [];
+
+      function resize() {
+        k = mobile.matches ? 1 : 0.75;
+        step = mobile.matches ? 12 : 16;
+        width = canvas.clientWidth / k; height = canvas.clientHeight / k;
+        if (!width || !height) return;
+        const d = Math.min(devicePixelRatio || 1, 2);
+        canvas.width = Math.round(canvas.clientWidth * d); canvas.height = Math.round(canvas.clientHeight * d);
+        ctx.setTransform(d * k, 0, 0, d * k, 0, 0);
+        columns = Math.ceil(width / step) + 1; rows = Math.ceil(height / step) + 1;
+        nodes = Array.from({ length: columns * rows }, (_, i) => ({ x: (i % columns) * step, y: Math.floor(i / columns) * step, dx: 0, dy: 0, vx: 0, vy: 0 }));
+        schedule();
+      }
+      const schedule = () => { if (!frame && nodes.length) frame = requestAnimationFrame(draw); };
+      const segment = (a: Node, b: Node) => { ctx.moveTo(a.x + a.dx, a.y + a.dy); ctx.lineTo(b.x + b.dx, b.y + b.dy); };
+
+      function clearTextZone() {
+        const box = intro.getBoundingClientRect(), b = canvas.getBoundingClientRect();
+        const z = { left: (box.left - b.left) / k - 14, right: (box.right - b.left) / k + 14, top: (box.top - b.top) / k - 14, bottom: (box.bottom - b.top) / k + 14 };
+        ctx.save();
+        ctx.globalCompositeOperation = "destination-out";
+        const feather = 68, w = z.right - z.left, h = z.bottom - z.top;
+        for (let i = feather; i >= 2; i -= 2) {
+          ctx.globalAlpha = 0.12 * (1 - i / feather);
+          ctx.beginPath(); ctx.roundRect(z.left - i, z.top - i, w + 2 * i, h + 2 * i, 12 + i); ctx.fill();
+        }
+        ctx.globalAlpha = 1; ctx.fillRect(z.left, z.top, w, h);
+        ctx.restore();
+      }
+
+      function draw(now: number) {
+        frame = 0;
+        const quiet = reduced.matches;
+        waves = quiet ? [] : waves.filter((w) => now - w.time < 1000);
+        let moving = false;
+        for (const p of nodes) {
+          let tx = 0, ty = 0;
+          for (const wave of waves) {
+            const age = now - wave.time, x = p.x - wave.x, y = p.y - wave.y, distance = Math.hypot(x, y), offset = distance - age * 0.32;
+            if (distance && Math.abs(offset) < 48) {
+              const amplitude = wave.strength * Math.sin(offset / 13) * (1 - Math.abs(offset) / 48) * (1 - age / 1000);
+              tx += (x / distance) * amplitude; ty += (y / distance) * amplitude;
+            }
+          }
+          p.vx = quiet ? 0 : (p.vx + (tx - p.dx) * 0.16) * 0.76;
+          p.vy = quiet ? 0 : (p.vy + (ty - p.dy) * 0.16) * 0.76;
+          p.dx = quiet ? 0 : p.dx + p.vx; p.dy = quiet ? 0 : p.dy + p.vy;
+          moving ||= Math.abs(p.dx) + Math.abs(p.dy) + Math.abs(p.vx) + Math.abs(p.vy) > 0.07;
+        }
+        ctx.clearRect(0, 0, width, height);
+        const base = ctx.createLinearGradient(0, 0, 0, 480);
+        base.addColorStop(0, "#8494aa00");
+        base.addColorStop(1, "#8494aa22");
+        ctx.lineWidth = mobile.matches ? 0.6375 : 0.85;
+        ctx.strokeStyle = base;
+        ctx.beginPath();
+        for (let y = 0; y < rows; y++) for (let x = 0; x < columns; x++) {
+          const p = nodes[y * columns + x];
+          if (x) segment(nodes[y * columns + x - 1], p);
+          if (y) segment(nodes[(y - 1) * columns + x], p);
+        }
+        ctx.stroke();
+        if (moving) {
+          ctx.strokeStyle = "#2929fd45";
+          ctx.beginPath();
+          for (let y = 0; y < rows; y++) for (let x = 0; x < columns; x++) {
+            const p = nodes[y * columns + x];
+            if (Math.hypot(p.dx, p.dy) < 1.4) continue;
+            if (x) segment(nodes[y * columns + x - 1], p);
+            if (y) segment(nodes[(y - 1) * columns + x], p);
+          }
+          ctx.stroke();
+        }
+        clearTextZone();
+        if (moving || waves.length) schedule();
+      }
+
+      stage.addEventListener("click", (e) => {
+        if (reduced.matches || !width || !height || (e.target as Element).closest(".tl-copy")) return;
+        const b = canvas.getBoundingClientRect();
+        waves.push({ x: (e.clientX - b.left) / k, y: (e.clientY - b.top) / k, time: performance.now(), strength: 14 });
+        if (waves.length > 7) waves.shift();
+        schedule();
+      });
+      reduced.addEventListener("change", schedule);
+      mobile.addEventListener("change", resize);
+      new ResizeObserver(resize).observe(canvas);
+      new ResizeObserver(schedule).observe(intro);
+      document.fonts?.ready.then(schedule);
+      resize();
     });
   </script>
 </section>
 
 <style>
   @layer components {
-    .tools-header {
-      display: grid;
-      grid-template-columns: 1fr minmax(0, 22.5rem);
-      align-items: end;
-      gap: 2rem;
-    }
-    .tools-intro {
-      margin: 0;
-      text-box: trim-both cap alphabetic;
-    }
-
-    /* ---- Filter bar ---- */
-    .tools-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1.5rem;
-      margin-top: 3.5rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid var(--color-grey-20);
-    }
-    .tools-filters {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-    .tools-filter {
-      padding: 0.625rem 0.875rem;
-      border: 1px solid var(--color-grey-20);
-      border-radius: var(--radius-sm);
-      background: var(--color-white);
-      color: var(--color-grey-70);
-      cursor: pointer;
-      transition: background-color 0.3s, color 0.3s, border-color 0.3s;
-    }
-    .tools-filter:hover {
-      border-color: var(--color-grey-90);
-      color: var(--color-grey-90);
-    }
-    .tools-filter[aria-pressed="true"] {
-      border-color: var(--color-grey-90);
-      background: var(--color-grey-90);
-      color: var(--color-white);
-    }
-    .tools-filter:focus-visible,
-    .tool:focus-visible {
-      outline: 2px solid var(--color-secondary);
-      outline-offset: 3px;
-    }
-    .tools-count {
-      margin: 0;
-      white-space: nowrap;
-    }
-
-    /* ---- Tiles ---- */
-    .tools-grid {
-      display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
-      gap: 0.75rem;
-      margin: 1.5rem 0 0;
-      padding: 0;
-      list-style: none;
-    }
-    .tool {
+    /* ---------- Section + grid ---------- */
+    .tl {
       position: relative;
-      display: grid;
-      aspect-ratio: 1;
-      overflow: hidden;
-      border-radius: var(--radius-lg);
-      background: var(--color-surface-light);
-      cursor: default;
-      transition:
-        background-color 0.45s var(--ease-esse),
-        opacity 0.5s var(--ease-esse) var(--d, 0ms),
-        scale 0.5s var(--ease-esse) var(--d, 0ms);
+      isolation: isolate;
+      overflow: clip;
+      background: var(--color-white);
     }
-    .tool-icon {
-      place-self: center;
-      width: 34%;
-      aspect-ratio: 1;
-      background-color: var(--color-grey-70);
-      -webkit-mask: var(--icon) center / contain no-repeat;
-      mask: var(--icon) center / contain no-repeat;
-      transition: background-color 0.45s, translate 0.55s var(--ease-esse), scale 0.55s var(--ease-esse);
-    }
-    .tool-name {
+    .tl-grid {
       position: absolute;
-      left: 0.875rem;
-      top: 0.875rem;
-      color: var(--color-grey-60);
-      transition: color 0.45s;
-    }
-    .tool-use {
-      position: absolute;
-      inset: auto 0.875rem 0.875rem;
-      color: var(--color-white);
-      font-size: 0.8125rem;
-      line-height: 1.35;
-      opacity: 0;
-      translate: 0 0.75rem;
-      transition: opacity 0.4s, translate 0.55s var(--ease-esse);
-    }
-    /* Active: electric blue, white logo lifts, the use-case slides up */
-    .tool:is(:hover, :focus-visible, .is-open) {
-      background: var(--color-secondary);
-    }
-    .tool:is(:hover, :focus-visible, .is-open) .tool-icon {
-      background-color: var(--color-white);
-      translate: 0 -22%;
-      scale: 0.8;
-    }
-    .tool:is(:hover, :focus-visible, .is-open) .tool-name {
-      color: var(--color-grey-10);
-    }
-    .tool:is(:hover, :focus-visible, .is-open) .tool-use {
-      opacity: 1;
-      translate: 0 0;
-      transition-delay: 0.08s;
-    }
-    /* Filtered out */
-    .tool.is-dim {
-      opacity: 0.18;
-      scale: 0.96;
+      inset: 0;
+      width: 100%;
+      height: 100%;
       pointer-events: none;
     }
 
+    /* ---------- Orbit (prototype px; the frame is zoomed 0.75 on desktop) ---------- */
+    .tl-frame {
+      --spring: linear(0, 0.026 1.8%, 0.108 3.9%, 0.59 12.2%, 0.792 16.5%, 0.931 21%, 0.978 23.4%, 1.01 25.9%, 1.033 29.3%, 1.04 33.3%, 1.001 56.9%, 1);
+      --orbit-scale: 1.425; /* 1.25 × 1.14 */
+      --orbit-shift: 350px 35px;
+      position: relative;
+      max-width: 976px;
+      height: 133.333vh;
+      min-height: 640px;
+      margin: auto;
+    }
+    @media (width >= 62rem) {
+      .tl-frame { zoom: 0.75; }
+    }
+    .tl-haze {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      translate: var(--orbit-shift);
+    }
+    /* Frosted pill holding the focused tool + hub */
+    .tl-haze::after {
+      content: "";
+      position: absolute;
+      left: 585px;
+      top: 50%;
+      width: 352px;
+      height: 160px;
+      border: 1px solid #fff;
+      border-radius: 100px;
+      background: linear-gradient(155deg, #ffffffdf, #eef1ff50 49%, #ffffffb8);
+      -webkit-backdrop-filter: blur(14px) saturate(145%);
+      backdrop-filter: blur(14px) saturate(145%);
+      box-shadow: inset 0 1px 1px #fff, inset 0 -1px 3px #a7b0d338, 0 0 0 1px #727b9f26, 0 14px 30px #30325319;
+      transform-origin: 80px 50%;
+      transform: translateY(-50%) scale(var(--orbit-scale));
+    }
+    .tl-wheel {
+      position: absolute;
+      z-index: 2;
+      left: 142px;
+      top: 50%;
+      width: 800px;
+      height: 800px;
+      transform-origin: 523px 50%;
+      transform: translateY(-50%) scale(var(--orbit-scale));
+      translate: var(--orbit-shift);
+      -webkit-mask-image: conic-gradient(from 270deg, transparent 20.9654deg, black 108deg 180deg, black 212deg, transparent 253deg);
+      mask-image: conic-gradient(from 270deg, transparent 20.9654deg, black 108deg 180deg, black 212deg, transparent 253deg);
+    }
+    /* Two rings, cut out where the pill sits */
+    .tl-wheel::before,
+    .tl-wheel::after {
+      --cutout: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='352' height='160'%3E%3Crect width='352' height='160' rx='80'/%3E%3C/svg%3E");
+      content: "";
+      position: absolute;
+      inset: 84px;
+      border: 1px solid #a0b7ff38;
+      border-radius: 50%;
+      -webkit-mask: linear-gradient(#000 0 0), var(--cutout) var(--cutout-x) center / 352px 160px no-repeat;
+      -webkit-mask-composite: xor;
+      mask: linear-gradient(#000 0 0), var(--cutout) var(--cutout-x) center / 352px 160px no-repeat;
+      mask-composite: exclude;
+      --cutout-x: 359px;
+    }
+    .tl-wheel::after {
+      inset: 120px;
+      border-color: #a0b7ff14;
+      opacity: 0.4;
+      --cutout-x: 323px;
+    }
+    .tl-arm {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transition: transform 1s var(--spring), width 1s, height 1s;
+    }
+    .tl-disc {
+      position: absolute;
+      top: -315px;
+      left: 0;
+      display: grid;
+      place-items: center;
+      width: 100%;
+      height: 100%;
+      border: 1px solid #d6e1ff;
+      border-radius: 50%;
+      background: var(--color-white);
+      transition-property: transform, opacity;
+      transition-duration: 1s;
+      transition-timing-function: var(--spring);
+    }
+    .tl-disc img {
+      display: block;
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+      place-self: center;
+    }
+    .tl-arm.is-muted .tl-disc {
+      opacity: 0.32;
+    }
+    /* Glass: the focused disc and the hub */
+    .tl-arm.is-focal .tl-disc,
+    .tl-hub {
+      border-color: #ffffffeb;
+      background:
+        radial-gradient(ellipse at 32% 11%, #fff 0%, #ffffff9c 30%, transparent 62%),
+        linear-gradient(150deg, #ffffff82, #dbe5ff60 77%, #ffffffe0);
+      box-shadow: inset 0 1px 2px #fff, inset 0 -4px 10px #7687ce24, 0 0 0 1px #8390b725, 0 5px 13px #515e9820;
+    }
+    .tl-hub {
+      position: absolute;
+      z-index: 3;
+      left: 605px;
+      top: 50%;
+      display: grid;
+      place-items: center;
+      width: 120px;
+      height: 120px;
+      border-width: 1px;
+      border-style: solid;
+      border-radius: 50%;
+      transform: translateY(-50%) scale(var(--orbit-scale));
+      translate: var(--orbit-shift);
+    }
+    .tl-hub.is-pulse {
+      animation: tl-pulse 1.6s ease-out;
+    }
+    @keyframes tl-pulse {
+      25% { box-shadow: inset 0 1px 2px #fff, inset 0 -4px 10px #7687ce24, 0 0 0 1px #8390b740, 0 5px 19px #6671d344; }
+    }
+    /* Pixel "u": squares pop (shrink + teal) in a diagonal wave on every pulse */
+    .tl-mark rect {
+      fill: var(--color-secondary);
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+    .tl-hub.is-pulse .tl-mark rect {
+      animation: tl-pop 0.6s var(--ease-esse) calc(var(--k) * 45ms) both;
+    }
+    @keyframes tl-pop {
+      0% { scale: 1; }
+      35% { scale: 0.4; fill: var(--color-accent); }
+      100% { scale: 1; }
+    }
+
+    /* ---------- Copy (desktop: on-screen sizes of the zoomed prototype) ---------- */
+    .tl-copy {
+      position: absolute;
+      z-index: 4;
+      top: 87px;
+      left: 6.042vw;
+      width: max-content;
+    }
+    .tl-intro {
+      translate: -24.75px 39px;
+    }
+    .tl-eyebrow {
+      margin-bottom: 18px;
+    }
+    .tl-title {
+      margin: 0 0 16.5px;
+    }
+    .tl-lead {
+      max-width: 352.5px;
+      margin: 0;
+    }
+    .tl-browser {
+      position: absolute;
+      left: 0;
+      top: max(225px, calc(100vh - 154.5px));
+      width: max-content;
+      max-width: min(472.5px, 33vw);
+      translate: -15px -29.25px;
+    }
+    .tl-caption {
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      width: 228px;
+      max-width: 100%;
+      margin: 0 0 13.5px;
+      text-transform: uppercase;
+    }
+    .tl-filters {
+      display: inline-flex;
+      flex-wrap: wrap;
+      padding: 1px 0 0 1px;
+    }
+    .tl-filter {
+      min-height: 30px;
+      margin: -1px 0 0 -1px;
+      padding: 6.75px 9px;
+      border: 1px solid var(--color-border);
+      border-radius: 0;
+      background: var(--color-white);
+      color: var(--color-grey-90);
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+    .tl-filter:hover {
+      color: var(--color-secondary);
+    }
+    .tl-filter[aria-pressed="true"] {
+      color: var(--color-grey-90);
+    }
+    .tl-filter[aria-pressed="true"]::before { content: "("; }
+    .tl-filter[aria-pressed="true"]::after { content: ")"; }
+    .tl-filter:focus-visible {
+      position: relative;
+      z-index: 1;
+      outline: 2px solid var(--color-secondary);
+      outline-offset: -3px;
+    }
+    .tl-results {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4.5px 9.75px;
+      margin: 6px 0 0;
+      padding: 0;
+      list-style: none;
+      color: var(--color-grey-70);
+    }
+    .tl-results[hidden] {
+      display: none;
+    }
+
+    /* ---------- Mobile: the prototype's grid layout (no zoom) ---------- */
     @media (width < 62rem) {
-      .tools-header {
-        grid-template-columns: 1fr;
-        align-items: start;
-        gap: 1.5rem;
+      .tl {
+        --mobile-orbit-scale: calc(0.52 * 1.65);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto 290px auto;
+        align-content: start;
+        gap: 18px;
+        min-height: 100svh;
+        padding: 45px 20px calc(32px + 136px);
+        text-align: center;
       }
-      .tools-grid {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+      .tl-frame,
+      .tl-copy {
+        display: contents;
+      }
+      .tl-haze,
+      .tl-wheel,
+      .tl-hub {
+        grid-area: 2 / 1 / 3 / 2;
+        translate: 0 62px;
+      }
+      .tl-wheel,
+      .tl-hub {
+        left: 50%;
+        top: 72%;
+      }
+      .tl-wheel {
+        transform-origin: 50% 50%;
+        transform: translate(-50%, -50%) translateY(calc(123px * var(--mobile-orbit-scale))) rotate(-90deg) scale(var(--mobile-orbit-scale));
+        -webkit-mask-image: linear-gradient(90deg, transparent 45%, black 60%);
+        mask-image: linear-gradient(90deg, transparent 45%, black 60%);
+      }
+      .tl-haze {
+        position: absolute;
+        inset: 0;
+      }
+      .tl-haze::after {
+        left: 50%;
+        top: 72%;
+        width: 160px;
+        height: 352px;
+        transform-origin: center;
+        transform: translate(-50%, -50%) translateY(calc(-96px * var(--mobile-orbit-scale))) scale(var(--mobile-orbit-scale));
+      }
+      .tl-hub {
+        transform: translate(-50%, -50%) scale(var(--mobile-orbit-scale));
+      }
+      .tl-disc {
+        rotate: 90deg;
+      }
+
+      .tl-intro,
+      .tl-browser {
+        position: relative;
+        z-index: 4;
+      }
+      .tl-intro {
+        grid-row: 1;
+        translate: none;
+      }
+      .tl-eyebrow {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 15px;
+      }
+      .tl-title {
+        margin-bottom: 14px;
+      }
+      .tl-lead {
+        max-width: 340px;
+        margin-inline: auto;
+      }
+      .tl-br {
+        display: none;
+      }
+      .tl-browser {
+        grid-row: 3;
+        top: auto;
+        left: auto;
+        width: min(100%, 420px);
+        max-width: none;
+        margin: 0 auto;
+        translate: 0 136px;
+      }
+      .tl-caption {
+        position: static;
+        width: min(228px, 100%);
+        min-height: 2.3em;
+        margin: 0 auto 12px;
+      }
+      .tl-filters {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .tl-filter {
+        min-height: 32px;
+        padding: 7px 4px;
+      }
+      .tl-results {
+        justify-content: center;
+        gap: 6px 13px;
+        margin-top: 8px;
       }
     }
-    @media (width < 40rem) {
-      .tools-bar {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .tools-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-      .tool-icon {
-        width: 30%;
+    @media (width < 22.5rem) {
+      .tl {
+        --mobile-orbit-scale: calc(0.43 * 1.65);
+        grid-template-rows: auto 248px auto;
+        padding-inline: 16px;
       }
     }
+    @media (width >= 35rem) and (width < 62rem) {
+      .tl {
+        --mobile-orbit-scale: calc(0.7 * 1.65);
+        grid-template-rows: auto 368px auto;
+      }
+    }
+
     @media (prefers-reduced-motion: reduce) {
-      .tool,
-      .tool * {
-        transition: none !important;
+      .tl-arm,
+      .tl-disc {
+        transition: none;
+      }
+      .tl-hub.is-pulse,
+      .tl-hub.is-pulse .tl-mark rect {
+        animation: none;
       }
     }
   }
+</style>
+
+<style>
+  /* Unlayered: line-heights from the prototype that the text-12 / text-11 utilities would otherwise reset */
+  .tl-caption { line-height: 1.15; letter-spacing: -0.02em; }
+  .tl-filter { line-height: 1.2; }
 </style>

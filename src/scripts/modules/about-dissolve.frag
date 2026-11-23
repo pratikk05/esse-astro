@@ -53,6 +53,6 @@ void main() {
   // 12px line grid there (same as .about-grid / .section-pixel) to keep the surface seamless.
   vec4 src = texture(u_input, v_uv);
   float line = step(mod(css.x, 12.0), 1.0) + step(mod(css.y, 12.0), 1.0);
-  vec3 stage = mix(vec3(1.0), vec3(0.9686, 0.9725, 0.9725), min(line, 1.0));
+  vec3 stage = mix(vec3(1.0), vec3(0.959, 0.964, 0.972), min(line, 1.0)); // ripple-grid.js line (#8494aa22, 0.64px)
   FragColor = vec4(mix(stage, src.rgb, src.a), blue ? 0.0 : 1.0);
 }

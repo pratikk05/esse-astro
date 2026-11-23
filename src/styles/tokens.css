@@ -13,10 +13,9 @@
   --breakpoint-2xl: 90rem;  /* 1440px — Figma reference width */
 
   /* ---------- Fonts ---------- */
-  --font-primary: "Geist Pixel", "42 Dotsans", Arial, sans-serif; /* heading-76…24: Figma display headings (Geist Pixel) */
-  --font-secondary: "42 Dotsans", Arial, sans-serif;   /* para-*  (the design uses one sans for headings and body) */
-  --font-tertiary: Jetbrainsmono, Verdana, sans-serif; /* text-*  labels, tags, numbers */
-  --font-pixel: var(--font-primary); /* heading-pixel-*  Figma "Heading 03/Primary" (Process step titles) */
+  --font-primary: "Geist Pixel", "42 Dotsans", Arial, sans-serif; /* heading-64/48/40/32 (Geist Pixel) */
+  --font-secondary: "42 Dotsans", Arial, sans-serif;   /* para-*, subheading-16, heading-secondary-32 */
+  --font-tertiary: Jetbrainsmono, Verdana, sans-serif; /* text-*, numeric-76: labels, tags, numbers */
 
   /* ---------- Font weights ---------- */
   --font-weight-light: 300;
@@ -26,20 +25,19 @@
   --font-weight-bold: 700;
 
   /* ---------- Line heights ---------- */
-  --leading-display: 1;    /* heading-76, heading-56, text-* */
-  --leading-heading: 1.1;  /* heading-36, heading-32 */
-  --leading-title: 1.2;    /* heading-24 */
-  --leading-body: 1.4;     /* heading-16/14, para-* */
+  --leading-display: 1;    /* text-* */
+  --leading-heading: 1.1;  /* heading-64, heading-48, heading-secondary-32 */
+  --leading-title: 1.2;    /* heading-40 */
+  --leading-body: 1.4;     /* para-*, subheading-16 */
   --leading-base: 1.5;     /* body default */
-  --leading-pixel: 1.15;
-  --leading-numeric: 0.9;  /* numeric-76 */   /* heading-pixel-* (Figma Heading 03) */
+  --leading-pixel: 1.15;   /* heading-32 */
+  --leading-numeric: 0.9;  /* numeric-76 */
 
   /* ---------- Letter spacing ---------- */
-  --tracking-display: -0.07em;  /* heading-76 */
-  --tracking-xl: -0.06em;       /* heading-56, heading-24, body default */
-  --tracking-lg: -0.04em;       /* heading-36, heading-32 */
+  --tracking-xl: -0.06em;       /* body default */
+  --tracking-lg: -0.04em;       /* heading-64/48/40, heading-secondary-32, numeric-76 */
   --tracking-md: -0.025em;      /* para-18 */
-  --tracking-sm: -0.02em;       /* heading-16/14, para-16/14 */
+  --tracking-sm: -0.02em;       /* heading-32, subheading-16, para-16/14 */
   --tracking-mono: -0.01em;     /* text-* */
 
   /* ---------- Colours ---------- */

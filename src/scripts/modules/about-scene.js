@@ -21,7 +21,7 @@ function initAboutScene(sceneEl) {
   const stage = $("[data-about-stage]");
   const canvas = $("[data-about-canvas]");
   const grid = $("[data-about-grid]");
-  const strip = $("[data-about-strip]");
+  const opening = $("[data-about-opening]");
   const title = $("[data-about-title]");
   const note = $("[data-about-note]");
   const statement = $("[data-about-statement]");
@@ -32,7 +32,7 @@ function initAboutScene(sceneEl) {
   // Beat swap: outgoing words fall away (fast, upward), incoming rise in (expo, staggered by word)
   let currentBeat = -1;
   // Health cards: numbers count between the "typical audit" and "after rebuild" values; the colour,
-  // meters, labels and review swap via CSS (.is-good).
+  // tick gauges follow --val; titles, layout and review swap via CSS (.is-good).
   function setInsights(good) {
     const insightNums = [...sceneEl.querySelectorAll("[data-insight-num]")];
     tiles.forEach((tile) => tile.classList.toggle("is-good", good));
@@ -40,7 +40,7 @@ function initAboutScene(sceneEl) {
       const from = Number(el.textContent), to = Number(good ? el.dataset.good : el.dataset.bad);
       const dec = Number(el.dataset.dec) || 0;
       const state = { v: from };
-      const ring = el.closest(".insight-score");
+      const card = el.closest(".insight-card");
       gsap.to(state, {
         v: to,
         duration: reduced ? 0 : 1.3,
@@ -49,7 +49,7 @@ function initAboutScene(sceneEl) {
         delay: reduced ? 0 : 0.2,
         onUpdate: () => {
           el.textContent = state.v.toFixed(dec);
-          ring?.style.setProperty("--ring", state.v.toFixed(1));
+          card?.style.setProperty("--val", state.v.toFixed(1));
         },
       });
     });
@@ -122,8 +122,12 @@ function initAboutScene(sceneEl) {
     gl?.resize(innerWidth, stage.offsetHeight);
     // Tell the TV where the statement card ends (layout box, ignoring its scroll transform), so it
     // fits into the space below it at any viewport size instead of running under the card.
-    const cardBottom = (statement.offsetTop + statement.offsetHeight) / Math.max(1, stage.offsetHeight);
-    gl?.setLayout?.(cardBottom);
+    const stageH = Math.max(1, stage.offsetHeight);
+    const cardBottom = (statement.offsetTop + statement.offsetHeight) / stageH;
+    // Opening frame: the TV starts centred between the title card and the scroll cue
+    const openBottom = (opening.offsetTop + opening.offsetHeight) / stageH;
+    const cueTop = hint.offsetTop / stageH;
+    gl?.setLayout?.(cardBottom, openBottom, cueTop);
     // The project glimpses use the same free band (CSS: .about-tile top)
     stage.style.setProperty("--card-bottom", `${(cardBottom * 100).toFixed(2)}%`);
   }
@@ -211,7 +215,6 @@ function initAboutScene(sceneEl) {
     if (next && !reduced) next.style.setProperty("--stats-entry-space", `${lerp(entrySpace(), 0, smooth(0.78, 1, t))}px`);
 
     // Opening copy leaves
-    strip.style.opacity = String(1 - smooth(0.06, 0.16, p));
     const titleOut = smooth(0.02, 0.16, p);
     title.style.opacity = String(1 - titleOut);
     title.style.transform = `translateY(${-titleOut * 65}px)`;

@@ -9,6 +9,7 @@ import "./modules/about-scene.js"; // lightweight; fetches Three.js itself when 
 import "./modules/stats.js";
 import "./modules/work-preview.js";
 import "./modules/section-overlap.js"; // Hero → logos, FAQ → CTA: pinned sink-back + pixel edge
+import "./modules/ripple-grid.js"; // the "Our stack" click-ripple line grid on every grid section
 import "./modules/text-reveal.js"; // [data-split] / [data-fade] text animations on view
 
 const lazy = {
