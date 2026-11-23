@@ -248,17 +248,24 @@ import HeroFeatured from "../ui/HeroFeatured.astro"; // "Featured work" card —
       height: 100%;
       overflow: hidden;
       pointer-events: none;
+      /* slow, soft bloom: a wide feathered edge (30%) that grows over ~5s with a gentle in-out ease,
+         while the gradient's light rises and it settles from a slight zoom — it plays during the
+         preloader, seen through its dots */
       --hg-r: 0%;
-      -webkit-mask-image: radial-gradient(circle at 50% 55%, #000 calc(var(--hg-r) - 18%), transparent var(--hg-r));
-      mask-image: radial-gradient(circle at 50% 55%, #000 calc(var(--hg-r) - 18%), transparent var(--hg-r));
-      transition: --hg-r 1.8s cubic-bezier(0.22, 1, 0.36, 1);
+      -webkit-mask-image: radial-gradient(circle at 50% 55%, #000 calc(var(--hg-r) - 30%), transparent var(--hg-r));
+      mask-image: radial-gradient(circle at 50% 55%, #000 calc(var(--hg-r) - 30%), transparent var(--hg-r));
+      opacity: 0;
+      transition:
+        --hg-r 5.2s cubic-bezier(0.37, 0, 0.18, 1),
+        opacity 2.6s cubic-bezier(0.33, 0, 0.2, 1);
     }
     #liquid-gradient.is-ready {
-      --hg-r: 160%;
+      --hg-r: 175%;
+      opacity: 1;
     }
     #liquid-gradient canvas {
-      scale: 1.08;
-      transition: scale 2.2s cubic-bezier(0.22, 1, 0.36, 1);
+      scale: 1.14;
+      transition: scale 6.5s cubic-bezier(0.25, 0, 0.1, 1);
     }
     #liquid-gradient.is-ready canvas {
       scale: 1;

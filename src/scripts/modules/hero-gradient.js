@@ -20,6 +20,7 @@ function markReady(canvas) {
     canvas.parentElement?.classList.add("is-ready");
     if (canvas.id === "liquid-gradient-canvas") {
       document.documentElement.dataset.gradient = "ready";
+      document.documentElement.dataset.gradientAt = String(performance.now()); // when the bloom started
       document.dispatchEvent(new CustomEvent("uniflow:gradient-ready"));
     }
   });
