@@ -1,0 +1,188 @@
+---
+/**
+ * Hero "Featured work" card — bottom-right of the hero, above the status bar.
+ * The thumbnail is a little window onto the site: its sections are stacked like a page, and hovering
+ * the card scrolls the page down (leaving scrolls it back up). On touch screens it scrolls slowly on
+ * its own. Reduced motion: it stays at the top. CSS only.
+ *
+ * UNDO: delete the <HeroFeatured /> line (and its import) in components/sections/Hero.astro.
+ * To feature another project, change `featured` below (shots: public/images/works/<key>/<n>.webp).
+ */
+const featured = {
+  key: "pineapple",
+  name: "Pineapple Retreat",
+  meta: "Company culture · Webflow",
+  href: "#work",
+};
+const shots = [1, 2, 3, 4].map((n) => `/images/works/${featured.key}/${n}.webp`);
+---
+
+<div class="hf-wrap container" data-reveal="fade" style="--reveal-order: 4">
+  <a class="hf" href={featured.href} data-featured aria-label={`Featured work: ${featured.name}`}>
+    <span class="hf-thumb">
+      <span class="hf-page">
+        {shots.map((src) => <img src={src} alt="" width="900" height="900" decoding="async" />)}
+      </span>
+    </span>
+    <span class="hf-body">
+      <span class="hf-kicker text-11"><i aria-hidden="true"></i>FEATURED WORK</span>
+      <span class="hf-name">{featured.name}</span>
+      <span class="hf-meta text-11">{featured.meta.toUpperCase()}</span>
+      <span class="hf-foot">
+        <span class="hf-scroll text-11" aria-hidden="true">HOVER TO SCROLL</span>
+        <span class="hf-arrow" aria-hidden="true">→</span>
+      </span>
+    </span>
+  </a>
+</div>
+
+<style>
+  @layer components {
+    .hf-wrap {
+      position: absolute;
+      inset-inline: 0;
+      bottom: 7rem; /* sits just above the hero status bar */
+      z-index: 2;
+      display: flex;
+      justify-content: flex-end; /* right side */
+      pointer-events: none;
+    }
+    .hf {
+      display: flex;
+      gap: 0.875rem;
+      width: min(100%, 24rem);
+      padding: 0.5rem;
+      border: 1px solid rgb(255 255 255 / 0.16);
+      background: rgb(0 2 3 / 0.42);
+      -webkit-backdrop-filter: blur(14px);
+      backdrop-filter: blur(14px);
+      color: var(--color-white);
+      text-decoration: none;
+      pointer-events: auto;
+      transition: border-color 0.4s var(--ease-esse), background-color 0.4s var(--ease-esse);
+    }
+    .hf:hover,
+    .hf:focus-visible {
+      border-color: rgb(255 255 255 / 0.4);
+      background: rgb(0 2 3 / 0.55);
+    }
+    .hf:focus-visible {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 3px;
+    }
+    .hf-thumb {
+      position: relative;
+      flex: none;
+      width: 6.5rem;
+      aspect-ratio: 1;
+      overflow: hidden;
+      background: rgb(255 255 255 / 0.06);
+    }
+    /* the site's sections stacked like a page; hover scrolls it down */
+    .hf-page {
+      display: block;
+      transition: transform 1.1s var(--ease-esse);
+    }
+    .hf-page img {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1;
+      object-fit: cover;
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .hf:hover .hf-page,
+      .hf:focus-visible .hf-page {
+        transform: translateY(-75%);
+        transition: transform 4.5s cubic-bezier(0.45, 0, 0.55, 1);
+      }
+    }
+    /* touch: a slow scroll down and back on its own */
+    @media (hover: none) {
+      .hf-page {
+        animation: hf-browse 14s cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+      }
+      .hf-scroll {
+        display: none;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .hf-page {
+        transform: none !important;
+        animation: none !important;
+      }
+    }
+
+    .hf-body {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      flex: 1;
+      padding: 0.25rem 0.25rem 0.125rem 0;
+    }
+    .hf-kicker {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: rgb(255 255 255 / 0.65);
+    }
+    .hf-kicker i {
+      width: 6px;
+      height: 6px;
+      background: var(--color-accent);
+    }
+    .hf-name {
+      margin-top: 0.625rem;
+      font: 500 1.25rem/1.15 var(--font-secondary);
+      letter-spacing: -0.03em;
+    }
+    .hf-meta {
+      margin-top: 0.375rem;
+      color: rgb(255 255 255 / 0.55);
+    }
+    .hf-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: auto;
+      padding-top: 0.5rem;
+    }
+    .hf-scroll {
+      color: rgb(255 255 255 / 0.45);
+      transition: color 0.3s;
+    }
+    .hf:hover .hf-scroll {
+      color: var(--color-accent);
+    }
+    .hf-arrow {
+      font-size: 0.875rem;
+      transition: translate 0.4s var(--ease-esse);
+    }
+    .hf:hover .hf-arrow {
+      translate: 0.25rem 0;
+    }
+
+    @media (width < 40rem) {
+      .hf-wrap {
+        bottom: 9rem; /* the status bar has two rows on phones */
+      }
+      .hf-thumb {
+        width: 5.5rem;
+      }
+      .hf-name {
+        font-size: 1.125rem;
+      }
+    }
+    /* very short screens: keep the hero clear */
+    @media (height < 36rem) {
+      .hf-wrap {
+        display: none;
+      }
+    }
+  }
+
+  @keyframes hf-browse {
+    0%, 12% { transform: translateY(0); }
+    88%, 100% { transform: translateY(-75%); }
+  }
+</style>

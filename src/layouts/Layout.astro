@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import SiteScripts from "../components/global/SiteScripts.astro";
+import ChatBot from "../components/global/ChatBot.astro"; // quick-call chat — remove this + <ChatBot /> to undo
 import Preloader from "../components/global/Preloader.astro";
 import CookieBanner from "../components/global/CookieBanner.astro";
 
@@ -87,6 +88,7 @@ const { title = "Uniflow", scripts = true, preloader = false } = Astro.props;
     {scripts && <Preloader />}
     <slot />
     {scripts && <CookieBanner />}
+    {scripts && <ChatBot />}
     {scripts && <SiteScripts />}
   </body>
 </html>

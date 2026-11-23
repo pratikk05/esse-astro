@@ -18,9 +18,12 @@ import IconLinkedin from "../../assets/svg/menu/icon-linkedin.svg";
 interface Props {
   /** false on inner pages: section links point back to the home page ("/#work"). */
   home?: boolean;
+  /** "light" on white pages (404, journal): dark logo + status text instead of the hero's white ones. */
+  theme?: "dark" | "light";
 }
-const { home = true } = Astro.props;
+const { home = true, theme = "dark" } = Astro.props;
 const base = home ? "" : "/";
+import { JOURNAL_PAGES } from "../../data/journal";
 const contact = "/contact";
 
 const primaryLinks = [
@@ -28,6 +31,7 @@ const primaryLinks = [
   { label: "WORK", href: `${base}#work` },
   { label: "SERVICES", href: `${base}#services` },
   { label: "ABOUT", href: `${base}#about` },
+  ...(JOURNAL_PAGES ? [{ label: "JOURNAL", href: "/blog" }] : []), // blog pages (src/data/journal.ts)
   { label: "CONTACT", href: contact },
 ];
 const legalLinks = [
@@ -40,7 +44,7 @@ const socials = { instagram: "#", x: "#", linkedin: "#" };
 const chars = (label: string) => [...label].map((c) => (c === " " ? " " : c));
 ---
 
-<header id="top" class="site-header absolute inset-x-0 top-0 z-50" data-menu-root data-reveal="fade">
+<header id="top" class:list={["site-header absolute inset-x-0 top-0 z-50", theme === "light" && "is-light"]} data-menu-root data-reveal="fade">
   <!-- Blurs the page behind the open menu (html.is-menu-open) -->
   <div class="menu-backdrop" aria-hidden="true"></div>
   <div class="nav-row relative z-2 flex items-start justify-between padding-x-16 padding-top-24 lg:padding-32">
@@ -201,6 +205,16 @@ const chars = (label: string) => [...label].map((c) => (c === " " ? " " : c));
       }
     }
     /* ---------- Bar ---------- */
+    /* Light pages (theme="light"): darken the dark-hero nav */
+    :global(.site-header.is-light .nav-logo-light path[fill="white"]) {
+      fill: var(--color-grey-90);
+    }
+    .site-header.is-light .nav-text {
+      color: var(--color-grey-70);
+    }
+    .site-header.is-light .nav-square {
+      background-color: var(--color-grey-70);
+    }
     .nav-logo {
       width: 105.85px; /* mobile logo */
       height: 24px;

@@ -1,0 +1,35 @@
+---
+/** Image block inside a Journal post body (Sanity Portable Text `image` with alt + caption). */
+import { urlFor } from "../../sanity/image";
+
+interface Props {
+  node: { asset?: { _ref: string }; alt?: string; caption?: string };
+}
+const { node } = Astro.props;
+const src = node.asset ? urlFor(node).width(1400).fit("max").url() : null;
+---
+
+{
+  src && (
+    <figure class="pt-figure">
+      <img src={src} alt={node.alt ?? ""} loading="lazy" decoding="async" />
+      {node.caption && <figcaption class="text-11 text-grey-50">{node.caption.toUpperCase()}</figcaption>}
+    </figure>
+  )
+}
+
+<style>
+  .pt-figure {
+    margin: 2rem 0;
+  }
+  .pt-figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 0.5px solid var(--color-border);
+    border-radius: var(--radius-sm);
+  }
+  .pt-figure figcaption {
+    margin-top: 0.625rem;
+  }
+</style>

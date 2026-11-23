@@ -90,7 +90,11 @@ const scaleTicks = Array.from({ length: 41 }, (_, i) => i);
             <div class="insight-card" style={c.bad != null ? `--val:${c.bad}` : undefined}>
               <p class="insight-bar text-12 uppercase">
                 <span class="insight-dots"><i></i><i></i><i></i></span>
-                <span class="insight-swap"><b class="insight-when-bad">{c.title[0]}</b><b class="insight-when-good">{c.title[1]}</b></span>
+                {c.title[0] === c.title[1] ? (
+                  <span>{c.title[0]}</span>
+                ) : (
+                  <span class="insight-swap"><b class="insight-when-bad">{c.title[0]}</b><b class="insight-when-good">{c.title[1]}</b></span>
+                )}
               </p>
               {c.kind === "score" && (
                 <div class="insight-body insight-score">
@@ -127,7 +131,11 @@ const scaleTicks = Array.from({ length: 41 }, (_, i) => i);
               )}
               {c.kind === "review" && (
                 <div class="insight-body insight-review">
-                  <p class="insight-stars insight-swap"><b class="insight-when-bad">{"★".repeat(c.badStars ?? 0)}{"☆".repeat(5 - (c.badStars ?? 0))}</b><b class="insight-when-good">{"★".repeat(c.goodStars ?? 5)}</b></p>
+                  <p class="insight-stars" role="img" aria-label={`${c.badStars} of 5 stars, then ${c.goodStars} of 5`}>
+                    {[0, 1, 2, 3, 4].map((s) => (
+                      <span class:list={["insight-star", s < (c.badStars ?? 0) && "is-on-bad", s < (c.goodStars ?? 5) && "is-on-good"]} style={`--s:${s}`} aria-hidden="true"><i class="star-o">☆</i><i class="star-f">★</i></span>
+                    ))}
+                  </p>
                   <p class="insight-quote insight-swap"><b class="insight-when-bad">{c.badQuote}</b><b class="insight-when-good">{c.goodQuote}</b></p>
                 </div>
               )}
@@ -527,14 +535,46 @@ const scaleTicks = Array.from({ length: 41 }, (_, i) => i);
       gap: 0.75rem;
       width: 16.5rem;
     }
+    /* Stars change in place, one after another: each star is an outline with a fill on top. On the
+       switch, the existing fills shift gold → blue and the missing ones pop in, left to right. */
     .insight-stars {
+      --star: #a5670a;
+      display: flex;
+      gap: 0.12em;
       margin: 0;
       font: 400 1.125rem/1.1 var(--font-secondary);
-      letter-spacing: 0.04em;
-      color: #a5670a;
     }
-    .insight-stars .insight-when-good {
-      color: var(--good);
+    .insight.is-good .insight-stars {
+      --star: var(--good);
+    }
+    .insight-star {
+      display: inline-grid;
+    }
+    .insight-star > i {
+      grid-area: 1 / 1;
+      font-style: normal;
+      transition-delay: calc(var(--s) * 130ms);
+    }
+    .star-o {
+      color: var(--star);
+      opacity: 0.45;
+      transition: color 0.5s var(--ease-esse);
+    }
+    .star-f {
+      color: var(--star);
+      opacity: 0;
+      scale: 0.3;
+      transition: color 0.5s var(--ease-esse), opacity 0.25s ease-out, scale 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .insight:not(.is-good) .insight-star.is-on-bad .star-f,
+    .insight.is-good .insight-star.is-on-good .star-f {
+      opacity: 1;
+      scale: 1;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .insight-star > i {
+        transition: none;
+      }
     }
     .insight-quote {
       margin: 0;

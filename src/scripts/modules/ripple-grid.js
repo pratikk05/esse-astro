@@ -4,7 +4,7 @@
 // out from wherever you click (the prototype's "wake" spring simulation, same constants as Tools).
 // Tall sections don't get a giant canvas: the canvas covers the viewport ± a margin and jumps to
 // follow the scroll in whole grid rows, so the lines stay pinned to the section.
-// Colour matches Tools' fully faded-in line (#8494aa22); about-dissolve.frag paints the same grid.
+// Same page-anchored rows as Tools. Colour matches Tools' fully faded-in line (#8494aa22); about-dissolve.frag paints the same grid.
 
 const HOSTS = ".section-pixel, .about-grid, .logo-grid";
 const LINE = "#8494aa22";
@@ -13,10 +13,29 @@ const PAD = 320; // px of canvas above/below the viewport
 const reduced = matchMedia("(prefers-reduced-motion: reduce)");
 const mobile = matchMedia("(width < 62rem)");
 
+// Every grid is anchored to the PAGE, not to its own section: rows sit at page y = 0, 12, 24…, so
+// two grid sections next to each other read as one seamless background. pagePhase() is how far a
+// section's top is past the last page row; the canvas starts that far above the section.
+const scrollTop = () => window.scrollY || document.body.scrollTop || 0;
+export const pagePhase = (el) => {
+  const y = el.getBoundingClientRect().top + scrollTop();
+  return ((y % 12) + 12) % 12;
+};
+
+const REACH = 420; // px a ripple travels before it fades (0.32 sim px/ms × 1s + falloff, at 1/k)
+
+// One click listener for the whole page: clicks on any grid surface (not on links, buttons or the
+// Tools copy) become a "gridwave" in page coordinates that every grid — and Tools — picks up.
+const GRID_SURFACES = ".section-pixel, .logo-section, .about-scene, [data-tl]";
+document.addEventListener("click", (e) => {
+  const t = e.target;
+  if (!(t instanceof Element) || reduced.matches) return;
+  if (!t.closest(GRID_SURFACES) || t.closest("a, button, input, textarea, select, label, [role='button'], .tl-copy")) return;
+  dispatchEvent(new CustomEvent("gridwave", { detail: { x: e.clientX, pageY: e.clientY + scrollTop(), time: performance.now(), strength: 14 } }));
+});
+
 function attach(host) {
   const isLayer = !host.matches(".section-pixel"); // .about-grid / .logo-grid are their own layers
-  // The logo strip's rows are anchored to its BOTTOM edge so they run straight on into About's grid
-  const anchorBottom = host.matches(".logo-grid");
   const section = isLayer ? host.closest("section") || host : host;
   const canvas = document.createElement("canvas");
   canvas.className = "ripple-grid";
@@ -25,7 +44,7 @@ function attach(host) {
   const ctx = canvas.getContext("2d");
 
   // k: simulate in the prototype's units (desktop 16px cells zoomed 0.75 → 12px on screen)
-  let k = 1, step = 16, w = 0, h = 0, top = 0, hostH = 0, columns = 0, rows = 0;
+  let k = 1, step = 16, w = 0, h = 0, top = 0, hostH = 0, columns = 0, rows = 0, lift = 0;
   let nodes = [], waves = [], frame = 0, visible = false;
 
   function build() {
@@ -33,9 +52,9 @@ function attach(host) {
     step = 12 / k;
     const cw = host.clientWidth;
     hostH = host.clientHeight;
-    const lift = anchorBottom ? 12 - (hostH % 12 || 12) : 0;
+    lift = pagePhase(section);
     canvas.style.top = `${-lift}px`;
-    const ch = Math.min(hostH + lift, innerHeight + PAD * 2);
+    const ch = Math.min(hostH + 12, innerHeight + PAD * 2);
     if (!cw || !ch) return false;
     const d = Math.min(devicePixelRatio || 1, 2);
     canvas.style.height = `${ch}px`;
@@ -57,7 +76,7 @@ function attach(host) {
     // -r.top; unclamped, that re-placed the canvas every frame and wiped every ripple)
     const visTop = Math.max(0, -r.top), visBottom = Math.min(hostH, -r.top + innerHeight);
     if (!force && visTop >= top && visBottom <= top + ch) return false;
-    const next = Math.max(0, Math.min(hostH - ch, visTop - PAD));
+    const next = Math.max(0, Math.min(hostH + 12 - ch, visTop - PAD));
     top = Math.floor(next / 12) * 12;
     canvas.style.transform = `translateY(${top}px)`;
     for (const p of nodes) p.dx = p.dy = p.vx = p.vy = 0;
@@ -71,11 +90,14 @@ function attach(host) {
     frame = 0;
     const quiet = reduced.matches;
     waves = quiet ? [] : waves.filter((wv) => now - wv.time < 1000);
-    const oy = top / k; // canvas offset inside the host, in sim units
+    const oy = (top - lift) / k; // canvas origin inside the host, in sim units
+    // waves live in page coordinates (shared by every grid) → this host's sim units
+    const r = host.getBoundingClientRect(), hostPageTop = r.top + scrollTop();
+    const local = waves.map((wv) => ({ ...wv, x: (wv.x - r.left) / k, y: (wv.pageY - hostPageTop) / k }));
     let moving = false;
     for (const p of nodes) {
       let tx = 0, ty = 0;
-      for (const wave of waves) {
+      for (const wave of local) {
         const age = now - wave.time, x = p.x - wave.x, y = p.y + oy - wave.y, distance = Math.hypot(x, y), offset = distance - age * 0.32;
         if (distance && Math.abs(offset) < 48) {
           const amplitude = wave.strength * Math.sin(offset / 13) * (1 - Math.abs(offset) / 48) * (1 - age / 1000);
@@ -117,7 +139,9 @@ function attach(host) {
   const tick = () => {
     loop = 0;
     if (!visible) return;
-    if (follow(false)) schedule();
+    // the section moved on the page (content above changed height) → re-align to the page grid
+    if (Math.abs(pagePhase(section) - lift) > 0.25) resize();
+    else if (follow(false)) schedule();
     loop = requestAnimationFrame(tick);
   };
 
@@ -127,10 +151,13 @@ function attach(host) {
     schedule();
   }
 
-  section.addEventListener("click", (e) => {
-    if (reduced.matches || !w || e.target.closest("a, button, input, textarea, select, label, [role='button']")) return;
-    const r = host.getBoundingClientRect();
-    waves.push({ x: (e.clientX - r.left) / k, y: (e.clientY - r.top) / k, time: performance.now(), strength: 14 });
+  // Shared waves: a click anywhere on a grid surface ripples every grid it reaches, so the ripple
+  // runs straight across section edges (one background, not one per section).
+  addEventListener("gridwave", (e) => {
+    if (reduced.matches || !w) return;
+    const r = host.getBoundingClientRect(), y = e.detail.pageY - scrollTop();
+    if (y < r.top - REACH || y > r.bottom + REACH) return; // too far to ever reach this grid
+    waves.push(e.detail);
     if (waves.length > 7) waves.shift();
     schedule();
   });

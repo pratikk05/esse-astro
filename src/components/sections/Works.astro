@@ -2,31 +2,22 @@
 import Tag from "../ui/Tag.astro";
 import WorkCard from "../ui/WorkCard.astro";
 
-// Client work. Covers are studio-lit device mockups composed from each site's real hero
-// (MacBook / monitor / iPhones); the hover window cycles four of the site's strongest sections.
-// Details are only what can be verified from the live sites.
-const work = (key: string, name: string, industry: string, domain: string, alt: string) => ({
-  name,
-  details: [
-    ["Industry", industry],
-    ["Platform", "Webflow"],
-    ["Website", domain],
-  ] as [string, string][],
-  cover: {
-    src: `/images/works/${key}/cover.webp`,
-    srcset: `/images/works/${key}/cover-w640.webp 640w, /images/works/${key}/cover.webp 1220w`,
-    alt,
-  },
-  gallery: [1, 2, 3, 4].map((n) => `/images/works/${key}/${n}.webp`),
-});
+// Client work — from Sanity (Studio → "Selected work"), falling back to the built-in five
+// (src/data/works.ts). Cards follow the original rhythm, repeated for any extra projects:
+// large + small (bottom-aligned), one large centred, small + large.
+import { getWorks } from "../../data/works";
 
-const projects = {
-  ys: work("ys", "YS HOMES", "Construction", "ys-homes.webflow.io", "YS Homes website on a MacBook and an iPhone"),
-  pineapple: work("pineapple", "PINEAPPLE RETREAT", "Company Culture", "pineapple-new.webflow.io", "Pineapple Retreat 2024 website on three iPhones"),
-  izart: work("izart", "IZART STUDIO", "Branding Studio", "izart.in", "Izart Studio website on a desktop monitor and an iPhone"),
-  lumikai: work("lumikai", "LUMIKAI", "Venture Capital", "lumikai.webflow.io", "Lumikai website on an iPhone"),
-  nocturn: work("nocturn", "NOCTURN STUDIO", "Creative Studio", "nocturn-studio.webflow.io", "Nocturn Studio full page and two iPhones"),
-};
+const works = await getWorks();
+type Row = { items: { work: (typeof works)[number]; size: "large" | "small" }[]; align: "split" | "center" };
+const rows: Row[] = [];
+for (let i = 0, step = 0; i < works.length; step++) {
+  const kind = step % 3;
+  if (kind === 1) { rows.push({ items: [{ work: works[i], size: "large" }], align: "center" }); i += 1; continue; }
+  const pair = works.slice(i, i + 2);
+  const sizes: ("large" | "small")[] = kind === 0 ? ["large", "small"] : ["small", "large"];
+  rows.push({ items: pair.map((work, k) => ({ work, size: pair.length === 1 ? "large" : sizes[k] })), align: pair.length === 1 ? "center" : "split" });
+  i += pair.length;
+}
 ---
 
 <section id="work" class="section section-pixel">
@@ -40,22 +31,13 @@ const projects = {
         <h2 class="works-title heading-48 padding-top-12" data-split>Digital Products With Purpose</h2>
       </div>
 
-      <!-- Row 1: large left, small right (bottom-aligned) -->
-      <div class="flex flex-col gap-figma-24 margin-top-113 lg:flex-row lg:items-end lg:justify-between lg:gap-0">
-        <WorkCard {...projects.ys} />
-        <WorkCard {...projects.pineapple} size="small" />
-      </div>
-
-      <!-- Row 2: large, centred -->
-      <div class="flex flex-col gap-figma-24 margin-top-113 lg:flex-row lg:items-center lg:justify-center">
-        <WorkCard {...projects.izart} />
-      </div>
-
-      <!-- Row 3: small left, large right (bottom-aligned) -->
-      <div class="flex flex-col gap-figma-24 margin-top-113 lg:flex-row lg:items-end lg:justify-between lg:gap-0">
-        <WorkCard {...projects.lumikai} size="small" />
-        <WorkCard {...projects.nocturn} />
-      </div>
+      {
+        rows.map((row) => (
+          <div class:list={["flex flex-col gap-figma-24 margin-top-113 lg:flex-row", row.align === "center" ? "lg:items-center lg:justify-center" : "lg:items-end lg:justify-between lg:gap-0"]}>
+            {row.items.map(({ work, size }) => <WorkCard {...work} size={size} />)}
+          </div>
+        ))
+      }
 
       <div class="spacer-140" aria-hidden="true"></div>
     </div>

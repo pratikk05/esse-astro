@@ -13,8 +13,12 @@
     "flowscale": "node tools/flowscale.mjs"
   },
   "dependencies": {
+    "@sanity/client": "^8.17.0",
+    "@sanity/image-url": "^2.2.0",
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.4.5",
+    "astro-portabletext": "^1.0.1",
+    "groq": "^6.24.0",
     "gsap": "3.15.0",
     "lenis": "1.2.3",
     "tailwindcss": "^4.3.3",

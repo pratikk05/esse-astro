@@ -29,7 +29,8 @@
    keep the media query in sync with SCROLL_LOCK_QUERY there. */
 html,
 body {
-  overscroll-behavior-y: none;
+  /* y: no rubber-band bounce. x: no trackpad two-finger swipe back/forward (Chrome's history arrow) */
+  overscroll-behavior: none;
 }
 @media (hover: none) and (pointer: coarse) {
   html,

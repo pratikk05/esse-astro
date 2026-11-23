@@ -1,0 +1,399 @@
+---
+/**
+ * Journal listing (/blog). Posts: src/data/journal.ts. Undo: see JOURNAL_PAGES there.
+ * Layout: title + topic filters (styled like the Our stack filters), the latest note as a large
+ * feature, then an index of every note — hovering a row floats its thumbnail beside the cursor.
+ * On hover only the thumbnail art zooms; the corner labels are text and never scale.
+ */
+import Layout from "../../layouts/Layout.astro";
+import Navbar from "../../components/global/Navbar.astro";
+import Footer from "../../components/sections/Footer.astro";
+import Tag from "../../components/ui/Tag.astro";
+import RollText from "../../components/ui/RollText.astro";
+import JournalThumb from "../../components/journal/JournalThumb.astro";
+import { getPosts, postUrl, number } from "../../data/journal";
+
+const posts = await getPosts();
+
+const [featured] = posts;
+const topics = [...new Set(posts.map((p) => p.category))];
+const count = (t: string) => posts.filter((p) => p.category === t).length;
+---
+
+<Layout title="Journal — Uniflow">
+  <Navbar home={false} theme="light" />
+  <main>
+    <section class="jr section section-pixel" aria-labelledby="jr-title" data-journal>
+      <div class="white-fade" aria-hidden="true"></div>
+      <div class="container relative">
+        <header class="jr-head">
+          <div>
+            <div data-fade><Tag label="JOURNAL" /></div>
+            <h1 id="jr-title" class="heading-64 text-grey-90 padding-top-24" data-split>Notes on design &amp; build</h1>
+          </div>
+          <div class="jr-aside" data-fade="1">
+            <p class="jr-total"><span>{number(posts.length - 1)}</span><small class="text-12">NOTES</small></p>
+            <p class="text-12 font-semibold text-grey-60">THINKING FROM THE STUDIO ON DESIGN SYSTEMS, PERFORMANCE AND 3D FOR THE WEB</p>
+          </div>
+        </header>
+
+        <div class="jr-filters" role="group" aria-label="Filter notes by topic" data-fade="2">
+          <button class="jr-filter text-11 is-active" type="button" aria-pressed="true" data-filter="all">ALL <sup>{number(posts.length - 1)}</sup></button>
+          {topics.map((t) => <button class="jr-filter text-11" type="button" aria-pressed="false" data-filter={t}>{t.toUpperCase()} <sup>{number(count(t) - 1)}</sup></button>)}
+        </div>
+
+        <!-- Latest note -->
+        <a class="jr-feature" href={postUrl(featured)} data-cat={featured.category} data-fade="2">
+          <JournalThumb post={featured} index={0} ratio="16 / 9" eager class="jr-feature-thumb" />
+          <div class="jr-feature-body">
+            <p class="jr-meta text-12 font-semibold">
+              <span class="text-secondary">LATEST</span>
+              <span class="text-grey-50"><time datetime={featured.iso}>{featured.date.toUpperCase()}</time> · {featured.read.toUpperCase()}</span>
+            </p>
+            <h2 class="heading-40 text-grey-90">{featured.title}</h2>
+            <p class="para-16 text-grey-60">{featured.excerpt}</p>
+            <span class="jr-cta text-12 font-semibold"><RollText text="READ NOTE" /> <span aria-hidden="true">→</span></span>
+          </div>
+        </a>
+
+        <!-- Index of every note -->
+        <div class="jr-index-head text-11 text-grey-50" aria-hidden="true">
+          <span>NO.</span><span>TOPIC</span><span>TITLE</span><span>DATE</span><span>READ</span>
+        </div>
+        <ol class="jr-index" role="list">
+          {
+            posts.map((post, i) => (
+              <li data-cat={post.category}>
+                <a class="jr-row" href={postUrl(post)} data-preview={i}>
+                  <span class="jr-no text-12">[{number(i)}]</span>
+                  <span class="jr-topic text-12 text-grey-60">{post.category.toUpperCase()}</span>
+                  <span class="jr-title">{post.title}</span>
+                  <time class="jr-date text-12 text-grey-50" datetime={post.iso}>{post.date.toUpperCase()}</time>
+                  <span class="jr-read text-12 text-grey-50">{post.read.toUpperCase()}</span>
+                  <span class="jr-arrow" aria-hidden="true">→</span>
+                </a>
+              </li>
+            ))
+          }
+        </ol>
+        <p class="jr-empty text-12 text-grey-50" hidden data-empty>NO NOTES ON THIS TOPIC YET.</p>
+      </div>
+
+      <!-- Cursor preview (fine pointers only) -->
+      <div class="jr-preview" aria-hidden="true" data-preview-box>
+        {posts.map((post, i) => <JournalThumb post={post} index={i} class="jr-preview-item" />)}
+      </div>
+
+      <div class="white-fade is-bottom" aria-hidden="true"></div>
+
+      <script>
+        document.querySelectorAll<HTMLElement>("[data-journal]").forEach((root) => {
+          // ---- topic filters ----
+          const buttons = [...root.querySelectorAll<HTMLButtonElement>("[data-filter]")];
+          const items = [...root.querySelectorAll<HTMLElement>("[data-cat]")];
+          const empty = root.querySelector<HTMLElement>("[data-empty]")!;
+          buttons.forEach((b) =>
+            b.addEventListener("click", () => {
+              const f = b.dataset.filter!;
+              buttons.forEach((x) => { x.classList.toggle("is-active", x === b); x.setAttribute("aria-pressed", String(x === b)); });
+              let shown = 0;
+              items.forEach((el) => {
+                const on = f === "all" || el.dataset.cat === f;
+                el.classList.toggle("is-hidden", !on);
+                if (on && el.tagName === "LI") shown++;
+              });
+              empty.hidden = shown > 0;
+            }),
+          );
+
+          // ---- floating preview that trails the cursor over the index ----
+          const box = root.querySelector<HTMLElement>("[data-preview-box]")!;
+          const thumbs = [...box.children] as HTMLElement[];
+          if (!matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+          const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+          let x = 0, y = 0, tx = 0, ty = 0, raf = 0, on = false;
+          const move = () => {
+            raf = 0;
+            x += (tx - x) * (reduce ? 1 : 0.16); y += (ty - y) * (reduce ? 1 : 0.16);
+            box.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
+            if (on && (Math.abs(tx - x) > 0.3 || Math.abs(ty - y) > 0.3)) raf = requestAnimationFrame(move);
+          };
+          root.querySelectorAll<HTMLElement>("[data-preview]").forEach((row) => {
+            row.addEventListener("pointerenter", (e) => {
+              const i = Number(row.dataset.preview);
+              thumbs.forEach((t, k) => t.classList.toggle("is-on", k === i));
+              if (!on) { x = tx = e.clientX + 28; y = ty = e.clientY - 90; }
+              on = true; box.classList.add("is-on");
+              if (!raf) raf = requestAnimationFrame(move);
+            });
+            row.addEventListener("pointermove", (e) => { tx = e.clientX + 28; ty = e.clientY - 90; if (!raf) raf = requestAnimationFrame(move); });
+            row.addEventListener("pointerleave", () => { on = false; box.classList.remove("is-on"); });
+          });
+        });
+      </script>
+    </section>
+  </main>
+  <Footer home={false} />
+</Layout>
+
+<style>
+  @layer components {
+    .jr {
+      padding: clamp(8rem, 14vw, 11.5rem) 0 clamp(5rem, 8vw, 7rem);
+    }
+    .jr-head {
+      display: grid;
+      grid-template-columns: 1fr minmax(0, 20rem);
+      align-items: end;
+      gap: 2rem;
+    }
+    .jr-head h1 {
+      margin: 0;
+      max-width: 15ch;
+    }
+    .jr-aside {
+      display: grid;
+      gap: 1.25rem;
+    }
+    .jr-aside p {
+      margin: 0;
+    }
+    .jr-total {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      font: 400 clamp(3.5rem, 6vw, 4.75rem) / 0.8 var(--font-primary);
+      letter-spacing: -0.04em;
+      color: var(--color-secondary);
+    }
+    .jr-total small {
+      color: var(--color-grey-60);
+      letter-spacing: 0;
+      line-height: 1;
+    }
+
+    /* Topic filters — the Our stack filter row */
+    .jr-filters {
+      display: flex;
+      flex-wrap: wrap;
+      width: fit-content;
+      margin-top: 3rem;
+      border: 1px solid var(--color-border);
+      background: var(--color-white);
+    }
+    .jr-filter {
+      padding: 0.6875rem 0.875rem;
+      border: 0;
+      border-right: 1px solid var(--color-border);
+      background: transparent;
+      color: var(--color-grey-70);
+      line-height: 1.2;
+      cursor: pointer;
+      transition: background-color 0.3s var(--ease-esse), color 0.3s var(--ease-esse);
+    }
+    .jr-filter:last-child {
+      border-right: 0;
+    }
+    .jr-filter sup {
+      font-size: 0.75em;
+      color: var(--color-grey-50);
+      vertical-align: 0.35em;
+    }
+    .jr-filter:hover {
+      color: var(--color-grey-90);
+    }
+    .jr-filter.is-active {
+      background: var(--color-grey-90);
+      color: var(--color-white);
+    }
+    .jr-filter.is-active sup {
+      color: var(--color-accent);
+    }
+    .jr-filter:focus-visible {
+      outline: 2px solid var(--color-secondary);
+      outline-offset: 2px;
+    }
+
+    /* Latest note */
+    .jr-feature {
+      display: grid;
+      grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr);
+      gap: clamp(1.5rem, 3vw, 3rem);
+      align-items: end;
+      margin-top: 1.5rem;
+      padding: 1rem;
+      border: 1px solid var(--color-grey-20);
+      background: var(--color-white);
+      color: inherit;
+      text-decoration: none;
+    }
+    .jr-feature-body {
+      display: grid;
+      gap: 1.25rem;
+      padding: 0 0.5rem 0.5rem 0;
+    }
+    .jr-feature-body h2,
+    .jr-feature-body p {
+      margin: 0;
+    }
+    .jr-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .jr-cta {
+      display: inline-flex;
+      gap: 0.75rem;
+      width: fit-content;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--color-grey-90);
+      color: var(--color-grey-90);
+    }
+
+    /* Index */
+    .jr-index-head,
+    .jr-row {
+      display: grid;
+      grid-template-columns: 4.5rem 11rem minmax(0, 1fr) 7.5rem 6rem 1.5rem;
+      align-items: center;
+      gap: 1rem;
+    }
+    .jr-index-head {
+      margin-top: clamp(4rem, 7vw, 6rem);
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--color-grey-90);
+    }
+    .jr-index {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .jr-index li {
+      border-bottom: 1px dashed var(--color-border);
+    }
+    .is-hidden {
+      display: none !important;
+    }
+    .jr-row {
+      position: relative;
+      padding: 1.75rem 0;
+      color: var(--color-grey-90);
+      text-decoration: none;
+    }
+    .jr-no {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--color-grey-60);
+    }
+    .jr-no::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      background: var(--color-secondary);
+      scale: 0;
+      transition: scale 0.35s var(--ease-esse);
+    }
+    .jr-title {
+      font: 500 clamp(1.25rem, 1.6vw, 1.625rem) / 1.2 var(--font-secondary);
+      letter-spacing: -0.03em;
+      text-wrap: balance;
+      transition: translate 0.5s var(--ease-esse), color 0.3s;
+    }
+    .jr-arrow {
+      justify-self: end;
+      font-size: 1.125rem;
+      transition: translate 0.5s var(--ease-esse), rotate 0.5s var(--ease-esse);
+    }
+    .jr-row:hover .jr-no::before,
+    .jr-row:focus-visible .jr-no::before {
+      scale: 1;
+    }
+    .jr-row:hover .jr-title,
+    .jr-row:focus-visible .jr-title {
+      translate: 0.5rem 0;
+      color: var(--color-secondary);
+    }
+    .jr-row:hover .jr-arrow,
+    .jr-row:focus-visible .jr-arrow {
+      rotate: -45deg;
+    }
+    .jr-row:focus-visible {
+      outline: 2px solid var(--color-secondary);
+      outline-offset: 4px;
+    }
+    .jr-empty {
+      padding: 1.75rem 0;
+    }
+
+    /* Cursor preview */
+    .jr-preview {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 20;
+      display: grid;
+      width: 17rem;
+      pointer-events: none;
+      opacity: 0;
+      scale: 0.9;
+      transition: opacity 0.3s var(--ease-esse), scale 0.45s var(--ease-esse);
+    }
+    .jr-preview.is-on {
+      opacity: 1;
+      scale: 1;
+    }
+    .jr-preview > :global(*) {
+      grid-area: 1 / 1;
+      opacity: 0;
+      box-shadow: 0 24px 48px -24px rgb(0 2 3 / 0.4);
+      transition: opacity 0.25s;
+    }
+    .jr-preview > :global(.is-on) {
+      opacity: 1;
+    }
+
+    /* Hover: only the art zooms (labels are text above it) */
+    @media (hover: hover) and (pointer: fine) {
+      .jr-feature:hover :global(.jt-art),
+      .jr-feature:focus-visible :global(.jt-art) {
+        transform: scale(1.04);
+      }
+    }
+    .jr-feature:hover .jr-cta,
+    .jr-feature:focus-visible .jr-cta {
+      color: var(--color-secondary);
+      border-color: var(--color-secondary);
+    }
+    .jr-feature:focus-visible {
+      outline: 2px solid var(--color-secondary);
+      outline-offset: 4px;
+    }
+
+    @media (width < 62rem) {
+      .jr-head,
+      .jr-feature {
+        grid-template-columns: 1fr;
+        align-items: start;
+      }
+      .jr-index-head {
+        display: none;
+      }
+      .jr-row {
+        grid-template-columns: auto 1fr auto;
+        grid-template-areas: "no topic arrow" "title title title" "date read read";
+        row-gap: 0.75rem;
+        padding: 1.5rem 0;
+      }
+      .jr-no { grid-area: no; }
+      .jr-topic { grid-area: topic; }
+      .jr-title { grid-area: title; }
+      .jr-date { grid-area: date; }
+      .jr-read { grid-area: read; justify-self: end; }
+      .jr-arrow { grid-area: arrow; }
+      .jr-preview {
+        display: none;
+      }
+    }
+  }
+</style>

@@ -1,56 +1,19 @@
 ---
 /**
  * Journal — three posts about how the studio designs and builds, above the FAQ.
- * Self-contained: this file + public/images/blog/. To remove the section, delete the <Blog /> line
- * (and its import) in src/pages/index.astro.
- * Thumbnails share the site's language: brand field + Bayer-dithered noise (as Stats / CTA), the 12px
- * line grid, a pixel glyph per topic and JetBrains Mono corner labels.
- * Cards link only when a post has an `href` (no article pages yet → no dead links).
+ * Posts: Sanity → src/data/journal.ts getPosts() (shared with the /blog pages). To remove the section, delete the
+ * <Blog /> line (and its import) in src/pages/index.astro.
+ * Thumbnails share the site's language: brand field + Bayer-dithered noise (as Stats / CTA), a pixel
+ * glyph per topic and JetBrains Mono corner labels — drawn as text over the art (JournalThumb), so on
+ * hover only the art zooms; the labels never scale.
+ * Cards link to /blog/<slug> while JOURNAL_PAGES is on (src/data/journal.ts).
  */
 import Tag from "../ui/Tag.astro";
 import RollText from "../ui/RollText.astro";
+import JournalThumb from "../journal/JournalThumb.astro";
+import { getPosts, postUrl, JOURNAL_PAGES } from "../../data/journal";
 
-interface Post {
-  category: string;
-  title: string;
-  excerpt: string;
-  read: string;
-  date: string;
-  image: string;
-  alt: string;
-  href?: string;
-}
-
-// Placeholder copy and dates: replace with real posts (and add `href`) when articles are published.
-const posts: Post[] = [
-  {
-    category: "Design systems",
-    title: "Why every site we build starts with a design system",
-    excerpt: "Tokens, spacing and type scales decided once — so every new page stays consistent as your site grows.",
-    read: "6 min read",
-    date: "04 Nov 2026",
-    image: "/images/blog/design-systems.png",
-    alt: "Pixel grid of interface components on electric blue",
-  },
-  {
-    category: "Performance",
-    title: "Performance is a design decision",
-    excerpt: "How we keep motion, 3D and rich visuals fast — and why a good PageSpeed score starts in Figma, not after launch.",
-    read: "5 min read",
-    date: "21 Oct 2026",
-    image: "/images/blog/performance.png",
-    alt: "Pixel lightning bolt over a teal dither field",
-  },
-  {
-    category: "3D & Motion",
-    title: "Adding depth without the weight: 3D on the web",
-    excerpt: "When interactive 3D earns its place on a page, and how we ship it lean enough for every device.",
-    read: "7 min read",
-    date: "08 Oct 2026",
-    image: "/images/blog/3d-on-the-web.png",
-    alt: "Isometric pixel cube in electric blue",
-  },
-];
+const posts = (await getPosts()).slice(0, 3); // latest three
 ---
 
 <section id="journal" class="blog-section section section-pixel" aria-labelledby="blog-title">
@@ -62,21 +25,23 @@ const posts: Post[] = [
           <div data-fade><Tag label="JOURNAL" /></div>
           <h2 id="blog-title" class="heading-48 padding-top-12" data-split>Notes on Design &amp; Build</h2>
         </div>
-        <p data-fade="1" class="blog-intro text-12 leading-base tracking-sm font-semibold text-grey-60">
-          THINKING FROM THE STUDIO ON DESIGN SYSTEMS, PERFORMANCE AND 3D FOR THE WEB
-        </p>
+        <div class="blog-aside" data-fade="1">
+          <p class="blog-intro text-12 leading-base tracking-sm font-semibold text-grey-60">
+            THINKING FROM THE STUDIO ON DESIGN SYSTEMS, PERFORMANCE AND 3D FOR THE WEB
+          </p>
+          {JOURNAL_PAGES && <a class="blog-all text-12 font-semibold" href="/blog"><RollText text="ALL NOTES" /> <span aria-hidden="true">→</span></a>}
+        </div>
       </header>
 
       <ul class="blog-grid" role="list">
         {
           posts.map((post, i) => {
-            const Card = post.href ? "a" : "div";
+            const href = JOURNAL_PAGES ? postUrl(post) : undefined;
+            const Card = href ? "a" : "div";
             return (
               <li data-fade={String(i + 1)}>
-                <Card class:list={["blog-card", { "is-link": post.href }]} {...(post.href ? { href: post.href } : {})}>
-                  <div class="blog-thumb">
-                    <img src={post.image} alt={post.alt} width="1200" height="750" loading="lazy" decoding="async" />
-                  </div>
+                <Card class:list={["blog-card", { "is-link": href }]} {...(href ? { href } : {})}>
+                  <JournalThumb post={post} index={i} />
                   <p class="blog-meta text-12 font-semibold">
                     <span class="text-grey-90">[0{i + 1}] {post.category.toUpperCase()}</span>
                     <span class="text-grey-50">{post.read.toUpperCase()}</span>
@@ -84,8 +49,8 @@ const posts: Post[] = [
                   <h3 class="blog-title">{post.title}</h3>
                   <p class="blog-excerpt para-14 text-grey-60">{post.excerpt}</p>
                   <p class="blog-foot text-12 font-semibold">
-                    <time class="text-grey-50">{post.date.toUpperCase()}</time>
-                    {post.href && <span class="blog-read text-grey-90"><RollText text="READ ARTICLE" /> →</span>}
+                    <time class="text-grey-50" datetime={post.iso}>{post.date.toUpperCase()}</time>
+                    {href && <span class="blog-read text-grey-90"><RollText text="READ ARTICLE" /> →</span>}
                   </p>
                 </Card>
               </li>
@@ -106,9 +71,22 @@ const posts: Post[] = [
       align-items: end;
       gap: 2rem;
     }
+    .blog-aside {
+      display: grid;
+      justify-items: start;
+      gap: 1.25rem;
+    }
     .blog-intro {
       margin: 0;
       text-box: trim-both cap alphabetic;
+    }
+    .blog-all {
+      display: inline-flex;
+      gap: 0.75rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--color-grey-90);
+      color: var(--color-grey-90);
+      text-decoration: none;
     }
 
     .blog-grid {
@@ -126,20 +104,6 @@ const posts: Post[] = [
       height: 100%;
       color: inherit;
       text-decoration: none;
-    }
-    .blog-thumb {
-      aspect-ratio: 16 / 10;
-      overflow: hidden;
-      border: 0.5px solid var(--color-border);
-      border-radius: var(--radius-sm);
-      background: var(--color-surface);
-    }
-    .blog-thumb img {
-      display: block;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.9s var(--ease-esse);
     }
     .blog-meta,
     .blog-foot {
@@ -175,8 +139,9 @@ const posts: Post[] = [
     }
 
     @media (hover: hover) and (pointer: fine) {
-      .blog-card:hover .blog-thumb img,
-      .blog-card:focus-visible .blog-thumb img {
+      /* only the art zooms — the corner labels are text on top and stay put */
+      .blog-card:hover :global(.jt-art),
+      .blog-card:focus-visible :global(.jt-art) {
         transform: scale(1.04);
       }
     }
@@ -200,11 +165,6 @@ const posts: Post[] = [
     @media (width >= 48rem) and (width < 62rem) {
       .blog-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .blog-thumb img {
-        transition: none;
       }
     }
   }

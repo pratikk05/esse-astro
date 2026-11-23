@@ -11,7 +11,7 @@ import Tag from "../components/ui/Tag.astro";
 ---
 
 <Layout title="404 — Lost in the grid · Uniflow">
-  <Navbar home={false} />
+  <Navbar home={false} theme="light" />
   <main>
     <section class="nf section section-pixel" data-nf>
       <div class="container nf-head">
@@ -285,17 +285,6 @@ import Tag from "../components/ui/Tag.astro";
 </Layout>
 
 <style>
-  /* This page is light: darken the (dark-hero) nav here only */
-  :global(.site-header .nav-logo-light path[fill="white"]) {
-    fill: var(--color-grey-90);
-  }
-  :global(.site-header .nav-text) {
-    color: var(--color-grey-70);
-  }
-  :global(.site-header .nav-square) {
-    background-color: var(--color-grey-70);
-  }
-
   @layer components {
     .nf {
       display: flex;

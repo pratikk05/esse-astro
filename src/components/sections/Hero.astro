@@ -1,7 +1,8 @@
 ---
+import HeroFeatured from "../ui/HeroFeatured.astro"; // "Featured work" card — remove this + <HeroFeatured /> to undo
 ---
 
-<section class="section bg-black text-white" data-overlap-under="plain">
+<section class="section bg-black text-white" data-overlap-under="plain" data-chat-hide>
   <!-- Bottom status bar -->
   <div
     class="absolute inset-x-0 bottom-0 z-2 border-t border-line-on-dark padding-top-21 padding-bottom-40"
@@ -57,6 +58,9 @@
       </div>
     </div>
   </div>
+
+  <!-- Featured work card, bottom-right (components/ui/HeroFeatured.astro) -->
+  <HeroFeatured />
 
   <!-- Liquid gradient background (scripts/modules/hero-gradient.js) -->
   <div class="pointer-events-none absolute inset-0">

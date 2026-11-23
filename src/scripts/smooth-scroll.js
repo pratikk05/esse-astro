@@ -7,6 +7,27 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 const bodyScroller = !!window.__bodyScroller;
 
+// No trackpad swipe back/forward: a sideways two-finger swipe that nothing on the page can scroll
+// would otherwise reach Chrome/Safari as history navigation (the big ← arrow). `overscroll-behavior`
+// in global.css covers most cases; this catches the rest. Sideways-scrollable areas still scroll.
+const canScrollX = (el, dx) => {
+  for (; el && el !== document.documentElement; el = el.parentElement) {
+    const o = getComputedStyle(el).overflowX;
+    if ((o === "auto" || o === "scroll") && el.scrollWidth > el.clientWidth) {
+      if (dx < 0 ? el.scrollLeft > 0 : el.scrollLeft + el.clientWidth < el.scrollWidth - 1) return true;
+    }
+  }
+  return false;
+};
+addEventListener(
+  "wheel",
+  (e) => {
+    if (e.ctrlKey || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return; // pinch-zoom / vertical scroll
+    if (!canScrollX(e.target instanceof Element ? e.target : null, e.deltaX)) e.preventDefault();
+  },
+  { passive: false },
+);
+
 // Every ScrollTrigger on the site (Stats, overlap, text reveals, Services) follows the same scroller.
 // This module is imported first by main.js, so the default is set before any trigger is created.
 gsap.registerPlugin(ScrollTrigger);

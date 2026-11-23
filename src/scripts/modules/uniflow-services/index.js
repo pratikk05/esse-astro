@@ -6,11 +6,11 @@ import {clamp,gridLimits,transition,vertexShader,wipeFragment} from './pixel-gri
 
 // Each service: a live 3D model (service-models.js); `image` is its still render (fallback + mobile).
 export const services=[
- {key:'website',image:'/uniflow/img/service-website.webp',alt:'3D stack of website interface panels',description:'Thoughtful design and custom development, brought together in a website built for your business.'},
- {key:'design',image:'/uniflow/img/service-design.webp',alt:'3D cube, half wireframe with Bézier handles and half solid',description:'Your design, developed with care. We turn approved layouts into responsive, accurate and maintainable websites.'},
- {key:'immersive',image:'/uniflow/img/service-immersive.webp',alt:'Glossy 3D torus knot with an orbiting blue sphere',description:'Bring another dimension to your digital presence with interactive 3D, expressive motion and immersive experiences.'},
- {key:'search',image:'/uniflow/img/service-search.webp',alt:'3D magnifying glass with orbiting sparks',description:'Build a stronger foundation for discovery, with clear content, technical SEO and readiness for AI-powered search.'},
- {key:'support',image:'/uniflow/img/service-support.webp',alt:'Two interlocking 3D gears',description:'Keep your website moving forward with ongoing improvements, performance optimisation and dependable support.'}
+ {key:'website',image:'/uniflow/img/service-website.webp',alt:'3D browser window building itself block by block while a pixel cursor clicks its button',description:'Thoughtful design and custom development, brought together in a website built for your business.'},
+ {key:'design',image:'/uniflow/img/service-design.webp',alt:'3D design frame with a blue selection turning from wireframe into a built component',description:'Your design, developed with care. We turn approved layouts into responsive, accurate and maintainable websites.'},
+ {key:'immersive',image:'/uniflow/img/service-immersive.webp',alt:'3D voxel planet with ripples across its surface and an orbiting blue moon',description:'Bring another dimension to your digital presence with interactive 3D, expressive motion and immersive experiences.'},
+ {key:'search',image:'/uniflow/img/service-search.webp',alt:'3D search bar with a result climbing to the top spot and an AI sparkle',description:'Build a stronger foundation for discovery, with clear content, technical SEO and readiness for AI-powered search.'},
+ {key:'support',image:'/uniflow/img/service-support.webp',alt:'3D performance dial filling up around a pixel lightning bolt',description:'Keep your website moving forward with ongoing improvements, performance optimisation and dependable support.'}
 ];
 
 export async function initializeServices(root){

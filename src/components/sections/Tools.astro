@@ -164,9 +164,22 @@ const mark = ["#...#", "#...#", "#...#", "#...#", ".###."];
       const mobile = matchMedia("(width < 62rem)");
       type Node = { x: number; y: number; dx: number; dy: number; vx: number; vy: number };
       let k = 1, step = 16, width = 0, height = 0, columns = 0, rows = 0, nodes: Node[] = [], frame = 0;
-      let waves: { x: number; y: number; time: number; strength: number }[] = [];
+      // waves in page coordinates, shared with every other grid (scripts/modules/ripple-grid.js)
+      let waves: { x: number; pageY: number; time: number; strength: number }[] = [];
 
+      // Rows anchored to the page (y = 0, 12, 24…) like every other grid (ripple-grid.js), so the
+      // background runs on seamlessly into the next section: start the canvas that far above the top.
+      let phase = -1;
+      const pagePhase = () => (((stage.getBoundingClientRect().top + (window.scrollY || document.body.scrollTop || 0)) % 12) + 12) % 12;
+      function align() {
+        const next = pagePhase();
+        if (Math.abs(next - phase) < 0.25) return false;
+        phase = next;
+        canvas.style.top = `${-phase}px`;
+        return true;
+      }
       function resize() {
+        align();
         k = mobile.matches ? 1 : 0.75;
         step = mobile.matches ? 12 : 16;
         width = canvas.clientWidth / k; height = canvas.clientHeight / k;
@@ -199,10 +212,12 @@ const mark = ["#...#", "#...#", "#...#", "#...#", ".###."];
         frame = 0;
         const quiet = reduced.matches;
         waves = quiet ? [] : waves.filter((w) => now - w.time < 1000);
+        const cb = canvas.getBoundingClientRect(), canvasPageTop = cb.top + (window.scrollY || document.body.scrollTop || 0);
+        const local = waves.map((w) => ({ ...w, x: (w.x - cb.left) / k, y: (w.pageY - canvasPageTop) / k }));
         let moving = false;
         for (const p of nodes) {
           let tx = 0, ty = 0;
-          for (const wave of waves) {
+          for (const wave of local) {
             const age = now - wave.time, x = p.x - wave.x, y = p.y - wave.y, distance = Math.hypot(x, y), offset = distance - age * 0.32;
             if (distance && Math.abs(offset) < 48) {
               const amplitude = wave.strength * Math.sin(offset / 13) * (1 - Math.abs(offset) / 48) * (1 - age / 1000);
@@ -242,16 +257,22 @@ const mark = ["#...#", "#...#", "#...#", "#...#", ".###."];
         if (moving || waves.length) schedule();
       }
 
-      stage.addEventListener("click", (e) => {
-        if (reduced.matches || !width || !height || (e.target as Element).closest(".tl-copy")) return;
-        const b = canvas.getBoundingClientRect();
-        waves.push({ x: (e.clientX - b.left) / k, y: (e.clientY - b.top) / k, time: performance.now(), strength: 14 });
+      // Clicks are turned into page-wide "gridwave" events by ripple-grid.js (it also handles this
+      // section), so a ripple started next door runs on into this grid and back out.
+      addEventListener("gridwave", (e) => {
+        const wave = (e as CustomEvent).detail;
+        if (reduced.matches || !width || !height) return;
+        const b = stage.getBoundingClientRect(), y = wave.pageY - (window.scrollY || document.body.scrollTop || 0);
+        if (y < b.top - 420 || y > b.bottom + 420) return;
+        waves.push(wave);
         if (waves.length > 7) waves.shift();
         schedule();
       });
       reduced.addEventListener("change", schedule);
       mobile.addEventListener("change", resize);
       new ResizeObserver(resize).observe(canvas);
+      // re-align if content above this section changes height while it's on screen
+      new IntersectionObserver(([e]) => { if (e.isIntersecting && align()) schedule(); }).observe(stage);
       new ResizeObserver(schedule).observe(intro);
       document.fonts?.ready.then(schedule);
       resize();
@@ -270,9 +291,10 @@ const mark = ["#...#", "#...#", "#...#", "#...#", ".###."];
     }
     .tl-grid {
       position: absolute;
-      inset: 0;
+      left: 0;
+      top: 0; /* script: minus the page-row phase */
       width: 100%;
-      height: 100%;
+      height: calc(100% + 12px);
       pointer-events: none;
     }
 

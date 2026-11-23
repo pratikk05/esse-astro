@@ -1,0 +1,408 @@
+---
+/**
+ * Journal post (/blog/<slug>). Posts: src/data/journal.ts. Undo: see JOURNAL_PAGES there.
+ * Layout: back link + counter, title with a mono meta list, a wide cover (labels as text — they never
+ * scale), then a sticky contents rail with a pixel reading-progress bar beside a narrow article,
+ * and a "next note" link at the end.
+ */
+import Layout from "../../layouts/Layout.astro";
+import Navbar from "../../components/global/Navbar.astro";
+import Footer from "../../components/sections/Footer.astro";
+import Tag from "../../components/ui/Tag.astro";
+import RollText from "../../components/ui/RollText.astro";
+import JournalThumb from "../../components/journal/JournalThumb.astro";
+import { PortableText } from "astro-portabletext";
+import PtImage from "../../components/journal/PtImage.astro";
+import { getPosts, postUrl, number, splitSections, type Post } from "../../data/journal";
+
+export async function getStaticPaths() {
+  const posts = await getPosts();
+  return posts.map((post, index) => ({
+    params: { slug: post.slug },
+    props: { post, index, total: posts.length, next: posts[(index + 1) % posts.length], nextIndex: (index + 1) % posts.length },
+  }));
+}
+
+interface Props {
+  post: Post;
+  index: number;
+  total: number;
+  next: Post;
+  nextIndex: number;
+}
+const { post, index, total, next, nextIndex } = Astro.props;
+const { intro, sections } = splitSections(post.body);
+const id = (i: number) => `part-${i + 1}`;
+const SQUARES = 12;
+const components = { type: { image: PtImage } };
+---
+
+<Layout title={`${post.title} — Uniflow Journal`}>
+  <Navbar home={false} theme="light" />
+  <main>
+    <article class="ps section section-pixel" aria-labelledby="ps-title" data-post>
+      <div class="white-fade" aria-hidden="true"></div>
+      <div class="container relative">
+        <nav class="ps-top text-12 font-semibold" aria-label="Journal">
+          <a class="ps-back" href="/blog"><span aria-hidden="true">←</span> <RollText text="ALL NOTES" /></a>
+          <span class="text-grey-50">[{number(index)}] / {number(total - 1)}</span>
+        </nav>
+
+        <header class="ps-head">
+          <div data-fade><Tag label={post.category.toUpperCase()} /></div>
+          <h1 id="ps-title" class="heading-64 text-grey-90 padding-top-24" data-split>{post.title}</h1>
+          <dl class="ps-meta text-12" data-fade="1">
+            <div><dt>DATE</dt><dd><time datetime={post.iso}>{post.date.toUpperCase()}</time></dd></div>
+            <div><dt>READ</dt><dd>{post.read.toUpperCase()}</dd></div>
+            <div><dt>BY</dt><dd>UNIFLOW STUDIO</dd></div>
+          </dl>
+        </header>
+
+        <div data-fade="2">
+          <JournalThumb post={post} index={index} ratio="21 / 9" eager class="ps-cover" />
+        </div>
+
+        <div class="ps-body">
+          <aside class="ps-rail" aria-label="Contents">
+            <div class="ps-rail-inner">
+              <p class="text-11 text-grey-50">CONTENTS</p>
+              <ol class="ps-toc" role="list">
+                {sections.map((s, i) => (
+                  <li><a class="text-12" href={`#${id(i)}`} data-toc={id(i)}><span>[{number(i)}]</span> {s.heading.toUpperCase()}</a></li>
+                ))}
+              </ol>
+              <div class="ps-progress" role="progressbar" aria-label="Reading progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-progress>
+                {Array.from({ length: SQUARES }, () => <i></i>)}
+                <span class="text-11" data-progress-label>00%</span>
+              </div>
+            </div>
+          </aside>
+
+          <div class="ps-article" data-article>
+            <p class="ps-lead">{post.excerpt}</p>
+            {intro.length > 0 && <div class="ps-rich"><PortableText value={intro} components={components} /></div>}
+            {sections.map((s, i) => (
+              <section class="ps-part" id={id(i)} aria-labelledby={`${id(i)}-h`}>
+                <h2 id={`${id(i)}-h`} class="ps-h2"><span class="text-12 text-secondary">[{number(i)}]</span>{s.heading}</h2>
+                <div class="ps-rich"><PortableText value={s.blocks} components={components} /></div>
+              </section>
+            ))}
+            <p class="ps-end text-12 text-grey-50"><i aria-hidden="true"></i>END OF NOTE</p>
+          </div>
+        </div>
+
+        <a class="ps-next" href={postUrl(next)}>
+          <p class="text-12 font-semibold text-grey-50">NEXT NOTE <span class="text-grey-90">[{number(nextIndex)}]</span></p>
+          <div class="ps-next-row">
+            <JournalThumb post={next} index={nextIndex} class="ps-next-thumb" />
+            <div class="ps-next-body">
+              <p class="text-12 text-grey-60">{next.category.toUpperCase()} · {next.read.toUpperCase()}</p>
+              <p class="heading-40 text-grey-90">{next.title}</p>
+              <span class="ps-cta text-12 font-semibold"><RollText text="READ NEXT" /> <span aria-hidden="true">→</span></span>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="white-fade is-bottom" aria-hidden="true"></div>
+
+      <script>
+        document.querySelectorAll<HTMLElement>("[data-post]").forEach((root) => {
+          const article = root.querySelector<HTMLElement>("[data-article]")!;
+          const bar = root.querySelector<HTMLElement>("[data-progress]")!;
+          const squares = [...bar.querySelectorAll("i")];
+          const label = root.querySelector<HTMLElement>("[data-progress-label]")!;
+          const links = [...root.querySelectorAll<HTMLAnchorElement>("[data-toc]")];
+          const parts = links.map((a) => document.getElementById(a.dataset.toc!)!);
+          let raf = 0;
+          function update() {
+            raf = 0;
+            const r = article.getBoundingClientRect(), vh = innerHeight;
+            const p = Math.min(1, Math.max(0, (vh * 0.5 - r.top) / Math.max(1, r.height - vh * 0.3)));
+            const lit = Math.round(p * squares.length);
+            squares.forEach((s, i) => s.classList.toggle("is-on", i < lit));
+            label.textContent = `${String(Math.round(p * 100)).padStart(2, "0")}%`;
+            bar.setAttribute("aria-valuenow", String(Math.round(p * 100)));
+            // the part whose top passed 40% of the screen is the current one
+            let current = 0;
+            parts.forEach((el, i) => { if (el.getBoundingClientRect().top < vh * 0.4) current = i; });
+            links.forEach((a, i) => a.classList.toggle("is-current", i === current));
+          }
+          const schedule = () => { if (!raf) raf = requestAnimationFrame(update); };
+          addEventListener("scroll", schedule, { passive: true });
+          document.body.addEventListener("scroll", schedule, { passive: true }); // touch body-scroller
+          addEventListener("resize", schedule);
+          update();
+          // smooth jumps through Lenis when present
+          links.forEach((a) => a.addEventListener("click", (e) => {
+            const target = document.getElementById(a.dataset.toc!);
+            const lenis = (window as unknown as { lenis?: { scrollTo: (t: Element, o: object) => void } }).lenis;
+            if (!target || !lenis) return;
+            e.preventDefault();
+            lenis.scrollTo(target, { offset: -120, duration: 1.2 });
+          }));
+        });
+      </script>
+    </article>
+  </main>
+  <Footer home={false} />
+</Layout>
+
+<style>
+  @layer components {
+    .ps {
+      padding: clamp(7.5rem, 12vw, 10rem) 0 clamp(5rem, 8vw, 7rem);
+    }
+    .ps-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--color-grey-20);
+    }
+    .ps-back {
+      display: inline-flex;
+      gap: 0.75rem;
+      color: var(--color-grey-90);
+      text-decoration: none;
+    }
+    .ps-back > span {
+      transition: translate 0.4s var(--ease-esse);
+    }
+    .ps-back:hover > span {
+      translate: -0.25rem 0;
+    }
+
+    .ps-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas: "tag tag" "title meta";
+      align-items: end;
+      column-gap: 3rem;
+      padding: clamp(3rem, 6vw, 5rem) 0 clamp(2rem, 4vw, 3rem);
+    }
+    .ps-head > div:first-child { grid-area: tag; }
+    .ps-head h1 {
+      grid-area: title;
+      max-width: 16ch;
+      margin: 0;
+    }
+    .ps-meta {
+      grid-area: meta;
+      display: grid;
+      gap: 0.625rem;
+      margin: 0;
+      min-width: 13rem;
+    }
+    .ps-meta div {
+      display: flex;
+      justify-content: space-between;
+      gap: 1.5rem;
+      padding-bottom: 0.625rem;
+      border-bottom: 1px dashed var(--color-border);
+    }
+    .ps-meta dt { color: var(--color-grey-50); }
+    .ps-meta dd { margin: 0; color: var(--color-grey-90); }
+
+    /* body: contents rail + narrow article */
+    .ps-body {
+      display: grid;
+      grid-template-columns: minmax(0, 16rem) minmax(0, 42rem);
+      justify-content: space-between;
+      gap: 3rem;
+      margin-top: clamp(3rem, 6vw, 5rem);
+    }
+    .ps-rail-inner {
+      position: sticky;
+      top: 7rem;
+      display: grid;
+      gap: 1rem;
+    }
+    .ps-rail p { margin: 0; }
+    .ps-toc {
+      display: grid;
+      gap: 0.25rem;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .ps-toc a {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.375rem 0;
+      color: var(--color-grey-50);
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    .ps-toc a span { color: inherit; }
+    .ps-toc a:hover,
+    .ps-toc a.is-current { color: var(--color-grey-90); }
+    .ps-toc a.is-current span { color: var(--color-secondary); }
+    .ps-progress {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      margin-top: 0.75rem;
+    }
+    .ps-progress i {
+      width: 10px;
+      height: 10px;
+      background: var(--color-grey-20);
+      transition: background-color 0.3s var(--ease-esse);
+    }
+    .ps-progress i.is-on { background: var(--color-secondary); }
+    .ps-progress span {
+      margin-left: 0.5rem;
+      color: var(--color-grey-60);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ps-article { min-width: 0; }
+    .ps-lead {
+      margin: 0 0 3rem;
+      font: 500 clamp(1.375rem, 2vw, 1.75rem) / 1.3 var(--font-secondary);
+      letter-spacing: -0.03em;
+      color: var(--color-grey-90);
+      text-wrap: pretty;
+    }
+    .ps-part {
+      padding-top: 2.5rem;
+      margin-top: 2.5rem;
+      border-top: 1px dashed var(--color-border);
+      scroll-margin-top: 7rem;
+    }
+    .ps-part:first-of-type { margin-top: 0; }
+    .ps-h2 {
+      display: grid;
+      gap: 0.75rem;
+      margin: 0 0 1.25rem;
+      font: 400 clamp(1.75rem, 2.4vw, 2.25rem) / 1.05 var(--font-primary);
+      letter-spacing: -0.02em;
+      color: var(--color-grey-90);
+    }
+    /* Portable Text body (Sanity or local): paragraphs, quotes, lists, images */
+    .ps-rich :global(p) {
+      margin: 0 0 1rem;
+      font: 500 clamp(0.9375rem, 0.9rem + 0.15vw, 1rem) / var(--leading-body) var(--font-secondary);
+      letter-spacing: var(--tracking-md);
+      color: var(--color-grey-70);
+    }
+    .ps-rich :global(a) {
+      color: var(--color-secondary);
+      text-underline-offset: 0.2em;
+    }
+    .ps-rich :global(h3) {
+      margin: 1.75rem 0 0.75rem;
+      font: 500 1.25rem/1.25 var(--font-secondary);
+      letter-spacing: -0.02em;
+      color: var(--color-grey-90);
+    }
+    .ps-rich :global(blockquote) {
+      position: relative;
+      margin: 2rem 0;
+      padding: 1.5rem 0 1.5rem 1.75rem;
+      border-left: 1px solid var(--color-grey-90);
+    }
+    .ps-rich :global(blockquote)::before {
+      content: "";
+      position: absolute;
+      left: -4px;
+      top: 1.5rem;
+      width: 7px;
+      height: 7px;
+      background: var(--color-secondary);
+    }
+    .ps-rich :global(blockquote),
+    .ps-rich :global(blockquote p) {
+      margin: 2rem 0;
+      font: 400 clamp(1.5rem, 2.2vw, 2rem) / 1.15 var(--font-primary);
+      letter-spacing: -0.02em;
+      color: var(--color-grey-90);
+    }
+    .ps-rich :global(ul),
+    .ps-rich :global(ol) {
+      display: grid;
+      margin: 1.5rem 0 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: ps-item;
+      border-top: 1px solid var(--color-grey-20);
+    }
+    .ps-rich :global(li) {
+      display: flex;
+      gap: 1rem;
+      align-items: baseline;
+      padding: 0.875rem 0;
+      border-bottom: 1px solid var(--color-grey-20);
+      counter-increment: ps-item;
+      font: 500 1rem / var(--leading-body) var(--font-secondary);
+      color: var(--color-grey-70);
+    }
+    .ps-rich :global(li)::before {
+      content: counter(ps-item, decimal-leading-zero);
+      font: 0.75rem / 1 var(--font-tertiary);
+      color: var(--color-secondary);
+    }
+    .ps-end {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 3rem 0 0;
+    }
+    .ps-end i {
+      width: 6px;
+      height: 6px;
+      background: var(--color-accent);
+    }
+
+    /* next note */
+    .ps-next {
+      display: grid;
+      gap: 1.25rem;
+      margin-top: clamp(5rem, 9vw, 8rem);
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--color-grey-90);
+      color: inherit;
+      text-decoration: none;
+    }
+    .ps-next p { margin: 0; }
+    .ps-next-row {
+      display: grid;
+      grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+      gap: clamp(1.5rem, 3vw, 3rem);
+      align-items: end;
+    }
+    .ps-next-body {
+      display: grid;
+      gap: 1rem;
+      justify-items: start;
+    }
+    .ps-next-body .heading-40 { max-width: 20ch; }
+    .ps-cta {
+      display: inline-flex;
+      gap: 0.75rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--color-grey-90);
+      color: var(--color-grey-90);
+    }
+    @media (hover: hover) and (pointer: fine) {
+      .ps-next:hover :global(.jt-art) { transform: scale(1.04); }
+    }
+    .ps-next:hover .ps-cta {
+      color: var(--color-secondary);
+      border-color: var(--color-secondary);
+    }
+
+    @media (width < 62rem) {
+      .ps-head {
+        grid-template-columns: 1fr;
+        grid-template-areas: "tag" "title" "meta";
+        row-gap: 2rem;
+      }
+      .ps-body,
+      .ps-next-row {
+        grid-template-columns: 1fr;
+      }
+      .ps-rail { display: none; }
+    }
+  }
+</style>
