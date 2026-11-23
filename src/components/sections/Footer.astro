@@ -98,8 +98,9 @@ const socials = [
 
     <hr class="footer-divider" />
 
-    <!-- Linework wordmark: 20 hairlines masked by the Uniflow logo -->
-    <div class="footer-wordmark" role="img" aria-label="Uniflow"></div>
+    <!-- Linework wordmark: 20 hairlines masked by the Uniflow logo. Live version (canvas): lines draw in
+         on view and pluck like strings under the cursor — script below; the CSS mask is the fallback. -->
+    <div class="footer-wordmark" role="img" aria-label="Uniflow" data-wordmark></div>
   </div>
 </footer>
 
@@ -218,6 +219,20 @@ const socials = [
       mask: url("/images/footer-wordmark.svg") 0 0 / 100.5814% auto no-repeat;
       overflow: clip;
     }
+    /* live canvas version: same lines, drawn by the script */
+    .footer-wordmark.is-live {
+      position: relative;
+      background: none;
+      -webkit-mask: none;
+      mask: none;
+      overflow: visible;
+    }
+    .footer-wordmark :global(canvas) { /* created by the script, so it has no scoped attribute */
+      position: absolute;
+      inset: -24px 0;
+      width: 100%;
+      height: calc(100% + 48px);
+    }
 
     /* ---------- Tablet (768–991): two columns, left-aligned ---------- */
     @media (width >= 48rem) {
@@ -258,8 +273,8 @@ const socials = [
       .footer-social { grid-area: social; margin-top: 2.5rem; gap: 6px; }
       .footer-social-link { width: 36px; height: 36px; }
       .footer-contact { align-items: flex-start; gap: 0.875rem; }
-      /* Figma: two columns, HOME/ABOUT then OUR PROJECT/CONTACT */
-      .footer-nav-list { display: grid; grid-auto-flow: column; grid-template-rows: repeat(2, auto); grid-template-columns: 5rem auto; justify-content: start; column-gap: 1rem; row-gap: 0.75rem; padding: 0; }
+      /* Two columns (five links since Journal was added): HOME/ABOUT/OUR PROJECT, then JOURNAL/CONTACT */
+      .footer-nav-list { display: grid; grid-auto-flow: column; grid-template-rows: repeat(3, auto); grid-template-columns: auto auto; justify-content: start; column-gap: 2rem; row-gap: 0.75rem; padding: 0; }
       .footer-legal-list { align-items: flex-start; gap: 1rem; }
 
       .footer-divider { display: none; }
@@ -304,5 +319,130 @@ const socials = [
       if (location.pathname === "/contact" || !navigate) location.href = url;
       else navigate(url);
     });
+  });
+</script>
+
+<script>
+  // Live linework wordmark: the 20 hairlines are cut from the Uniflow logo (same SVG + geometry as the
+  // CSS mask), draw in row by row when the footer comes into view, and pluck like strings under the
+  // cursor (spring physics, they brighten while they move). Static lines with reduced motion.
+  document.querySelectorAll<HTMLElement>("[data-wordmark]").forEach((host) => {
+    const SRC = "/images/footer-wordmark.svg", ROWS = 20, PAD = 24, STEP = 5;
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const fine = matchMedia("(hover: hover) and (pointer: fine)").matches;
+    const canvas = document.createElement("canvas");
+    canvas.setAttribute("aria-hidden", "true");
+    const ctx = canvas.getContext("2d")!;
+    const logo = new Image();
+    logo.src = SRC;
+    type Row = { y: number; segs: [number, number][]; d: Float32Array; v: Float32Array };
+    let W = 0, H = 0, dpr = 1, rows: Row[] = [], thick = 1, raf = 0, revealStart = 0, revealed = reduce;
+    let px = -1e4, py = -1e4, pvy = 0;
+    const base = getComputedStyle(document.documentElement).getPropertyValue("--color-grey-30").trim() || "#aeb8b8";
+
+    function build() {
+      W = host.clientWidth; H = host.clientHeight;
+      if (!W || !H || !logo.naturalWidth) return;
+      dpr = Math.min(devicePixelRatio || 1, 2);
+      canvas.width = Math.round(W * dpr); canvas.height = Math.round((H + PAD * 2) * dpr);
+      // rasterise the logo exactly like the CSS mask (0 0 / 100.5814% auto)
+      const off = document.createElement("canvas");
+      off.width = Math.ceil(W); off.height = Math.ceil(H);
+      const o = off.getContext("2d", { willReadFrequently: true })!;
+      const lw = W * 1.005814, lh = lw * (313.803 / 1384);
+      o.drawImage(logo, 0, 0, lw, lh);
+      const data = o.getImageData(0, 0, off.width, off.height).data;
+      const pitch = H * 0.051613;
+      thick = Math.max(0.75, pitch * 0.05);
+      const n = Math.ceil(W / STEP) + 1;
+      rows = [];
+      for (let r = 0; r < ROWS; r++) {
+        const y = r * pitch + thick / 2;
+        const iy = Math.min(off.height - 1, Math.round(y));
+        const segs: [number, number][] = [];
+        let start = -1;
+        for (let x = 0; x <= off.width; x++) {
+          const on = x < off.width && data[(iy * off.width + x) * 4 + 3] > 110;
+          if (on && start < 0) start = x;
+          if (!on && start >= 0) { segs.push([start, x]); start = -1; }
+        }
+        rows.push({ y, segs, d: new Float32Array(n), v: new Float32Array(n) });
+      }
+      host.classList.add("is-live");
+      wake();
+    }
+
+    function draw(now: number) {
+      raf = 0;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, PAD * dpr);
+      ctx.clearRect(0, -PAD, W, H + PAD * 2);
+      let moving = false;
+      rows.forEach((row, r) => {
+        // draw-in: each row sweeps in from the left, one after another (expo-out)
+        let reach = W;
+        if (!revealed) {
+          if (!revealStart) reach = 0; // waits for the footer to come into view
+          else {
+            const k = Math.min(1, Math.max(0, (now - revealStart - r * 45) / 1100));
+            reach = k >= 1 ? W : W * (1 - Math.pow(2, -10 * k));
+            if (k < 1) moving = true;
+          }
+        }
+        // strings: pull towards the cursor's vertical motion near it, spring back with a wobble
+        if (fine && !reduce) {
+          const near = Math.abs(row.y - py) < 70;
+          for (let i = 0; i < row.d.length; i++) {
+            const x = i * STEP;
+            if (near) {
+              const f = Math.exp(-((x - px) ** 2) / (2 * 80 ** 2)) * Math.exp(-((row.y - py) ** 2) / (2 * 26 ** 2));
+              row.v[i] += pvy * 0.16 * f;
+            }
+            row.v[i] += -row.d[i] * 0.07;
+            row.v[i] *= 0.92; // springy: a few wobbles before it settles
+            row.d[i] += row.v[i];
+            if (Math.abs(row.d[i]) > 0.02 || Math.abs(row.v[i]) > 0.02) moving = true;
+          }
+        }
+        for (const [x0, x1] of row.segs) {
+          if (x0 >= reach) continue;
+          const end = Math.min(x1, reach);
+          let hot = 0;
+          ctx.beginPath();
+          for (let x = x0; ; x = Math.min(end, x + STEP)) {
+            const i = x / STEP, a = Math.floor(i), b = Math.min(row.d.length - 1, a + 1), f = i - a;
+            const dy = row.d[a] + (row.d[b] - row.d[a]) * f;
+            hot = Math.max(hot, Math.abs(dy));
+            if (x === x0) ctx.moveTo(x, row.y + dy); else ctx.lineTo(x, row.y + dy);
+            if (x >= end) break;
+          }
+          ctx.lineWidth = thick;
+          ctx.strokeStyle = hot > 0.6 ? `rgba(255,255,255,${Math.min(1, 0.55 + hot / 10)})` : base;
+          ctx.stroke();
+        }
+      });
+      pvy *= 0.6;
+      if (!revealed && revealStart && performance.now() - revealStart > 1100 + ROWS * 45) revealed = true;
+      if (moving) wake();
+    }
+    const wake = () => { if (!raf) raf = requestAnimationFrame(draw); };
+
+    if (fine && !reduce) {
+      host.addEventListener("pointermove", (e) => {
+        const r = canvas.getBoundingClientRect();
+        const nx = e.clientX - r.left, ny = e.clientY - r.top - PAD;
+        if (px > -1e3) pvy = Math.max(-40, Math.min(40, ny - py));
+        px = nx; py = ny;
+        wake();
+      });
+      host.addEventListener("pointerleave", () => { px = py = -1e4; pvy = 0; });
+    }
+    new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting || revealStart) return;
+      revealStart = performance.now();
+      wake();
+    }, { threshold: 0.25 }).observe(host);
+    new ResizeObserver(() => build()).observe(host);
+    host.append(canvas);
+    if (logo.complete) build(); else logo.addEventListener("load", build, { once: true });
   });
 </script>

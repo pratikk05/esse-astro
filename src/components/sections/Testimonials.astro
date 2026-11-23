@@ -184,6 +184,20 @@ const controls = [
       visibility: hidden;
     }
 
+    /* Line masks for the slide transition (scripts/modules/testimonial.js wraps words / lines) */
+    .stories :global(.sm) {
+      display: inline-block;
+      overflow: hidden;
+      vertical-align: top;
+      padding-bottom: 0.12em; /* room for descenders inside the mask */
+      margin-bottom: -0.12em;
+    }
+    .stories :global(.sm > span) {
+      display: inline-block;
+    }
+    .stories :global(.sm-block) {
+      display: block;
+    }
     .stories-testimonial :global(blockquote strong) {
       font-weight: inherit;
       color: var(--color-grey-80);

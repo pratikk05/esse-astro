@@ -258,16 +258,23 @@ import Tag from "../components/ui/Tag.astro";
           if ([" ", "ArrowLeft", "ArrowRight", "a", "d"].includes(k)) {
             if (k === " " || state === "play") e.preventDefault();
             keys.add(k);
+            // steering keys take over from the mouse until it moves again
+            if (k !== " ") pointerX = null;
             if (k === " ") start();
           }
         });
         addEventListener("keyup", (e) => keys.delete(e.key.length === 1 ? e.key.toLowerCase() : e.key));
+        // the mouse takes control back only when it really moves (not a 1px jitter while using keys)
+        let lastClientX = -1;
         stage.addEventListener("pointermove", (e) => {
+          if (pointerX === null && Math.abs(e.clientX - lastClientX) < 3) return;
+          lastClientX = e.clientX;
           const r = stage.getBoundingClientRect();
           pointerX = e.clientX - r.left;
         });
         stage.addEventListener("pointerleave", () => { if (!touch) pointerX = null; });
         stage.addEventListener("pointerdown", (e) => {
+          lastClientX = e.clientX;
           const r = stage.getBoundingClientRect();
           pointerX = e.clientX - r.left;
           touch = e.pointerType === "touch";

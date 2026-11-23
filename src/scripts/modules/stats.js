@@ -1,5 +1,5 @@
 // Stats section (Stats.astro)
-//  • Numbers count up once when they scroll into view ("12+", "100%", "3-4" — every digit run animates)
+//  • Numbers roll in like odometers once they scroll into view ("12+", "100%", "3-4")
 //  • Statement words brighten one by one, scrubbed by scroll
 //  • White stripes wipe in from the left, labels slide after
 import gsap from "gsap";
@@ -9,19 +9,32 @@ gsap.registerPlugin(ScrollTrigger);
 
 const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-function countUp(el) {
+// Odometer: every digit is a column of numbers that spins (a full turn or two) and eases into place,
+// columns staggered left → right; symbols (+ % -) rise through the same masks. Plays once on view,
+// then the plain text is restored so the number stays crisp and responsive.
+function odometer(el) {
   const final = el.textContent.trim();
   el.setAttribute("aria-label", final);
-  const state = { t: 0 };
-  const render = () => (el.textContent = final.replace(/\d+/g, (n) => Math.round(+n * state.t)));
-  render();
-  gsap.to(state, {
-    t: 1,
-    duration: 1.6,
-    ease: "power3.out",
-    onUpdate: render,
+  const mask = "display:inline-block;height:1lh;overflow:hidden;vertical-align:top";
+  const cell = "display:block;height:1lh";
+  const cols = [...final].map((ch, i) => {
+    const isDigit = /\d/.test(ch);
+    const turns = isDigit ? 1 + (i % 2) : 0;
+    const seq = isDigit ? [...Array(turns * 10).keys()].map((n) => n % 10).concat([...Array(+ch + 1).keys()]) : [ch];
+    return { isDigit, seq, target: seq.length - 1 };
+  });
+  el.innerHTML = cols
+    .map(({ seq }) => `<span aria-hidden="true" style="${mask}"><span data-od style="display:flex;flex-direction:column">${seq.map((c) => `<span style="${cell}">${c}</span>`).join("")}</span></span>`)
+    .join("");
+  const strips = [...el.querySelectorAll("[data-od]")];
+  const tl = gsap.timeline({
     onComplete: () => (el.textContent = final),
-    scrollTrigger: { trigger: el, start: "top 92%", once: true },
+    scrollTrigger: { trigger: el, start: "top 85%", once: true },
+  });
+  strips.forEach((strip, i) => {
+    const { isDigit, seq, target } = cols[i];
+    if (isDigit) tl.fromTo(strip, { yPercent: 0 }, { yPercent: (-100 * target) / seq.length, duration: 2.4 + i * 0.15, ease: "power4.out" }, i * 0.1);
+    else tl.fromTo(strip, { yPercent: 100 }, { yPercent: 0, duration: 1.2, ease: "expo.out" }, 0.25 + i * 0.08);
   });
 }
 
@@ -62,7 +75,7 @@ function stripes(container) {
 
 document.querySelectorAll("[data-stats]").forEach((section) => {
   if (reduced) return; // final state is already in the markup
-  section.querySelectorAll("[data-stats-count]").forEach(countUp);
+  section.querySelectorAll("[data-stats-count]").forEach(odometer);
   section.querySelectorAll("[data-stats-reveal]").forEach(wordReveal);
   section.querySelectorAll("[data-stats-stripes]").forEach(stripes);
 });

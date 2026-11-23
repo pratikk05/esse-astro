@@ -21,13 +21,34 @@ const lazy = {
   ".services, .mobile-services": () => import("./modules/uniflow-services/index.js"), // pulls in Three.js + GSAP ScrollTrigger
 };
 
+// Each section's code loads when it nears the viewport — or earlier, while the browser is idle after
+// the page has loaded (one module per idle slot, in page order), so heavy setup such as WebGL
+// shader compiles happens before the visitor scrolls there instead of stalling a scroll frame.
+const pending = [];
 for (const [selector, load] of Object.entries(lazy)) {
-  const els = document.querySelectorAll(selector);
+  const els = [...document.querySelectorAll(selector)];
   if (!els.length) continue;
-  const io = new IntersectionObserver((entries) => {
-    if (!entries.some((e) => e.isIntersecting)) return;
-    io.disconnect();
-    load();
-  }, { rootMargin: "150% 0px" });
+  let done = false;
+  const run = () => { if (done) return; done = true; io.disconnect(); load(); };
+  const io = new IntersectionObserver((entries) => { if (entries.some((e) => e.isIntersecting)) run(); }, { rootMargin: "150% 0px" });
   els.forEach((el) => io.observe(el));
+  pending.push({ run, top: els[0].getBoundingClientRect().top + scrollY });
 }
+pending.sort((a, b) => a.top - b.top);
+const idle = window.requestIdleCallback || ((cb) => setTimeout(cb, 200));
+const warm = () => {
+  const next = pending.shift();
+  if (!next) return;
+  next.run();
+  idle(warm, { timeout: 2500 });
+};
+// Start only once the preloader / page-open reveal has fully finished, so the intro never stutters.
+const html = document.documentElement;
+const intro = () => html.classList.contains("is-loading") || html.classList.contains("is-revealing");
+const startWarm = () => {
+  if (!intro()) { setTimeout(() => idle(warm, { timeout: 2500 }), 800); return; }
+  const mo = new MutationObserver(() => { if (!intro()) { mo.disconnect(); startWarm(); } });
+  mo.observe(html, { attributes: true, attributeFilter: ["class"] });
+};
+if (document.readyState === "complete") startWarm();
+else addEventListener("load", startWarm, { once: true });

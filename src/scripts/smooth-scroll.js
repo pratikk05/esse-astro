@@ -35,7 +35,7 @@ if (bodyScroller) ScrollTrigger.defaults({ scroller: document.body });
 
 const lenis = new Lenis({
   ...(bodyScroller ? { wrapper: document.body, content: document.documentElement } : {}),
-  lerp: 0.075,
+  lerp: 0.1, // tighter follow (≈ trionn.com's 0.105): smooth but never floaty
   wheelMultiplier: 0.8,
   touchMultiplier: 1,
   gestureOrientation: "vertical",
@@ -59,12 +59,10 @@ if (bodyScroller) {
 // Keep ScrollTrigger in step with Lenis' smoothed position
 lenis.on("scroll", ScrollTrigger.update);
 
-function raf(time) {
-  lenis.raf(time);
-  requestAnimationFrame(raf);
-}
-
-requestAnimationFrame(raf);
+// One clock for everything: Lenis advances on GSAP's ticker, so scroll-linked animations
+// (ScrollTrigger scrubs, pins) update in the very same frame as the scroll — no 1-frame lag/shimmer.
+gsap.ticker.add((time) => lenis.raf(time * 1000));
+gsap.ticker.lagSmoothing(0); // never "catch up" after a slow frame: keeps motion continuous
 
 const on = (selector, handler) =>
   document.querySelectorAll(selector).forEach((el) => el.addEventListener("click", handler));

@@ -15,38 +15,144 @@ const TOTAL = SAMPLES.length + 1;
 const LOGO_TEXT = ["Pineapple", "ATELIER", "NEXUS", "FORM & FIELD"];
 const LOGO_LABELS = ["Pineapple client logo", "Atelier sample logo", "Nexus sample logo", "Form & Field sample logo"];
 
+// ---- Slide transition (direction-aware, staggered) ----
+// Out: the quote's words drop out of their line masks in a quick wave, the author block follows,
+// the slide number rolls. In: words rise back in one after another (expo-out), the portrait opens
+// with a clip reveal and settles from a slight zoom, then name and role rise in.
+const EASE_IN = "cubic-bezier(0.55, 0, 0.75, 0.05)";
+const EASE_OUT = "cubic-bezier(0.16, 1, 0.3, 1)";
+
+// Wrap every word of an element in a mask (<span class="sm"><span>word</span></span>), keeping
+// inline tags such as <strong> and <br>. Returns the inner spans in reading order.
+function splitWords(el) {
+  const words = [];
+  const walk = (node) => {
+    [...node.childNodes].forEach((child) => {
+      if (child.nodeType === Node.TEXT_NODE) {
+        const frag = document.createDocumentFragment();
+        child.textContent.split(/(\s+)/).forEach((part) => {
+          if (!part) return;
+          if (/^\s+$/.test(part)) { frag.append(" "); return; }
+          const mask = document.createElement("span");
+          mask.className = "sm";
+          const inner = document.createElement("span");
+          inner.textContent = part;
+          mask.append(inner);
+          frag.append(mask);
+          words.push(inner);
+        });
+        child.replaceWith(frag);
+      } else if (child.nodeType === Node.ELEMENT_NODE && child.tagName !== "BR") walk(child);
+    });
+  };
+  walk(el);
+  return words;
+}
+// Same mask around a whole element (name, role, number)
+function mask(el) {
+  if (el.parentElement?.classList.contains("sm")) return el;
+  const m = document.createElement("span");
+  m.className = "sm sm-block";
+  el.replaceWith(m);
+  m.append(el);
+  return el;
+}
+
 function initSlides(root, onChange) {
   const article = root.querySelector("[data-stories-article]");
   const index = root.querySelector("[data-stories-index]");
   const original = article.innerHTML;
-  let current = 0;
+  let current = 0, running = [], queued = 0, busy = false;
 
-  function render() {
-    if (current === 0) article.innerHTML = original;
-    else {
-      const s = SAMPLES[current - 1];
-      article.innerHTML =
-        `<blockquote class="stories-trim heading-secondary-32 text-grey-40">${s.quote}</blockquote>` +
-        `<footer class="stories-author flex items-center gap-figma-16"><div class="stories-initials" aria-hidden="true">${s.initials}</div>` +
-        `<div class="stories-author-details flex flex-col"><p class="stories-trim subpara-16">${s.name}</p>` +
-        `<p class="stories-trim para-16 text-grey-60">${s.role}</p></div></footer>`;
-    }
-    index.innerHTML = `${String(current + 1).padStart(2, "0")} <span class="text-border">/ ${String(TOTAL).padStart(2, "0")}</span>`;
-    onChange(current);
-    if (!reduced.matches) {
-      article.animate([{ opacity: 0.3, transform: "translateY(7px)" }, { opacity: 1, transform: "translateY(0)" }], { duration: 280, easing: "ease-out" });
-    }
-  }
-  const move = (delta) => {
-    current = (current + delta + TOTAL) % TOTAL;
-    render();
+  const pad = (n) => String(n).padStart(2, "0");
+  const html = (i) => {
+    if (i === 0) return original;
+    const s = SAMPLES[i - 1];
+    return `<blockquote class="stories-trim heading-secondary-32 text-grey-40">${s.quote}</blockquote>` +
+      `<footer class="stories-author flex items-center gap-figma-16"><div class="stories-initials" aria-hidden="true">${s.initials}</div>` +
+      `<div class="stories-author-details flex flex-col"><p class="stories-trim subpara-16">${s.name}</p>` +
+      `<p class="stories-trim para-16 text-grey-60">${s.role}</p></div></footer>`;
   };
+  // Build the animatable parts of the current slide
+  function parts() {
+    const quote = article.querySelector("blockquote");
+    const words = quote.dataset.split ? [...quote.querySelectorAll(".sm > span")] : splitWords(quote);
+    quote.dataset.split = "1";
+    const avatar = article.querySelector(".stories-portrait, .stories-initials");
+    const lines = [...article.querySelectorAll(".stories-author-details p")].map((p) => {
+      if (!p.dataset.split) {
+        p.dataset.split = "1";
+        const span = document.createElement("span");
+        span.append(...p.childNodes);
+        p.append(span);
+        mask(span);
+      }
+      return p.querySelector(".sm > span");
+    });
+    return { words, avatar, lines };
+  }
+  index.innerHTML = `<span class="sm"><span data-num>${pad(1)}</span></span> <span class="text-border">/ ${pad(TOTAL)}</span>`;
+  parts(); // split slide 1 up front so nothing shifts on the first change
 
-  root.querySelector("[data-stories-prev]").addEventListener("click", () => move(-1));
-  root.querySelector("[data-stories-next]").addEventListener("click", () => move(1));
+  const play = (el, frames, opts) => { const a = el.animate(frames, { fill: "both", ...opts }); running.push(a); return a; };
+  const finishAll = () => { running.forEach((a) => a.finish()); running = []; };
+
+  async function go(delta) {
+    if (busy) { queued += delta; finishAll(); return; } // rapid clicks add up
+    busy = true;
+    const dir = delta > 0 ? 1 : -1;
+    const next = (current + delta + TOTAL) % TOTAL;
+    onChange(next); // the logo starts morphing straight away
+    const num = index.querySelector("[data-num]");
+
+    if (reduced.matches) {
+      current = next; article.innerHTML = html(current); parts(); num.textContent = pad(current + 1);
+      busy = false; return;
+    }
+
+    // ---- out ----
+    const out = parts();
+    const wordStep = Math.min(10, 220 / Math.max(1, out.words.length));
+    const outAnims = [
+      ...out.words.map((w, i) => play(w, [{ transform: "translateY(0)", opacity: 1 }, { transform: `translateY(${-105 * dir}%)`, opacity: 0 }], { duration: 420, delay: i * wordStep, easing: EASE_IN })),
+      ...(out.avatar ? [play(out.avatar, [{ clipPath: "inset(0 0 0 0)" }, { clipPath: dir > 0 ? "inset(0 0 100% 0)" : "inset(100% 0 0 0)" }], { duration: 420, delay: 60, easing: EASE_IN })] : []),
+      ...out.lines.map((l, i) => play(l, [{ transform: "translateY(0)" }, { transform: `translateY(${-105 * dir}%)` }], { duration: 380, delay: 90 + i * 50, easing: EASE_IN })),
+      play(num, [{ transform: "translateY(0)" }, { transform: `translateY(${-105 * dir}%)` }], { duration: 380, easing: EASE_IN }),
+    ];
+    await Promise.all(outAnims.map((a) => a.finished.catch(() => {})));
+    running = [];
+
+    // ---- swap ----
+    current = next;
+    article.innerHTML = html(current);
+    num.textContent = pad(current + 1);
+    const inn = parts();
+
+    // clicked again mid-change: skip the entrance and go straight on
+    if (queued) { busy = false; const q = queued; queued = 0; go(q); return; }
+
+    // ---- in ----
+    const inStep = Math.min(22, 520 / Math.max(1, inn.words.length));
+    const img = inn.avatar?.querySelector("img");
+    const inAnims = [
+      play(num, [{ transform: `translateY(${105 * dir}%)` }, { transform: "translateY(0)" }], { duration: 900, easing: EASE_OUT }),
+      ...inn.words.map((w, i) => play(w, [{ transform: `translateY(${105 * dir}%)`, opacity: 0 }, { transform: "translateY(0)", opacity: 1 }], { duration: 1000, delay: 40 + i * inStep, easing: EASE_OUT })),
+      ...(inn.avatar ? [play(inn.avatar, [{ clipPath: dir > 0 ? "inset(100% 0 0 0)" : "inset(0 0 100% 0)" }, { clipPath: "inset(0 0 0 0)" }], { duration: 1000, delay: 260, easing: EASE_OUT })] : []),
+      ...(img ? [play(img, [{ transform: "scale(1.3)" }, { transform: "scale(1)" }], { duration: 1300, delay: 260, easing: EASE_OUT })] : []),
+      ...inn.lines.map((l, i) => play(l, [{ transform: `translateY(${105 * dir}%)` }, { transform: "translateY(0)" }], { duration: 900, delay: 340 + i * 90, easing: EASE_OUT })),
+    ];
+    await Promise.all(inAnims.map((a) => a.finished.catch(() => {})));
+    running.forEach((a) => a.cancel()); // drop the fills: the end state is the natural layout
+    running = [];
+    busy = false;
+    if (queued) { const q = queued; queued = 0; go(q); }
+  }
+
+  root.querySelector("[data-stories-prev]").addEventListener("click", () => go(-1));
+  root.querySelector("[data-stories-next]").addEventListener("click", () => go(1));
   root.querySelector(".stories-controls").addEventListener("keydown", (e) => {
-    if (e.key === "ArrowRight") { e.preventDefault(); move(1); }
-    else if (e.key === "ArrowLeft") { e.preventDefault(); move(-1); }
+    if (e.key === "ArrowRight") { e.preventDefault(); go(1); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); go(-1); }
   });
 }
 
