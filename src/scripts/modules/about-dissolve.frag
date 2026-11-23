@@ -11,6 +11,7 @@ uniform float u_bottomProgress;
 uniform vec2 u_resolution; // CSS px
 uniform float u_pixel_size; // grid box size, CSS px (12 — matches the stage grid)
 out vec4 FragColor;
+// toneMapping() + linearToOutputTexel() come from three's shader prefix (renderer: ACES filmic, sRGB output).
 
 float rand(float n) {
   return fract(sin(n * 127.1) * 43758.5453);
@@ -49,10 +50,12 @@ void main() {
     blue = max(d.x, d.y) <= size * 0.5;
   }
 
-  // The TV is drawn in final (sRGB) colours; transparent texels are the stage, so paint its
-  // 12px line grid there (same as .about-grid / .section-pixel) to keep the surface seamless.
+  // The TV arrives linear and un-tone-mapped (half-float target): finish it exactly like the on-screen
+  // render (ACES + sRGB). Transparent texels are the stage, so paint its 12px line grid there (same as
+  // .about-grid / .section-pixel) to keep the surface seamless.
   vec4 src = texture(u_input, v_uv);
+  vec3 tv = linearToOutputTexel(vec4(toneMapping(src.rgb), 1.0)).rgb;
   float line = step(mod(css.x, 12.0), 1.0) + step(mod(css.y, 12.0), 1.0);
   vec3 stage = mix(vec3(1.0), vec3(0.959, 0.964, 0.972), min(line, 1.0)); // ripple-grid.js line (#8494aa22, 0.64px)
-  FragColor = vec4(mix(stage, src.rgb, src.a), blue ? 0.0 : 1.0);
+  FragColor = vec4(mix(stage, tv, src.a), blue ? 0.0 : 1.0);
 }

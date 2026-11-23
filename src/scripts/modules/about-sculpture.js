@@ -6,15 +6,15 @@
 // Everything is built from primitives — no model download, nothing to license.
 // The screen is a canvas texture that "changes channel" with the conversation (setChannel):
 //   0 — the problem: no signal (live grain)   1 — the answer: a website builds itself, block by block (live)
-// Rendering: anti-aliased, ACES filmic, lit by a baked reflection room (one-time cost). It redraws
+// Rendering (three r173): anti-aliased, ACES filmic, lit by a baked reflection room (one-time cost). It redraws
 // on scroll / mouse tilt, and ~30fps for the live screen only while the scene is on screen. During the About → Stats dissolve the frame goes
 // through a multisampled target and the box-filling mask (about-dissolve.frag).
 import {
   ACESFilmicToneMapping, BackSide, BoxGeometry, CanvasTexture, Color, CubeCamera, CylinderGeometry, DoubleSide,
   ExtrudeGeometry, GLSL3, Group, HalfFloatType, LinearFilter, Mesh, MeshBasicMaterial, MeshStandardMaterial,
   OrthographicCamera, PerspectiveCamera, PlaneGeometry, PMREMGenerator, PointLight, RGBAFormat, RingGeometry,
-  Scene, ShaderMaterial, Shape, SpotLight, Vector2, WebGLCubeRenderTarget, WebGLMultisampleRenderTarget,
-  WebGLRenderer, sRGBEncoding,
+  Scene, ShaderMaterial, Shape, SpotLight, Vector2, WebGLCubeRenderTarget, WebGLRenderTarget,
+  WebGLRenderer, SRGBColorSpace, LinearSRGBColorSpace,
 } from "three";
 import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import dissolveFragment from "./about-dissolve.frag";
@@ -49,7 +49,7 @@ function createScreen(reduced) {
   const canvas = makeCanvas(SW, SH);
   const ctx = canvas.getContext("2d");
   const texture = new CanvasTexture(canvas);
-  texture.encoding = sRGBEncoding;
+  texture.colorSpace = SRGBColorSpace;
   texture.anisotropy = 4;
 
   // Grain frames (quarter res, scaled up with nearest-neighbour for chunky TV snow)
@@ -411,7 +411,7 @@ function makeWornMaps() {
   c.fillRect(0, 0, N, N);
 
   const map = new CanvasTexture(color);
-  map.encoding = sRGBEncoding;
+  map.colorSpace = SRGBColorSpace;
   map.anisotropy = 4;
   const roughnessMap = new CanvasTexture(rough);
   return { map, roughnessMap, bumpMap: roughnessMap };
@@ -437,7 +437,7 @@ function buildTV(screenTexture) {
   const tv = new Group();
   const W = 3.6, H = 2.9, D = 2.4, front = D / 2;
   // Aged dark-grey plastic (procedural wear maps); darker trim for the bezel, strip and buttons
-  const lin = (hex) => new Color(hex).convertSRGBToLinear();
+  const lin = (hex) => new Color(hex); // sRGB hex → linear (three's colour management does the conversion)
   const worn = makeWornMaps();
   const plastic = new MeshStandardMaterial({ map: worn.map, roughnessMap: worn.roughnessMap, bumpMap: worn.bumpMap, bumpScale: 0.004, metalness: 0.04, roughness: 0.78, envMapIntensity: 0.7 });
   const plasticDark = new MeshStandardMaterial({ color: lin("#1d1e20"), roughnessMap: worn.roughnessMap, bumpMap: worn.bumpMap, bumpScale: 0.003, metalness: 0.06, roughness: 0.7, envMapIntensity: 0.7 });
@@ -506,6 +506,9 @@ function buildTV(screenTexture) {
 
 // Reflection room (after niccolofanton/dithering-shader's environment.tsx, MIT, light-formers after
 // @0xca0a): grey room, soft box lights and a neutral ring, rendered ONCE into a cube map → PMREM.
+// A colour taken as linear values, exactly as given (the room was tuned with raw linear colours).
+const raw = (c) => (typeof c === "number" ? new Color().setHex(c, LinearSRGBColorSpace) : new Color().setStyle(c, LinearSRGBColorSpace));
+
 function bakeEnvironment(renderer) {
   const room = new Scene();
   const g = new Group();
@@ -523,7 +526,7 @@ function bakeEnvironment(renderer) {
   p.position.set(0.5, 14, 0.5);
   g.add(p);
 
-  const shell = new Mesh(box, new MeshStandardMaterial({ color: 0x808080, side: BackSide }));
+  const shell = new Mesh(box, new MeshStandardMaterial({ color: raw(0x808080), side: BackSide }));
   shell.position.set(0, 13.2, 0);
   shell.scale.set(31.5, 28.5, 31.5);
   g.add(shell);
@@ -544,7 +547,7 @@ function bakeEnvironment(renderer) {
 
   // drei <Lightformer>: an unlit emitter with colour × intensity (HDR, not tone-mapped)
   const former = (geo, color, intensity, pos, scale, lookAtOrigin) => {
-    const m = new Mesh(geo, new MeshBasicMaterial({ color: new Color(color).multiplyScalar(intensity), side: DoubleSide, toneMapped: false }));
+    const m = new Mesh(geo, new MeshBasicMaterial({ color: raw(color).multiplyScalar(intensity), side: DoubleSide, toneMapped: false }));
     m.position.set(...pos);
     m.scale.set(...(Array.isArray(scale) ? scale : [scale, scale, scale]));
     if (lookAtOrigin) m.lookAt(0, 0, 0);
@@ -564,12 +567,7 @@ function bakeEnvironment(renderer) {
 
   const cubeTarget = new WebGLCubeRenderTarget(256, { type: HalfFloatType, format: RGBAFormat, generateMipmaps: false });
   const cubeCam = new CubeCamera(0.1, 100, cubeTarget);
-  // R3F (the demo's renderer) uses physically-correct light units; r128 defaults to legacy units,
-  // which blow the room out to white.
-  const legacy = renderer.physicallyCorrectLights;
-  renderer.physicallyCorrectLights = true;
-  cubeCam.update(renderer, room);
-  renderer.physicallyCorrectLights = legacy;
+  cubeCam.update(renderer, room); // physically-correct light units (three's default)
   const pmrem = new PMREMGenerator(renderer);
   const env = pmrem.fromCubemap(cubeTarget.texture).texture;
   pmrem.dispose();
@@ -589,7 +587,7 @@ export function createSculpture(canvas, token) {
 
   const renderer = new WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.outputEncoding = sRGBEncoding;
+  renderer.outputColorSpace = SRGBColorSpace;
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.05;
 
@@ -610,9 +608,11 @@ export function createSculpture(canvas, token) {
   tv.scale.setScalar(0.62);
   pose.add(tv);
 
-  // Dissolve (About → Stats): the frame goes to a multisampled, sRGB target, then through the mask
-  const target = new WebGLMultisampleRenderTarget(1, 1, { minFilter: LinearFilter, magFilter: LinearFilter, encoding: sRGBEncoding });
-  target.texture.encoding = sRGBEncoding;
+  // Dissolve (About → Stats): the frame goes to a multisampled, linear half-float target (three skips
+  // tone mapping off-screen), then through the mask, which applies the same ACES tone mapping + sRGB
+  // output as the on-screen render (about-dissolve.frag) — so the TV looks identical while dissolving.
+  const target = new WebGLRenderTarget(1, 1, { samples: 4, type: HalfFloatType, minFilter: LinearFilter, magFilter: LinearFilter });
+  target.texture.colorSpace = LinearSRGBColorSpace;
   const maskMaterial = new ShaderMaterial({
     glslVersion: GLSL3,
     transparent: true,

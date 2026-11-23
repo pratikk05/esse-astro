@@ -1,6 +1,6 @@
 import gsap from "gsap";
 import {createSectionReveal} from './section-reveal.js';
-import * as THREE from '../../vendor/three-r17x.js';
+import * as THREE from "three";
 import {createServiceModels} from './service-models.js';
 import {clamp,gridLimits,transition,vertexShader,wipeFragment} from './pixel-grid.js';
 

@@ -7,7 +7,6 @@
 //   immersive — a voxel planet with ripples running over it and an orbiting blue moon
 //   search    — a search bar typing a query while your result climbs from #3 to #1 (AI sparkle)
 //   support   — a performance dial whose ticks fill to 96 around a pixel lightning bolt
-// Undo: the previous set lives in service-models-classic.js (swap the import in index.js).
 
 import { createStudioEnv } from "../../lib/studio-env.js";
 

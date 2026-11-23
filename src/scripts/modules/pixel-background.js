@@ -1,7 +1,7 @@
 // Bayer-dithered fbm pixel background with click ripples (ported from Slater).
 // One shader, shared by every `.bayer-dither-bg` (Process, Stats, CTA).
 // Attributes: data-shape (square|circle|triangle|diamond), data-pixel-size, data-ink, data-ripples="1".
-import { Clock, Color, Mesh, OrthographicCamera, PlaneGeometry, RawShaderMaterial, Scene, Vector2, WebGLRenderer } from "three";
+import { Clock, Color, LinearSRGBColorSpace, Mesh, OrthographicCamera, PlaneGeometry, RawShaderMaterial, Scene, Vector2, WebGLRenderer } from "three";
 import fragmentShader from "./pixel-background.frag";
 import { inkOf, reducedMotion, watchVisibility } from "../lib/particles.js";
 
@@ -31,7 +31,7 @@ function initBayer(el) {
   const uniforms = {
     uResolution: { value: new Vector2() },
     uTime: { value: 0 },
-    uColor: { value: new Color(inkOf(el, "#ffffff")) },
+    uColor: { value: new Color().setStyle(inkOf(el, "#ffffff"), LinearSRGBColorSpace) }, // raw sRGB values: the raw shader writes them straight out
     uPixelSize: { value: parseFloat(el.dataset.pixelSize) || 4 },
     uShapeType: { value: SHAPES[el.dataset.shape] ?? 0 },
     uClickPos: { value: Array.from({ length: MAX_RIPPLES }, () => new Vector2(-1, -1)) },
