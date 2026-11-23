@@ -53,7 +53,9 @@ function attach(host) {
   function follow(force) {
     const r = host.getBoundingClientRect();
     const ch = canvas.clientHeight;
-    const visTop = -r.top, visBottom = visTop + innerHeight;
+    // visible slice of the host, clamped to it (a host whose top edge is on screen has a negative
+    // -r.top; unclamped, that re-placed the canvas every frame and wiped every ripple)
+    const visTop = Math.max(0, -r.top), visBottom = Math.min(hostH, -r.top + innerHeight);
     if (!force && visTop >= top && visBottom <= top + ch) return false;
     const next = Math.max(0, Math.min(hostH - ch, visTop - PAD));
     top = Math.floor(next / 12) * 12;
