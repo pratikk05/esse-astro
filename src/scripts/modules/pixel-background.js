@@ -1,11 +1,11 @@
 // Bayer-dithered fbm pixel background with click ripples (ported from Slater).
 // One shader, shared by every `.bayer-dither-bg` (Process, Stats, CTA).
-// Attributes: data-shape (square|circle|triangle|diamond), data-pixel-size, data-ink, data-ripples="1".
+// Attributes: data-shape (square|circle|triangle|diamond|dot = circle-sized square), data-pixel-size, data-ink, data-ripples="1".
 import { Clock, Color, LinearSRGBColorSpace, Mesh, OrthographicCamera, PlaneGeometry, RawShaderMaterial, Scene, Vector2, WebGLRenderer } from "three";
 import fragmentShader from "./pixel-background.frag";
 import { inkOf, reducedMotion, watchVisibility } from "../lib/particles.js";
 
-const SHAPES = { square: 0, circle: 1, triangle: 2, diamond: 3 };
+const SHAPES = { square: 0, circle: 1, triangle: 2, diamond: 3, dot: 4 }; // dot = square dot, circle-sized
 const MAX_RIPPLES = 10;
 
 const vertexShader = /* glsl */ `
@@ -61,7 +61,7 @@ function initBayer(el) {
     // Listen on the whole section: its content sits above the canvas, so a listener on the canvas'
     // own wrapper never saw clicks on the copy. Coordinates are mapped into the canvas, so a click
     // anywhere in the section ripples from the right spot.
-    (el.closest("section, [data-cta-scene]") || el.parentNode || el).addEventListener("pointerdown", (e) => {
+    (el.closest("section, footer, [data-cta-scene]") || el.parentNode || el).addEventListener("pointerdown", (e) => {
       const rect = canvas.getBoundingClientRect();
       if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
       uniforms.uClickPos.value[next].set(

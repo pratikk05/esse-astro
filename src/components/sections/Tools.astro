@@ -74,6 +74,11 @@ const mark = ["#...#", "#...#", "#...#", "#...#", ".###."];
         {mark.flatMap((row, y) => [...row].map((c, x) => c === "#" && <rect x={x + 0.1} y={y + 0.1} width="0.8" height="0.8" style={`--k:${x + y}`} />))}
       </svg>
     </div>
+    <!-- Focused tool, beside the "u" (desktop): name + what we use it for, swapped word by word -->
+    <div class="tl-focus" data-tl-focus>
+      <p class="tl-focus-name" data-tl-name></p>
+      <p class="tl-focus-use" data-tl-use></p>
+    </div>
   </div>
 
   <div class="tl-copy">
@@ -87,7 +92,7 @@ const mark = ["#...#", "#...#", "#...#", "#...#", ".###."];
 
     <div class="tl-browser">
       <div>
-        <p class="tl-caption text-12 text-grey-60" aria-live="polite" data-tl-caption></p>
+        <p class="tl-caption text-12 text-grey-60" data-tl-caption><span class="tl-caption-name text-grey-90" data-tl-name></span><span data-tl-use></span></p>
         <div class="tl-filters" role="group" aria-label="Filter tools">
           {Object.keys(groups).map((g, i) => (
             <button type="button" class="tl-filter text-11" data-tl-filter={g} aria-pressed={i === 0 ? "true" : "false"}>{g}</button>
@@ -105,7 +110,32 @@ const mark = ["#...#", "#...#", "#...#", "#...#", ".###."];
       const groups: Record<string, string[]> = JSON.parse(root.dataset.groups || "{}");
       const arms = [...root.querySelectorAll<HTMLElement>("[data-tl-arm]")];
       const hub = root.querySelector<HTMLElement>("[data-tl-hub]")!;
-      const caption = root.querySelector<HTMLElement>("[data-tl-caption]")!;
+      // Name + use of the focused tool, beside the hub (desktop) and in the caption (mobile)
+      const names = [...root.querySelectorAll<HTMLElement>("[data-tl-name]")];
+      const uses = [...root.querySelectorAll<HTMLElement>("[data-tl-use]")];
+      const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+      const EASE_IN = "cubic-bezier(0.55, 0, 0.75, 0.05)", EASE_OUT = "cubic-bezier(0.16, 1, 0.3, 1)";
+      const words = (el: HTMLElement) => [...el.querySelectorAll<HTMLElement>(".tl-w > span")];
+      const fill = (el: HTMLElement, text: string) => {
+        el.replaceChildren(...text.split(" ").flatMap((w, i) => {
+          const mask = document.createElement("span"); mask.className = "tl-w";
+          const inner = document.createElement("span"); inner.textContent = w; mask.append(inner);
+          return i ? [" ", mask] : [mask];
+        }));
+      };
+      // Out: words drop up out of their masks (quick wave); in: the new words rise one after another.
+      function textOut() {
+        if (reduce.matches) return;
+        [...names, ...uses].forEach((el) => words(el).forEach((w, i) =>
+          w.animate([{ transform: "translateY(0)", opacity: 1 }, { transform: "translateY(-105%)", opacity: 0 }], { duration: 320, delay: i * 14, easing: EASE_IN, fill: "forwards" })));
+      }
+      function textIn(name: string, use: string) {
+        names.forEach((el) => fill(el, name));
+        uses.forEach((el) => fill(el, use));
+        if (reduce.matches) return;
+        [...names, ...uses].forEach((el, k) => words(el).forEach((w, i) =>
+          w.animate([{ transform: "translateY(105%)", opacity: 0 }, { transform: "translateY(0)", opacity: 1 }], { duration: 900, delay: (el.dataset.tlUse !== undefined ? 120 : 0) + i * 22, easing: EASE_OUT, fill: "backwards" })));
+      }
       const results = root.querySelector<HTMLUListElement>("[data-tl-results]")!;
       const filters = [...root.querySelectorAll<HTMLButtonElement>("[data-tl-filter]")];
       const R = 315;
@@ -130,12 +160,16 @@ const mark = ["#...#", "#...#", "#...#", "#...#", ".###."];
           arm.style.transform = `translate(-50%,-50%) rotate(${s.angle}deg)`;
           (arm.firstElementChild as HTMLElement).style.transform = `rotate(${-s.angle}deg)`;
         }
-        caption.textContent = arms[index].dataset.use || "";
       }
 
       function step() {
         hub.classList.remove("is-pulse"); void hub.offsetWidth; hub.classList.add("is-pulse");
-        delay = window.setTimeout(() => { index = (index + 1) % arms.length; layout(); }, 400);
+        textOut();
+        delay = window.setTimeout(() => {
+          index = (index + 1) % arms.length;
+          layout();
+          textIn(arms[index].dataset.name || "", arms[index].dataset.use || "");
+        }, 400);
       }
       const start = () => { if (!timer) timer = window.setInterval(step, 2200); };
       const stop = () => { clearInterval(timer); clearTimeout(delay); timer = 0; };
@@ -152,6 +186,8 @@ const mark = ["#...#", "#...#", "#...#", "#...#", ".###."];
       }));
 
       layout();
+      names.forEach((el) => fill(el, arms[index].dataset.name || ""));
+      uses.forEach((el) => fill(el, arms[index].dataset.use || ""));
     });
 
     // ---- Physics grid: the prototype's ripple ("wake" mode), simulated in its own pixel units
@@ -475,13 +511,48 @@ const mark = ["#...#", "#...#", "#...#", "#...#", ".###."];
       translate: -15px -29.25px;
     }
     .tl-caption {
+      display: none; /* desktop: the focused tool sits beside the hub instead (.tl-focus) */
+    }
+    /* Focused tool beside the "u" — right-aligned just left of the pill (frame px; the frame is
+       zoomed 0.75 on desktop, so sizes are /0.75 to read 32px / 13px on screen) */
+    .tl-focus {
       position: absolute;
-      bottom: 100%;
-      left: 0;
-      width: 228px;
-      max-width: 100%;
-      margin: 0 0 13.5px;
+      z-index: 3;
+      left: 861px; /* pill's visible left edge (901) − 40 gap */
+      top: calc(50% + 35px);
+      width: 400px;
+      display: grid;
+      justify-items: end;
+      gap: 12px;
+      text-align: right;
+      transform: translate(-100%, -50%);
+      pointer-events: none;
+    }
+    .tl-focus p {
+      margin: 0;
+    }
+    .tl-focus-name {
+      font: 500 calc(32px / 0.75) / 1.05 var(--font-secondary);
+      letter-spacing: -0.03em;
+      color: var(--color-grey-90);
+    }
+    .tl-focus-use {
+      max-width: 340px;
+      font: 400 calc(12px / 0.75) / 1.45 var(--font-tertiary);
+      letter-spacing: var(--tracking-mono, 0);
       text-transform: uppercase;
+      color: var(--color-grey-60);
+    }
+    /* word masks for the swap */
+    .tl :global(.tl-w) {
+      display: inline-block;
+      overflow: hidden;
+      vertical-align: top;
+      padding-bottom: 0.12em;
+      margin-bottom: -0.12em;
+    }
+    .tl :global(.tl-w > span) {
+      display: inline-block;
     }
     .tl-filters {
       display: inline-flex;
@@ -612,11 +683,22 @@ const mark = ["#...#", "#...#", "#...#", "#...#", ".###."];
         margin: 0 auto;
         translate: 0 136px;
       }
+      .tl-focus {
+        display: none;
+      }
       .tl-caption {
         position: static;
-        width: min(228px, 100%);
-        min-height: 2.3em;
+        display: grid;
+        gap: 6px;
+        width: min(260px, 100%);
+        min-height: 3.6em;
         margin: 0 auto 12px;
+        text-transform: uppercase;
+      }
+      .tl-caption-name {
+        font: 500 1.125rem / 1.1 var(--font-secondary);
+        letter-spacing: -0.02em;
+        text-transform: none;
       }
       .tl-filters {
         display: grid;

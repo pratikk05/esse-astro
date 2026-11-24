@@ -103,6 +103,9 @@
     display: block;
     width: 100%;
     height: 100%;
+    /* the dither draws at 1× CSS resolution: scale it up with hard edges so each dot stays a crisp
+       square on retina screens (smoothing blurred them into soft round blobs) */
+    image-rendering: pixelated;
   }
 
   /* White fade at the top / bottom of pixel sections */

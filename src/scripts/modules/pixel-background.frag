@@ -76,6 +76,10 @@ void main() {
   // diamond
   float Md = bw * step(abs(puv.x - 0.49) + abs(puv.y - 0.49), rad * 0.564);
 
-  float M = uShapeType < 0.5 ? bw : uShapeType < 1.5 ? Mc : uShapeType < 2.5 ? Mt : Md;
+  // square dot: a centred square exactly as wide as the circle's diameter (same size, square shape)
+  vec2 dq = abs(puv - 0.5);
+  float Mq = bw * step(max(dq.x, dq.y) - rad * 0.25, 0.0);
+
+  float M = uShapeType < 0.5 ? bw : uShapeType < 1.5 ? Mc : uShapeType < 2.5 ? Mt : uShapeType < 3.5 ? Md : Mq;
   gl_FragColor = vec4(uColor, M);
 }

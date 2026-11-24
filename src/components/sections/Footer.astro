@@ -38,19 +38,23 @@ const socials = [
 ---
 
 <footer class="site-footer bg-grey-100 text-grey-20" aria-label="Site footer" data-chat-hide>
+  <!-- Same dot-particle field as the CTA / Stats (scripts/modules/pixel-background.js): drifting
+       square dots, ripples where you click -->
+  <div class="footer-pattern" aria-hidden="true">
+    <div class="bayer-dither-bg" data-ripples="1" data-shape="dot" data-pixel-size="3" data-ink="#8494aa"></div>
+  </div>
   <div class="footer-inner">
     <div class="footer-top">
-      <!-- Left: newsletter + copyright -->
+      <!-- Left: journal subscription + copyright -->
       <div class="footer-left">
         <form class="footer-news" data-footer-form novalidate>
-          <p class="footer-news-title text-12 text-grey-20">STAY UPDATED ON NEW DROPS AND UPDATES!!</p>
+          <p class="footer-news-title text-12 text-grey-20">GET NEW JOURNAL NOTES IN YOUR INBOX</p>
           <div class="footer-fields">
-            <label class="sr-only" for="footer-name">Name</label>
-            <input id="footer-name" class="footer-input para-14" type="text" name="name" placeholder="Name" autocomplete="name" />
-            <label class="sr-only" for="footer-email">E-Mail</label>
-            <input id="footer-email" class="footer-input para-14" type="email" name="email" placeholder="E-Mail" autocomplete="email" />
-            <button class="footer-submit text-11 font-bold" type="submit">START A PROJECT</button>
+            <label class="sr-only" for="footer-email">Email address</label>
+            <input id="footer-email" class="footer-input para-14" type="email" name="email" placeholder="Your email" autocomplete="email" required />
+            <button class="footer-submit text-11 font-bold" type="submit">SUBSCRIBE</button>
           </div>
+          <p class="footer-news-status text-11" role="status" aria-live="polite" data-footer-status>DESIGN, PERFORMANCE &amp; 3D — NO SPAM.</p>
         </form>
         <div class="footer-copy text-12">
           <p class="text-grey-30">©COPYRIGHT 2026 UNIFLOW</p>
@@ -110,6 +114,20 @@ const socials = [
       position: relative;
       overflow: clip;
     }
+    .footer-pattern {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      opacity: 0.45;
+      pointer-events: none;
+    }
+    .footer-pattern :global(.bayer-dither-bg) {
+      pointer-events: none; /* ripples come from clicks anywhere in the footer */
+    }
+    .footer-inner {
+      position: relative;
+      z-index: 1;
+    }
     .footer-inner {
       width: 100%;
       max-width: calc(var(--container-max) + 2 * var(--container-padding));
@@ -145,6 +163,9 @@ const socials = [
 
     .footer-news-title { max-width: 17.3125rem; text-align: center; text-wrap: balance; } /* 277 */
     .footer-fields { width: 100%; display: flex; flex-direction: column; gap: 6px; }
+    .footer-news-status { margin: 0; color: var(--color-grey-50); text-align: center; }
+    .footer-news-status[data-state="ok"] { color: var(--color-accent); }
+    .footer-news-status[data-state="error"] { color: #ff8a80; }
     .footer-input {
       width: 100%;
       height: 40px;
@@ -262,6 +283,7 @@ const socials = [
       }
       .footer-news { align-items: flex-start; }
       .footer-news-title { max-width: none; text-align: left; text-wrap: wrap; }
+      .footer-news-status { text-align: left; }
       .footer-fields { gap: 6px; }
       .footer-input,
       .footer-submit { height: 41px; }
@@ -307,17 +329,28 @@ const socials = [
 </style>
 
 <script>
-  // "Start a project" in the footer continues on the contact page, carrying over what was typed.
+  // Journal subscription. No mailing service is connected yet: a valid email is handed to a
+  // `uniflow:subscribe` event (like the contact form's `uniflow:enquiry`) for the future integration.
   document.querySelectorAll<HTMLFormElement>("[data-footer-form]").forEach((form) => {
+    const input = form.querySelector<HTMLInputElement>('input[name="email"]')!;
+    const status = form.querySelector<HTMLElement>("[data-footer-status]")!;
+    const initial = status.textContent;
     form.addEventListener("submit", (event) => {
       event.preventDefault();
-      const params = new URLSearchParams();
-      for (const [key, value] of new FormData(form)) if (String(value).trim()) params.set(key, String(value).trim());
-      const query = params.toString();
-      const url = "/contact" + (query ? `?${query}` : "");
-      const navigate = (window as any).uniflowNavigate;
-      if (location.pathname === "/contact" || !navigate) location.href = url;
-      else navigate(url);
+      const email = input.value.trim();
+      if (!input.checkValidity() || !email) {
+        status.textContent = "PLEASE ENTER A VALID EMAIL.";
+        status.dataset.state = "error";
+        input.focus();
+        return;
+      }
+      form.dispatchEvent(new CustomEvent("uniflow:subscribe", { bubbles: true, detail: { email, source: "footer" } }));
+      status.textContent = "THANKS — YOU'RE ON THE LIST.";
+      status.dataset.state = "ok";
+      form.reset();
+    });
+    input.addEventListener("input", () => {
+      if (status.dataset.state === "error") { status.textContent = initial; delete status.dataset.state; }
     });
   });
 </script>

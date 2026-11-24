@@ -20,7 +20,8 @@ function init(scene) {
   if (!stage || !canvas) return;
   const ctx = canvas.getContext("2d");
   const color = getComputedStyle(document.documentElement).getPropertyValue("--color-background").trim() || "#fff";
-  let w = 0, h = 0, dpr = 1, top = 0, travel = 1, last = -1, active = false;
+  const action = stage.querySelector(".cta-action");
+  let w = 0, h = 0, dpr = 1, top = 0, travel = 1, last = -1, active = false, actionTop = 0.4;
 
   const measure = () => {
     dpr = Math.min(devicePixelRatio, 2);
@@ -30,6 +31,11 @@ function init(scene) {
     canvas.height = h * dpr;
     top = scene.getBoundingClientRect().top + scrollY;
     travel = Math.max(1, scene.offsetHeight - h);
+    // where the button sits in the stage (0 top → 1 bottom): it is live once the veil has cleared it
+    if (action) {
+      const a = action.getBoundingClientRect(), st = stage.getBoundingClientRect();
+      actionTop = (a.top - st.top) / Math.max(1, st.height);
+    }
     last = -1;
     draw();
   };
@@ -40,14 +46,17 @@ function init(scene) {
     if (Math.abs(p - last) < 0.002) return;
     last = p;
     canvas.style.visibility = p >= 1 ? "hidden" : "";
-    stage.classList.toggle("is-veiled", p < 0.85); // keep the button unclickable under the veil
+    // The white/blue boundary travels from below the bottom edge to above the top edge.
+    const front = 1.35 - p * 1.9;
+    // The button is only disabled while the SOLID part of the veil covers it (that sits ~0.2 above the
+    // dithered front): once that has cleared the button's top edge it is visible — hover + click work,
+    // even with a few loose pixels still drifting over it.
+    stage.classList.toggle("is-veiled", p < 1 && front - 0.2 > actionTop);
     if (p >= 1) return;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, w, h);
     ctx.fillStyle = color;
     const cols = Math.ceil(w / CELL), rows = Math.ceil(h / CELL);
-    // The white/blue boundary travels from below the bottom edge to above the top edge.
-    const front = 1.35 - p * 1.9;
     for (let c = 0; c < cols; c++) {
       const bump = wave(c * 0.045) * 0.22 + wave(c * 0.13 + 9) * 0.08;
       for (let r = 0; r < rows; r++) {
