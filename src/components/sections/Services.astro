@@ -1,20 +1,47 @@
 ---
 // Uniflow services: pinned sculpture + scrolling list (desktop), accordion (mobile).
-// Behaviour lives in src/scripts/modules/uniflow-services/ (lazy-loaded from main.js).
+// Content lives in src/scripts/modules/uniflow-services/data.js; behaviour in the same folder
+// (lazy-loaded from main.js).
 import "../../styles/uniflow-services.css";
+import { services, MOBILE_OPEN } from "../../scripts/modules/uniflow-services/data.js";
+const num = (i: number) => `[${String(i + 1).padStart(2, "0")}]`;
+const first = services[0];
 ---
 
 <section id="services" class="services" aria-label="Our services"><div class="services-camera">
   <div class="artwork-track destinationsHero__images"><div class="artwork-sticky">
-    <figure class="artwork" aria-label="Selected service artwork"><img id="fallback" src="/uniflow/img/service-website.webp" alt="3D browser window building itself block by block while a pixel cursor clicks its button"><canvas aria-hidden="true"></canvas></figure>
-    <div class="caption"><p id="description">Thoughtful design and custom development, brought together in a website built for your business.</p></div>
+    <figure class="artwork" aria-label="Selected service artwork"><img id="fallback" src={first.image} alt={first.alt}><canvas aria-hidden="true"></canvas></figure>
+    <!-- Every description (+ its tags) is stacked in one grid cell, so the caption always has the height
+         of the longest: the model above never shifts when the copy changes from two lines to three -->
+    <div class="caption" id="description">{services.map((s, i) => (
+      <div class="caption-text" data-desc={i} data-active={i === 0 ? "" : undefined} aria-hidden={i === 0 ? undefined : "true"}>
+        <p class="para-16">{s.description}</p>
+        <ul class="service-tags" aria-label="Includes">{s.tags.map((t) => <li class="service-tag text-11">{t}</li>)}</ul>
+      </div>
+    ))}</div>
   </div></div>
   <div class="list-window hero__main"><div class="service-list">
-    <article class="service-row" id="service-1" data-key="website"><h2><button type="button"><span class="service-number">[01]</span><span class="service-title">Website Design &amp; Development</span></button></h2></article>
-    <article class="service-row" id="service-2" data-key="design"><h2><button type="button"><span class="service-number">[02]</span><span class="service-title">Design-to-<br>Development</span></button></h2></article>
-    <article class="service-row" id="service-3" data-key="immersive"><h2><button type="button"><span class="service-number">[03]</span><span class="service-title">3D &amp; Immersive Experiences</span></button></h2></article>
-    <article class="service-row" id="service-4" data-key="search"><h2><button type="button"><span class="service-number">[04]</span><span class="service-title">SEO &amp; AI Search Readiness</span></button></h2></article>
-    <article class="service-row" id="service-5" data-key="support"><h2><button type="button"><span class="service-number">[05]</span><span class="service-title">Website Optimisation &amp; Ongoing Support</span></button></h2></article>
+    {services.map((s, i) => (
+      <article class="service-row" id={`service-${i + 1}`} data-key={s.key}><h2><button type="button"><span class="service-number">{num(i)}</span><span class="service-title">{s.title}</span></button></h2></article>
+    ))}
   </div></div>
 </div><div class="red-dot-exit-trigger" aria-hidden="true"></div></section>
-<section class="mobile-services" aria-label="Our services"><article class="ms-row"><h2><button class="ms-button" type="button" id="ms-button-0" aria-expanded="false" aria-controls="ms-copy-0 ms-art-0"><span class="ms-number">[01]</span><span class="ms-title">Website Design &amp; Development<span class="ms-copy" id="ms-copy-0" hidden>Thoughtful design and custom development, brought together in a website built for your business.</span></span><img class="ms-icon" alt="" loading="lazy" decoding="async" src="/uniflow/img/svg-4-ce2f.svg"></button></h2><div class="ms-art" id="ms-art-0" role="region" aria-labelledby="ms-button-0" hidden><img src="/uniflow/img/service-website.webp" loading="lazy" decoding="async" alt="3D browser window building itself block by block while a pixel cursor clicks its button"><span class="ms-grid" aria-hidden="true"></span></div></article><article class="ms-row"><h2><button class="ms-button" type="button" id="ms-button-1" aria-expanded="false" aria-controls="ms-copy-1 ms-art-1"><span class="ms-number">[02]</span><span class="ms-title">Design-to-Development<span class="ms-copy" id="ms-copy-1" hidden>Your design, developed with care. We turn approved layouts into responsive, accurate and maintainable websites.</span></span><img class="ms-icon" alt="" loading="lazy" decoding="async" src="/uniflow/img/svg-4-ce2f.svg"></button></h2><div class="ms-art" id="ms-art-1" role="region" aria-labelledby="ms-button-1" hidden><img src="/uniflow/img/service-design.webp" loading="lazy" decoding="async" alt="3D design frame with a blue selection turning from wireframe into a built component"><span class="ms-grid" aria-hidden="true"></span></div></article><article class="ms-row" data-open><h2><button class="ms-button" type="button" id="ms-button-2" aria-expanded="true" aria-controls="ms-copy-2 ms-art-2"><span class="ms-number">[03]</span><span class="ms-title">3D &amp; Immersive Experiences<span class="ms-copy" id="ms-copy-2">Bring another dimension to your digital presence with interactive 3D, expressive motion and immersive experiences.</span></span><img class="ms-icon" alt="" loading="lazy" decoding="async" src="/uniflow/img/svg-5-a9a4.svg"></button></h2><div class="ms-art" id="ms-art-2" role="region" aria-labelledby="ms-button-2"><img src="/uniflow/img/service-immersive.webp" loading="lazy" decoding="async" alt="3D voxel planet with ripples across its surface and an orbiting blue moon"><span class="ms-grid" aria-hidden="true"></span></div></article><article class="ms-row"><h2><button class="ms-button" type="button" id="ms-button-3" aria-expanded="false" aria-controls="ms-copy-3 ms-art-3"><span class="ms-number">[04]</span><span class="ms-title">SEO &amp; AI Search Readiness<span class="ms-copy" id="ms-copy-3" hidden>Build a stronger foundation for discovery, with clear content, technical SEO and readiness for AI-powered search.</span></span><img class="ms-icon" alt="" loading="lazy" decoding="async" src="/uniflow/img/svg-4-ce2f.svg"></button></h2><div class="ms-art" id="ms-art-3" role="region" aria-labelledby="ms-button-3" hidden><img src="/uniflow/img/service-search.webp" loading="lazy" decoding="async" alt="3D search bar with a result climbing to the top spot and an AI sparkle"><span class="ms-grid" aria-hidden="true"></span></div></article><article class="ms-row"><h2><button class="ms-button" type="button" id="ms-button-4" aria-expanded="false" aria-controls="ms-copy-4 ms-art-4"><span class="ms-number">[05]</span><span class="ms-title">Website Optimisation &amp; Ongoing Support<span class="ms-copy" id="ms-copy-4" hidden>Keep your website moving forward with ongoing improvements, performance optimisation and dependable support.</span></span><img class="ms-icon" alt="" loading="lazy" decoding="async" src="/uniflow/img/svg-4-ce2f.svg"></button></h2><div class="ms-art" id="ms-art-4" role="region" aria-labelledby="ms-button-4" hidden><img src="/uniflow/img/service-support.webp" loading="lazy" decoding="async" alt="3D performance dial filling up around a pixel lightning bolt"><span class="ms-grid" aria-hidden="true"></span></div></article></section>
+
+<!-- Mobile accordion: title, then its description, then the model -->
+<section class="mobile-services" aria-label="Our services">
+  {services.map((s, i) => {
+    const open = i === MOBILE_OPEN;
+    return (
+      <article class="ms-row" data-open={open ? "" : undefined}>
+        <h2><button class="ms-button" type="button" id={`ms-button-${i}`} aria-expanded={open ? "true" : "false"} aria-controls={`ms-panel-${i}`}><span class="ms-number">{num(i)}</span><span class="ms-title">{s.title}</span><img class="ms-icon" alt="" loading="lazy" decoding="async" src={open ? "/uniflow/img/svg-5-a9a4.svg" : "/uniflow/img/svg-4-ce2f.svg"}></button></h2>
+        <div class="ms-panel" id={`ms-panel-${i}`} role="region" aria-labelledby={`ms-button-${i}`}>
+          <div class="ms-copy" hidden={!open}>
+            <p class="para-16">{s.description}</p>
+            <ul class="service-tags" aria-label="Includes">{s.tags.map((t) => <li class="service-tag text-11">{t}</li>)}</ul>
+          </div>
+          <div class="ms-art" hidden={!open}><img src={s.image} loading="lazy" decoding="async" alt={s.alt}><span class="ms-grid" aria-hidden="true"></span></div>
+        </div>
+      </article>
+    );
+  })}
+</section>

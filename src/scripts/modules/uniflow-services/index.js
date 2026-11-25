@@ -4,21 +4,19 @@ import * as THREE from "three";
 import {createServiceModels} from './service-models.js';
 import {clamp,gridLimits,transition,vertexShader,wipeFragment} from './pixel-grid.js';
 
-// Each service: a live 3D model (service-models.js); `image` is its still render (fallback + mobile).
-export const services=[
- {key:'website',image:'/uniflow/img/service-website.webp',alt:'3D browser window building itself block by block while a pixel cursor clicks its button',description:'Thoughtful design and custom development, brought together in a website built for your business.'},
- {key:'design',image:'/uniflow/img/service-design.webp',alt:'3D design frame with a blue selection turning from wireframe into a built component',description:'Your design, developed with care. We turn approved layouts into responsive, accurate and maintainable websites.'},
- {key:'immersive',image:'/uniflow/img/service-immersive.webp',alt:'3D voxel planet with ripples across its surface and an orbiting blue moon',description:'Bring another dimension to your digital presence with interactive 3D, expressive motion and immersive experiences.'},
- {key:'search',image:'/uniflow/img/service-search.webp',alt:'3D search bar with a result climbing to the top spot and an AI sparkle',description:'Build a stronger foundation for discovery, with clear content, technical SEO and readiness for AI-powered search.'},
- {key:'support',image:'/uniflow/img/service-support.webp',alt:'3D performance dial filling up around a pixel lightning bolt',description:'Keep your website moving forward with ongoing improvements, performance optimisation and dependable support.'}
-];
+import {services,MOBILE_OPEN} from './data.js';
+export {services};
+const LAST=services.length-1,MODEL_ORDER=services.map(s=>s.model);
+// true: when the highlighted service changes, the artwork wipe plays once on its own (~0.7s), so it is
+// never left half-way between two models. false: the previous behaviour, the wipe is scrubbed by scroll.
+const TIMED_SWAP=true,SWAP_MS=700;
 
 export async function initializeServices(root){
  if(!root?.matches('.services'))throw new Error('Services root missing');
  const artwork=root.querySelector('.artwork'),canvas=root.querySelector('canvas'),fallback=root.querySelector('#fallback');
  const rows=[...root.querySelectorAll('.service-row:not([data-carousel-copy])')],sticky=root.querySelector('.artwork-sticky');
- const description=root.querySelector('#description'),cameraFrame=root.querySelector('.services-camera'),list=root.querySelector('.service-list');
- if(!artwork||!canvas||!fallback||!sticky||!description||!cameraFrame||!list||rows.length!==services.length)throw new Error('Required services targets missing');
+ const description=root.querySelector('#description'),descriptions=[...root.querySelectorAll('[data-desc]')],cameraFrame=root.querySelector('.services-camera'),list=root.querySelector('.service-list');
+ if(!artwork||!canvas||!fallback||!sticky||!description||descriptions.length!==services.length||!cameraFrame||!list||rows.length!==services.length)throw new Error('Required services targets missing');
  rows.forEach((row,i)=>{if(row.dataset.key!==services[i].key)throw new Error('Incorrect service target assignment');});
  const reduce=matchMedia('(prefers-reduced-motion: reduce)'),mobile=matchMedia('(max-width:767px)');
  const sectionReveal=createSectionReveal(root,cameraFrame);
@@ -33,7 +31,7 @@ export async function initializeServices(root){
   if(index===active)return;active=index;
   rows.forEach((row,i)=>{if(i===index)row.setAttribute('aria-current','step');else row.removeAttribute('aria-current');row.querySelector('button').setAttribute('aria-pressed',String(i===index));});
   fallback.src=services[index].image;fallback.alt=services[index].alt;fallback.dataset.service=services[index].key;artwork.setAttribute('aria-label',services[index].alt);
-  description.textContent=services[index].description;
+  descriptions.forEach((d,i)=>{d.toggleAttribute('data-active',i===index);if(i===index)d.removeAttribute('aria-hidden');else d.setAttribute('aria-hidden','true');});
  }
  function resize(){
   if(destroyed)return;
@@ -53,14 +51,14 @@ export async function initializeServices(root){
   // Source artwork-width / camera-height relationship, mapped to Figma's stage.
   limits=gridLimits(w,viewportHeight,services.length);
   if(!mobile.matches&&!reduce.matches){
-   travel=anchors[4]-anchors[0];
+   travel=anchors[LAST]-anchors[0];
    releaseHold=Math.max(240,viewportHeight*.35);
    root.style.removeProperty('--sequence-height');
    const listHeight=list.offsetHeight;
    root.querySelector('.list-window').style.paddingTop=Math.max(0,viewportHeight/2-anchors[0])+'px';
    root.querySelector('.list-window').style.paddingBottom='0px';
    root.querySelector('.list-window').style.minHeight=(viewportHeight+travel+releaseHold)+'px';
-   list.style.top=(viewportHeight/2-anchors[3])+'px';
+   list.style.top=(viewportHeight/2-anchors[LAST-1])+'px';
   }else{root.style.removeProperty('--sequence-height');travel=1;releaseHold=0;list.style.removeProperty('--list-y');list.style.removeProperty('position');list.style.removeProperty('transform');root.querySelector('.list-window').style.removeProperty('padding-top');root.querySelector('.list-window').style.removeProperty('padding-bottom');root.querySelector('.list-window').style.removeProperty('min-height');list.style.removeProperty('top');}
   start=Math.max(0,root.getBoundingClientRect().top+window.scrollY);
   sectionReveal.resize(travel+releaseHold,!mobile.matches&&!reduce.matches);
@@ -82,13 +80,13 @@ export async function initializeServices(root){
   frame=0;if(destroyed)return;
   const distance=Math.max(0,Math.min(travel,window.scrollY-start));
   let segment=0;
-  while(segment<3&&distance>anchors[segment+1]-anchors[0])segment++;
+  while(segment<LAST-1&&distance>anchors[segment+1]-anchors[0])segment++;
   const fraction=clamp((distance-(anchors[segment]-anchors[0]))/(anchors[segment+1]-anchors[segment]));
-  const progress=(segment+fraction)/4;
+  const progress=(segment+fraction)/LAST;
   visualProgress=progress;
   if(!mobile.matches&&!reduce.matches){
    // Headings stay in document flow. The same measured scroll drives artwork.
-   const freezeAt=anchors[3]-anchors[0],scrollDistance=Math.max(0,window.scrollY-start);
+   const freezeAt=anchors[LAST-1]-anchors[0],scrollDistance=Math.max(0,window.scrollY-start);
    if(scrollDistance>=freezeAt){
     // Preserve the final viewport coordinates through the blur/fade exit.
     list.style.position='relative';list.style.top='0px';
@@ -96,15 +94,17 @@ export async function initializeServices(root){
     list.style.transform=`translateY(${listY}px)`;
    }else{
     list.style.removeProperty('position');list.style.removeProperty('transform');
-    list.style.top=(viewportHeight/2-anchors[3])+'px';listY=0;
+    list.style.top=(viewportHeight/2-anchors[LAST-1])+'px';listY=0;
    }
    const [a,b]=limits[segment];
    const wipeStart=a+(b-a)/Math.max(1,gridRows)-.02,wipeEnd=b+.02;
    const t=clamp((progress-wipeStart)/(wipeEnd-wipeStart));
+   const before=active;
    select(segment+(t>=.5?1:0));
+   if(TIMED_SWAP&&active!==before)startSwap(before,active);
    scrollProgress=progress;lastScrollAt=performance.now();
-   if(!loop)draw(progress);
-  }else if(!reduce.matches){visualProgress=active/4;draw(visualProgress);}
+   if(!loop)draw(TIMED_SWAP?swapProgress(performance.now()):progress);
+  }else if(!reduce.matches){visualProgress=active/LAST;draw(visualProgress);}
   root.dataset.progress=progress.toFixed(5);
   sectionReveal.update();
  }
@@ -115,6 +115,21 @@ export async function initializeServices(root){
  function settle(p){
   for(let s=0;s<limits.length;s++){const [ws,we]=wipeWindow(s);if(p>ws&&p<we)return (p-ws)/(we-ws)>=.5?we:ws;}
   return p;
+ }
+ // Timed swap: the artwork rests fully on one service; a change plays that one wipe from start to end.
+ let swap=null;
+ function rest(i){if(i<=0)return 0;if(i>=LAST)return 1;return Math.min(wipeWindow(i-1)[1],i/LAST-1e-4);}
+ function startSwap(prev,next){
+  if(prev<0||!limits.length){swap=null;return;}
+  const forward=next>prev,s=forward?next-1:next,[ws,we]=wipeWindow(s);
+  swap={from:forward?ws:we,to:forward?we:ws,at:performance.now()};
+ }
+ function swapProgress(now){
+  if(!swap)return rest(active);
+  const k=clamp((now-swap.at)/SWAP_MS);
+  if(k>=1){swap=null;return rest(active);}
+  const e=1-Math.pow(1-k,3); // ease-out: the wipe starts the instant the service changes
+  return swap.from+(swap.to-swap.from)*e;
  }
  function onScroll(){schedule();}
  function schedule(){if(!frame&&!destroyed)frame=requestAnimationFrame(update);}
@@ -129,7 +144,7 @@ export async function initializeServices(root){
  try{
   renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:false,powerPreference:'high-performance'});
   renderer.outputColorSpace=THREE.SRGBColorSpace;
-  models=createServiceModels(THREE,renderer);
+  models=createServiceModels(THREE,renderer,MODEL_ORDER);
   scene=new THREE.Scene();camera=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
   quad=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.ShaderMaterial({vertexShader,fragmentShader:wipeFragment,transparent:true,
    uniforms:{u_from:{value:null},u_to:{value:null},u_progress:{value:0},u_limit:{value:new THREE.Vector2()},u_grid:{value:new THREE.Vector2(1,1)},u_done:{value:0}}}));
@@ -152,7 +167,8 @@ export async function initializeServices(root){
   loop=0;if(destroyed||!inView||!renderer)return;
   const now=performance.now(),dt=Math.min(.05,(now-(lastTickAt||now))/1000);lastTickAt=now;
   if(!reduce.matches&&!document.hidden){
-   if(mobile.matches||scrollProgress===null)draw(mobile.matches?active/4:(visualProgress??clamp((window.scrollY-start)/travel)));
+   if(TIMED_SWAP&&!mobile.matches){visualProgress=swapProgress(now);draw(visualProgress);}
+   else if(mobile.matches||scrollProgress===null)draw(mobile.matches?active/LAST:(visualProgress??clamp((window.scrollY-start)/travel)));
    else{
     // Follow the scroll exactly while it moves; ~160ms after it stops, glide to the settled state.
     const idle=now-lastScrollAt>160,target=idle?settle(scrollProgress):scrollProgress;
@@ -175,7 +191,7 @@ function createMobileModel(){
  let renderer;
  try{renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:true,powerPreference:'low-power'});}catch{return null;}
  renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.setClearColor(0x000000,0);
- const models=createServiceModels(THREE,renderer);
+ const models=createServiceModels(THREE,renderer,MODEL_ORDER);
  const blit=new THREE.Mesh(new THREE.PlaneGeometry(2,2),new THREE.MeshBasicMaterial({transparent:true}));
  const scene=new THREE.Scene();scene.add(blit);const cam=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
  let index=-1,art=null,raf=0,inView=false;
@@ -202,7 +218,7 @@ function createMobileModel(){
  };
 }
 function initializeMobileServices(){
- const rows=[...document.querySelectorAll('.ms-row')];let active=2;
+ const rows=[...document.querySelectorAll('.ms-row')];let active=MOBILE_OPEN;
  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
  const live=reduce?null:createMobileModel(); // reduced motion keeps the still render
  const ICON_OPEN="/uniflow/img/svg-5-a9a4.svg",ICON_CLOSED="/uniflow/img/svg-4-ce2f.svg";

@@ -87,16 +87,18 @@
 .services .service-row button>span.service-number:first-child{font:500 12px/1 var(--font-tertiary);letter-spacing:-.01em;padding-top:3px;color:#929c9c}
 .services .service-row[aria-current="step"] button>span.service-number:first-child{font-weight:700;color:#111317}
 .services .service-title{min-width:0}.services .service-row{border-color:#aeb8b8}
-.services .caption{font:500 12px/1.4 var(--font-tertiary);letter-spacing:-.02em;color:#586464}
+/* Description: type from the FlowScale para-16 class (Services.astro); sentence case, high-contrast grey */
+.services .caption{text-transform:none;color:#3c4545;max-width:34em;text-wrap:pretty}
 .mobile-services{display:none}
 @media(min-width:768px) and (max-width:1199px){.services .service-row h2{font-size:38px}}
 @media(max-width:767px){
 .services{display:none}.mobile-services{display:block;padding:40px 16px;background:#efefef;color:#111317}
-.ms-row{padding:24px 0;border-bottom:1px dashed #aeb8b8}.ms-row:last-child{border-bottom:0}.ms-row:nth-child(2){padding-bottom:40px}
+.ms-row{padding:24px 0;border-bottom:1px dashed #aeb8b8}.ms-row:last-child{border-bottom:0}
 .ms-button{display:grid;grid-template-columns:24px minmax(0,1fr) 20px;gap:12px;align-items:start;width:100%;border:0;background:none;padding:0;text-align:left;cursor:pointer;color:#aeb8b8}
-.ms-number{font:500 10px/1 var(--font-tertiary);letter-spacing:-.01em;padding-top:4px}.ms-row:nth-child(n+4) .ms-number{font-size:11px}
-.ms-title{display:block;min-width:0;font:400 30px/1.2 var(--font-primary);letter-spacing:-.04em;text-transform:capitalize}
-.ms-copy{display:block;margin-top:16px;font:500 10px/1.5 var(--font-tertiary);letter-spacing:-.02em;text-transform:uppercase;color:#586464}
+.ms-number{font:500 11px/1 var(--font-tertiary);letter-spacing:-.01em;padding-top:6px}
+.ms-title{display:block;min-width:0;font:400 30px/1.2 var(--font-primary);letter-spacing:-.04em}
+/* Description sits under the title (aligned with it), then the model */
+.mobile-services .ms-copy{display:block;margin:16px 0 0;padding:0 8px 0 36px;color:#3c4545;text-wrap:pretty}
 .ms-icon{display:block;width:20px;height:20px}
 .ms-row[data-open]{padding-bottom:12px;border-bottom:0}.ms-row[data-open] .ms-button{gap:16px;color:#000}.ms-row[data-open] .ms-number{font-weight:700}
 .ms-art{position:relative;width:100%;aspect-ratio:1;border:.604px solid rgba(8,10,16,.09);overflow:hidden;margin-top:32px}.ms-art img{position:absolute;z-index:1;inset:0;display:block;width:100%;height:100%;object-fit:contain}
@@ -124,3 +126,15 @@
 .ms-canvas{position:absolute;z-index:2;inset:0;width:100%;height:100%;display:block;opacity:0;transition:opacity .6s ease .35s}
 .ms-art.is-live .ms-canvas{opacity:1}
 .ms-art.is-live img{opacity:0;transition:opacity .6s ease .35s}
+
+/* Description swap: all descriptions share one grid cell (height = the longest), so the model never
+   jumps. The outgoing line fades quickly; the incoming one rises in softly after a beat. */
+.services .caption{display:grid;gap:0}
+.services .caption-text{grid-area:1/1;opacity:0;transform:translateY(10px);filter:blur(6px);transition:opacity .28s cubic-bezier(.4,0,1,1),transform .28s cubic-bezier(.4,0,1,1),filter .28s ease;pointer-events:none}
+.services .caption-text[data-active]{opacity:1;transform:none;filter:none;pointer-events:auto;transition:opacity .6s cubic-bezier(.16,1,.3,1) .16s,transform .8s cubic-bezier(.16,1,.3,1) .16s,filter .6s cubic-bezier(.16,1,.3,1) .16s}
+@media(prefers-reduced-motion:reduce){.services .caption-text,.services .caption-text[data-active]{transition:opacity .2s linear;transform:none;filter:none}}
+
+/* Service tags under each description (type: FlowScale text-11, JetBrains Mono) */
+.service-tags{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 0;padding:0;list-style:none}
+.service-tag{padding:5px 8px 4px;border:1px solid rgba(8,10,16,.12);background:rgba(255,255,255,.55);color:#3c4545;text-transform:uppercase;white-space:nowrap}
+@media(max-width:767px){.mobile-services .service-tags{margin-top:12px}}
